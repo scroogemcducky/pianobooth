@@ -4,9 +4,13 @@
 
 html,
 body {
-  @apply bg-white dark:bg-gray-950;
+  @apply bg-white;
 
   @media (prefers-color-scheme: dark) {
     color-scheme: dark;
   }
+
+  height: 100%;
+  margin: 0;
+  padding: 0;
 }
