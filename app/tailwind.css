@@ -6,11 +6,21 @@ html,
 body {
   @apply bg-white;
 
-  @media (prefers-color-scheme: dark) {
+  /* @media (prefers-color-scheme: dark) {
     color-scheme: dark;
-  }
+  } */
 
   height: 100%;
   margin: 0;
   padding: 0;
+}
+
+
+@layer base {
+  @font-face {
+    font-family: 'EB Garamond';
+    src: url('/fonts/EBGaramond-VariableFont_wght.ttf') format('truetype');
+    font-weight: 100 900;
+    font-style: normal;
+  }
 }

@@ -15,6 +15,16 @@ export default {
           "Segoe UI Symbol",
           "Noto Color Emoji",
         ],
+        garamond: [
+          "EB Garamond",
+          "Garamond",
+          "ui-serif",
+          "Georgia",
+          "Cambria",
+          "Times New Roman",
+          "Times",
+          "serif"
+        ],
       },
     },
   },

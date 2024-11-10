@@ -1,12 +1,29 @@
 import { LoaderFunctionArgs } from "@remix-run/node";
 import { useLoaderData, Link } from "@remix-run/react";
 import { createClient } from "~/utils/supabase.server";
+// import process from 'process'
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  const supabase = createClient(request);
-  const { data: todos } = await supabase.from('Midi').select();
-
-  return { todos };
+export async function loader({ request, context }: LoaderFunctionArgs) {
+  // Access env variables from context.cloudflare.env
+  const supabaseUrl = context.cloudflare.env.SUPABASE_URL;
+  const supabaseKey = context.cloudflare.env.SUPABASE_KEY;
+  
+  console.log('SUPABASE_URL:', supabaseUrl);
+  console.log('SUPABASE_KEY:', supabaseKey);
+  
+  const supabase = createClient(request, { 
+    SUPABASE_URL: supabaseUrl, 
+    SUPABASE_ANON_KEY: supabaseKey 
+  });
+  
+  try {
+    const { data: todos } = await supabase.from('Midi').select();
+    console.log('Todos data:', todos);
+    return { todos };
+  } catch (error) {
+    console.error('Error fetching todos:', error);
+    throw error;
+  }
 }
 
 export default function Index() {

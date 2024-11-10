@@ -1,11 +1,11 @@
 import { createServerClient } from "@supabase/ssr";
 
-export function createClient(request: Request) {
+export function createClient(request: Request, context: any) {
   const cookies = request.headers.get("Cookie") ?? "";
   
   return createServerClient(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_KEY!,
+    context.SUPABASE_URL,
+    context.SUPABASE_ANON_KEY,
     {
       cookies: {
         get: (key) => {
