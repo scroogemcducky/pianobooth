@@ -38,7 +38,7 @@ function MovingBlocks({ playing, triggerVisibleNote, midiObject }) {
           position: position,
         };
       });
-
+      console.log("newBlocks: ", newBlocks)
       const grouped = groupByDelta(newBlocks);
       setBlocks(newBlocks);
       setGroupedBlocks(grouped);
