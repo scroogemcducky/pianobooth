@@ -1,5 +1,5 @@
 import {  useEffect, useState  } from 'react';
-import InstancedShaderRectangles from './instancedShaderRectangles';
+import InstancedShaderRectangles from './instancedr3f';
 import {factor, speed, white_size_vector, black_width, white_width, white_color, black_color} from '../utils/constants';
 import { y_shader, calculateHeight, isBlack, groupByDelta } from '../utils/functions.js';
 

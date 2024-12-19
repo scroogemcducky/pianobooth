@@ -3,22 +3,30 @@ import { useMemo, useRef, useEffect } from "react";
 import usePlayStore from '../store/playStore'
 import { factor, speed } from '../utils/constants';
 import * as THREE from 'three';
-// import { OrbitControls, PerspectiveCamera } from "@react-three/drei";
+import { extend } from "@react-three/fiber";
+import { ShaderMaterial } from "three";
 
-interface Block {
-  position: [number, number, number];
-  height: number;
-  width: number;
-  isBlack: boolean;
+// 
+
+class CustomShaderMaterial extends ShaderMaterial {
+  constructor() {
+    super({
+      vertexShader,
+      fragmentShader,
+      uniforms: {
+        uTime: { value: 0.0 },
+        uDelta: { value: 0.0 },
+        uAccum: { value: 0.0 },
+        uMovement: { value: 0.0 }
+      },
+      transparent: true,
+      side: THREE.DoubleSide,
+    });
+  }
 }
 
-interface CustomGeometryParticlesProps {
-  blocks: Block[];
-  groupedBlocks?: any; // Add proper type if needed
-  triggerVisibleNote?: (note: any) => void; // Add proper type if needed
-  keys?: any; // Add proper type if needed
-  distance: number;
-}
+extend({ CustomShaderMaterial });
+
 
 const vertexShader = `
     uniform float uTime;
@@ -85,9 +93,12 @@ const fragmentShader = `
 const CustomGeometryParticles: React.FC<CustomGeometryParticlesProps> = ({
   blocks,
   distance,
+  groupedBlocks,
+  keys,
+  triggerVisibleNote
 }) => {
     const playingRef = useRef(usePlayStore.getState().playing);
-    const points = useRef<THREE.Mesh>(null);
+    const materialRef = useRef<CustomShaderMaterial>(null);
     const accumulatedRef = useRef(0.0);
 
     useEffect(() => usePlayStore.subscribe(
@@ -97,7 +108,6 @@ const CustomGeometryParticles: React.FC<CustomGeometryParticlesProps> = ({
     const geometry = useMemo(() => {
         if (!blocks.length) return null;
 
-        // Create instanced buffer geometry
         const baseGeometry = new THREE.PlaneGeometry(1, 1);
         const instancedGeometry = new THREE.InstancedBufferGeometry();
 
@@ -114,12 +124,6 @@ const CustomGeometryParticles: React.FC<CustomGeometryParticlesProps> = ({
         const instanceColors = new Float32Array(blocks.length);
 
         blocks.forEach((block, i) => {
-            console.log(`Block ${i}:`, {
-                width: block.width,
-                height: block.height,
-                position: block.position,
-                isBlack: block.isBlack
-            });
             const [x, y, z] = block.position;
             instancePositions[i * 3] = x;
             instancePositions[i * 3 + 1] = y;
@@ -129,8 +133,7 @@ const CustomGeometryParticles: React.FC<CustomGeometryParticlesProps> = ({
             instanceColors[i] = block.isBlack ? 1.0 : 0.0;
         });
 
-        // Log the first few entries of the instanceWidths array
-        console.log("First 5 instanceWidths:", Array.from(instanceWidths.slice(0, 5)));
+        // console.log("First 2 instanceWidths:", Array.from(instanceWidths.slice(0, 2)));
 
         instancedGeometry.setAttribute(
             'instancePosition',
@@ -155,39 +158,59 @@ const CustomGeometryParticles: React.FC<CustomGeometryParticlesProps> = ({
         return instancedGeometry;
     }, [blocks]);
 
-    const uniforms = useMemo(() => ({
-        uTime: { value: 0.0 },
-        uDelta: { value: 0.0 },
-        uAccum: { value: 0.0 },
-        uMovement: { value: 0.0 }
-    }), []);
-
+    let idx = 0;
+    const timeRef = useRef(0);
     useFrame((_, delta) => {
-        if (playingRef.current && points.current?.material) {
+        if (playingRef.current && materialRef.current) {
+            const speed_in_seconds = speed * 1000;
+            timeRef.current += delta * speed_in_seconds;
+
             accumulatedRef.current += (distance * delta * speed) / factor;
-            (points.current.material as THREE.ShaderMaterial).uniforms.uAccum.value = 
-              accumulatedRef.current;
+            materialRef.current.uniforms.uAccum.value = accumulatedRef.current;
+
+            while (idx < keys.length && timeRef.current >= keys[idx]) {
+                const currentBlocks = groupedBlocks[idx][keys[idx]];
+                currentBlocks.forEach(block => {
+                  triggerVisibleNote(block.noteNumber, block.duration * 1000 / speed);
+                });
+                idx += 1;
+              }
         }
     });
 
     if (!blocks.length || !geometry) return null;
-
+    console.log("instancede3f")
     return (
-        <>
-            {/* <OrbitControls /> */}
-            <mesh ref={points}>
-                <primitive object={geometry} />
-                <shaderMaterial
-                    key={blocks.length}
-                    fragmentShader={fragmentShader}
-                    vertexShader={vertexShader}
-                    uniforms={uniforms}
-                    transparent={true}
-                    side={THREE.DoubleSide}
-                />
-            </mesh>
-        </>
+        <mesh>
+            <primitive object={geometry} attach="geometry" />
+            <customShaderMaterial
+                ref={materialRef}
+                key={blocks.length}
+                attach="material"
+            />
+        </mesh>
     );
 };
 
 export default CustomGeometryParticles;
+
+
+// interface Block {
+//       position: [number, number, number];
+//       height: number;
+//       width: number;
+//       isBlack: boolean;
+//     }
+    
+//     interface GroupedBlock {
+//       noteId: string;
+//       blocks: Block[];
+//     }
+    
+//     interface CustomGeometryParticlesProps {
+//       blocks: Block[];
+//       groupedBlocks?: Record<string, GroupedBlock>;
+//       triggerVisibleNote?: (note: string) => void;
+//       keys?: Set<string>;
+//       distance: number;
+//     }

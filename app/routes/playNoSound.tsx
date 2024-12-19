@@ -1,33 +1,26 @@
+// standard/original version no sound
+// non-instanced
 import React, { useState, useEffect } from 'react'
 import { Canvas } from '@react-three/fiber'
-// import React from 'react'
 import midiParser from '../utils/MidiParser'
-// import soundFont from 'soundfont-player'
-
 import useKeyStore from '../store/keyPressStore'  
 import useMidiStore from '../store/midiStore'
-import usePlayStore from '../store/playStore'
-
-// import LightsButton from '../components/LightsButton'
+import LightsButton from '../components/LightsButton'
 import PlayPauseButton from '../components/PlayPauseButton'
-import SettingsButton from '../components/SettingsButton'
-// import MovingBlocks from '../components/ClaudeMovingBlocks'
-import ShaderBlocks from '../components/shaderBlocks'
+import MovingBlocks from '../components/MovingBlocks'
 import Lights from '../components/Lights'
 import Camera from '../components/Camera'
 import Keys from '../components/Keyboard' 
 
-// import { OrbitControls } from '@react-three/drei'
 // const ac = new AudioContext()
-
 // let instrument;
-
 // soundFont.instrument(ac, 'acoustic_grand_piano').then(function (piano) {
 //       instrument = piano
 // });
 
 export default function Video()  {  
   const [midiObject, setMidiObject] = useState();
+  const [playing, setPlaying] = useState(false)
   const [lights, setLights] = useState(true)
   const midiFile = useMidiStore((state) => state.midiFile);
 
@@ -68,26 +61,27 @@ export default function Video()  {
       <Canvas 
           style={{ background: "black" }}  
           orthographic 
-          camera={{zoom: 7, rotation: [Math.PI/2, 0, -Math.PI/2]}}>
+          camera={{zoom: 7}}  
+          >
           {lights ? <Lights /> : <>
-              <ambientLight intensity={3} />
+              {/* eslint-disable-next-line react/no-unknown-property */}
+              <ambientLight intensity={5} />
+              eslint-disable-next-line react/no-unknown-property
               <pointLight position={[10, 10, 10]} />
                </>}
-          <ambientLight intensity={5} />
+          {midiObject && <MovingBlocks 
+                playing={playing} 
+                triggerVisibleNote={triggerVisibleNote} 
+                midiObject={midiObject}/>}
           <Camera /> 
           <Keys /> 
-          {midiObject && <ShaderBlocks 
-            midiObject={midiObject} triggerVisibleNote={triggerVisibleNote}/>} 
       </Canvas>
       <PlayPauseButton 
-        onClick={() => usePlayStore.getState().setPlaying(!playing)}
-         />
-      {/* <LightsButton 
+        playing={playing} 
+        onClick={ () => {setPlaying(prevPlaying => !prevPlaying)}} />
+      <LightsButton 
         lights={lights} 
-        onClick={() => {setLights(prevLights => !prevLights)}} /> */}
-        <SettingsButton 
-            lights={lights} 
-            lightsClick={() => {setLights(prevLights => !prevLights)}}/>
+        onClick={() => {setLights(prevLights => !prevLights)}} />
     </div>
     </React.StrictMode>
   )
