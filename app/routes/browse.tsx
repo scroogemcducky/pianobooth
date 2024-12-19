@@ -8,8 +8,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const supabaseUrl = context.cloudflare.env.SUPABASE_URL;
   const supabaseKey = context.cloudflare.env.SUPABASE_KEY;
   
-  console.log('SUPABASE_URL:', supabaseUrl);
-  console.log('SUPABASE_KEY:', supabaseKey);
   
   const supabase = createClient(request, { 
     SUPABASE_URL: supabaseUrl, 
@@ -18,7 +16,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   
   try {
     const { data: todos } = await supabase.from('Midi').select();
-    console.log('Todos data:', todos);
+    console.log("todos: ", todos)
+
     return { todos };
   } catch (error) {
     console.error('Error fetching todos:', error);

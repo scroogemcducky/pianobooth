@@ -44,22 +44,22 @@ const App = () => {
   const handleFileInput = async () => {
     if (typeof window === 'undefined') return;
     const selectedFile = MidiFileRef.current.files[0];
-    console.log('selectedFile:', selectedFile)
+    // console.log('selectedFile:', selectedFile)
     const {isValid, error} = validateMidiFile(selectedFile)
     if(isValid){
       try {
-        console.log("trying")
+        // console.log("trying")
         const result = await SaveAsBase64(selectedFile);
         setMidiStore(result); // Set the MIDI file in the Zustand store
         localStorage.setItem('midiFile', JSON.stringify(result));
-        console.log("Setting local storage")
+        // console.log("Setting local storage")
         navigate("/play")
       } 
       catch (error) {
         alert('Error processing the MIDI file. Please try again.');
       }
     } else {
-        console.log("Error")
+        // console.log("Error")
       }
     // }
   };
@@ -92,10 +92,10 @@ const App = () => {
 }
 
 export const validateMidiFile = (file) => {
-  console.log("Getting called")
+  // console.log("Getting called")
   // Early return if no file provided
   if (!file) {
-    console.log("File from validation: ", file)
+    // console.log("File from validation: ", file)
     return { isValid: false, error: 'No file provided' };
   }
 

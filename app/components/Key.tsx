@@ -60,9 +60,9 @@ function Scaffold(props) {
         // better
 
         // console.log(clonedMaterialRef.material)
-        console.log("white color: ", white_color)
-        console.log("whitergbvalues: ", whiteRgbValues)
-        console.log("normalizsed white: ", normalizedWhiteRGB)
+        // console.log("white color: ", white_color)
+        // console.log("whitergbvalues: ", whiteRgbValues)
+        // console.log("normalizsed white: ", normalizedWhiteRGB)
         if(meshRef.current) {
           meshRef.current.material  = standardMaterial
         }  
@@ -139,8 +139,8 @@ function Scaffold2(props) {
 
 
   useEffect(() => {
-    console.log("noteNumber: ", noteNumber)
-    console.log(stateRef.current)
+    // console.log("noteNumber: ", noteNumber)
+    // console.log(stateRef.current)
 
     if (materials[color]) {
       clonedMaterialRef.copy(materials[color]);
@@ -154,7 +154,7 @@ function Scaffold2(props) {
   let needsReset = false
 
   useFrame(() => {
-    console.log("stateRefCurrent useframe: ", stateRef.current)
+    // console.log("stateRefCurrent useframe: ", stateRef.current)
     if (stateRef.current) {
       needsReset=true
       meshRef.current.rotation.z = -0.01;

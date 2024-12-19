@@ -1,10 +1,12 @@
-
+import usePlayStore from '../store/playStore'
 import { IoMdPlay, IoMdPause, } from 'react-icons/io';
 
-const PlayPauseButton = ({ playing, onClick }) => (
-    <button
+
+const PlayPauseButton = () => {
+  const playing = usePlayStore((state) => state.playing);
+    return (<button
       tabIndex="-1"
-      onClick={onClick}
+      onClick={() => usePlayStore.getState().setPlaying(!playing)}
       style={{
         position: 'absolute',
         top: 30,
@@ -19,7 +21,7 @@ const PlayPauseButton = ({ playing, onClick }) => (
       }}
     >
       {playing ? <IoMdPause /> : <IoMdPlay />}
-    </button>
-  );
-  
+    </button>)
+}
+ 
   export default PlayPauseButton

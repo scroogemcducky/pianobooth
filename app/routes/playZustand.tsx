@@ -38,7 +38,7 @@ export default function Video()  {
     useEffect(() => {
         const getFileAndSetPlayer = async (file) => {
         const result = await midiParser(file)
-        console.log("result is: ", result)
+        // console.log("result is: ", result)
         if(result) {
             setMidiObject(result)
             }

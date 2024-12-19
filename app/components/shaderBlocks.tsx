@@ -1,213 +1,52 @@
-import { ShaderMaterial, Color, BoxGeometry } from 'three';
-import { useMemo, useRef,  } from 'react';
-import { useFrame } from '@react-three/fiber';
-import CustomGeometryRectangles from './shaderRectangles';
+import {  useEffect, useState  } from 'react';
+import InstancedShaderRectangles from './instancedShaderRectangles';
+import {factor, speed, white_size_vector, black_width, white_width, white_color, black_color} from '../utils/constants';
+import { y_shader, calculateHeight, isBlack, groupByDelta } from '../utils/functions.js';
 
-const testBlocks = [
+import { useThree } from "@react-three/fiber";
 
-    {
-      id: "0",
-      noteNumber: 76,
-      soundDuration: 26042,
-      delta: 2000,
-      duration: 0.026042,
-      height: 0.4342096600845882,
-      width: 2.4499999999999997,
-      color: "rgb(240, 19, 71)",
-      position: [27.074247687185153, -0.1, 23.406]
-    },
-    {
-      id: "1",
-      noteNumber: 60,
-      soundDuration: 1635417,
-      delta: 2000,
-      duration: 1.635417,
-      height: 27.26802318049908,
-      width: 2.4499999999999997,
-      color: "rgb(240, 19, 71)",
-      position: [40.4911544473924, -0.1, 0.45599999999999996]
-    },
-    {   
-        id: "2",
-        noteNumber: 60,
-        soundDuration: 1635417,
-        delta: 2000,
-        duration: 1.635417,
-        height: 27.26802318049908,
-        width: 2.4499999999999997,
-        color: "rgb(240, 19, 71)",
-        position: [-50, 0, 0]}
 
-  ];
+export default function ShaderBlocks({ midiObject, triggerVisibleNote }) {
 
-function Block({ color, width, height, duration, position, soundDuration }) {
-//    const geometry = new BoxGeometry(height, 0, width);
-   const mesh = useRef(null)
-    console.log("color", color)
-    // const material = new ShaderMaterial({
-        
-    //     uniforms: {
-    //     color: { value: new Color(0xff0000) }
-    //     },
+    const { viewport } = useThree();
+    const [blocks, setBlocks] = useState([]);
+    const [groupedBlocks, setGroupedBlocks] = useState([]);
+    const [keys, setKeys] = useState([]);
 
-    //     vertexShader: `
-    //     varying vec2 vUv;
-    //     void main() {
-    //         vUv = uv;
-    //         gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-    //     }
-    //     `,
+    const half_screen = viewport.height / 2;
+    const distance = viewport.height - (white_size_vector.x + 5);
+    const firstNoteDelta = midiObject[0] ? parseInt(midiObject[0].Delta / 1000) - 1000 : 0;
 
-    //     fragmentShader: `
-    //     uniform vec3 color;
-    //     varying vec2 vUv;
-        
-    //     void main() {
-    //         vec3 finalColor = color;
-    //         gl_FragColor = vec4(finalColor, 1.0);
-    //     }
-    //     `
-    // });
-   
-        
-       const  uniforms =  useMemo (
-        () => ({
-            u_time: {
-                value: 1.0 
-            },
-        }), []
-        )
-
-        const vertexShader = `
-        varying vec2 vUv;
-        uniform float u_time;
-
-        void main() {
-            vUv = uv;
-            vec4 modelPosition = modelMatrix * vec4(position, 1.0);
-            modelPosition.x -= 1.0*u_time;
-
-            vec4 viewPosition = viewMatrix * modelPosition;
-            vec4 projectedPosition = projectionMatrix * viewPosition;
-
-            gl_Position = projectedPosition;
+    useEffect(() => {
+        if (midiObject) {
+        const newBlocks = midiObject.map((note, index) => {
+            const height = calculateHeight(note.Duration, distance) / factor;
+            const position = y_shader(note, height, distance, half_screen, firstNoteDelta);
+            return {
+            id: `${index}`,
+            noteNumber: note.NoteNumber,
+            soundDuration: note.SoundDuration,
+            delta: parseInt(note.Delta / 1000) - firstNoteDelta + (factor - 1) * 1000,
+            duration: note.Duration / 1000000,
+            height: height,
+            width: isBlack(note.NoteNumber) ? (black_width) : (white_width-0.1),
+            color: isBlack(note.NoteNumber) ? black_color : white_color,
+            position: position,
+            isBlack: isBlack(note.NoteNumber)
+            };
+        });
+        // console.log("newBlocks: ", newBlocks)
+        const grouped = groupByDelta(newBlocks);
+        setBlocks(newBlocks);
+        setGroupedBlocks(grouped);
+        //WHY?
+        setKeys(grouped.map(obj => parseInt(Object.keys(obj)[0])));
         }
-        `
-
-        const fragmentShader = `
-        varying vec2 vUv;
-
-        vec3 colorA = vec3(0.912,0.191,0.652);
-        vec3 colorB = vec3(1.000,0.777,0.052);
-
-        void main() {
-            vec2 normalizedPixel = gl_FragCoord.xy/600.0;
-            vec3 color = mix(colorA, colorB, normalizedPixel.x);
-
-            gl_FragColor = vec4(color,1.0);
-        }
-        `  
-        useFrame((state) => {
-            const { clock } = state;
-            mesh.current.material.uniforms.u_time.value = clock.getElapsedTime();
-          });
-    return (
-        // <mesh
-        // geometry={geometry}
-        // material={material}
-        // position={position}
-        // />
-        <mesh ref={mesh}>
-
-            {/* <planeGeometry args={[1,1,1,1]} rotation={[-Math.PI/2, 0, -Math.PI/2]} /> */}
-            <boxGeometry args={[1,1,1]} />
-            <shaderMaterial
-                fragmentShader={fragmentShader}
-                vertexShader={vertexShader}
-                uniforms = {uniforms}/>
-
-        </mesh>
-    );
-}
-
-
-// function Block2({ color, width, height, duration, position }) {
-//     const geometry = new BoxGeometry(5, 5, 1);
-
-//   const material = new ShaderMaterial({
-//     uniforms: {
-//       color: { value: new Color(0xff0000) }
-//     },
-//     vertexShader: `
-//       varying vec2 vUv;
-//       void main() {
-//         vUv = uv;
-//         gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-//       }
-//     `,
-//     fragmentShader: `
-//       uniform vec3 color;
-//       varying vec2 vUv;
-      
-//       void main() {
-//         vec3 finalColor = color;
-//         gl_FragColor = vec4(finalColor, 1.0);
-//       }
-//     `
-//     });
-
-//     return (
-//         <mesh
-//         geometry={geometry}
-//         material={material}
-//         position={position}
-//         />
-//     );
-// }
-
-// function RedBox() {
-//   const geometry = new BoxGeometry(5, 5, 1);
-
-//   const material = new ShaderMaterial({
-//     uniforms: {
-//       color: { value: new Color(0xff0000) }
-//     },
-//     vertexShader: `
-//       varying vec2 vUv;
-//       void main() {
-//         vUv = uv;
-//         gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-//       }
-//     `,
-//     fragmentShader: `
-//       uniform vec3 color;
-//       varying vec2 vUv;
-      
-//       void main() {
-//         vec3 finalColor = color;
-//         gl_FragColor = vec4(finalColor, 1.0);
-//       }
-//     `
-//   });
-
-//   return (
-//     <mesh
-//       geometry={geometry}
-//       material={material}
-//       position={[-50, 0, 0]}
-//       rotation={[0, 0, 0]}
-//     />
-//   );
-// }
-
-export default function ShaderBlocks() {
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [midiObject, viewport.height]);
   return (
     <>
-      {/* <RedBox /> */}
-      {testBlocks.map((block) => (
-        <Block key={block.id} {...block} />
-      ))}
-      <CustomGeometryRectangles count={10} />
+      {blocks.length && <InstancedShaderRectangles blocks={blocks}  groupedBlocks={groupedBlocks} triggerVisibleNote={triggerVisibleNote} keys={keys} distance={distance}/>}
     </>
   );
 }

@@ -49,7 +49,7 @@ function CanvasMovingBlocks({ playing, triggerVisibleNote, midiObject }: Props) 
     const resizeCanvas = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight * 0.8;
-      console.log('Canvas resized:', { width: canvas.width, height: canvas.height });
+      // console.log('Canvas resized:', { width: canvas.width, height: canvas.height });
     };
 
     resizeCanvas();
@@ -70,7 +70,7 @@ function CanvasMovingBlocks({ playing, triggerVisibleNote, midiObject }: Props) 
         // const noteIndex = note.NoteNumber - 21;
 
         const x = convert3DTo2D(positions[note.NoteNumber], canvas.width, canvas.height)["y"]
-        console.log("x: ", x)
+        // console.log("x: ", x)
 
         // const x = (noteIndex * noteWidth) + (noteWidth - width) / 2;
         // const x = 200
@@ -88,20 +88,20 @@ function CanvasMovingBlocks({ playing, triggerVisibleNote, midiObject }: Props) 
           startTime
         };
 
-        if (index < 5) {
-          console.log(`Block ${index} created:`, {
-            noteNumber: block.noteNumber,
-            delta: note.Delta / 1000,
-            startTime,
-            x,
-            width
-          });
-        }
+        // if (index < 5) {
+        //   console.log(`Block ${index} created:`, {
+        //     noteNumber: block.noteNumber,
+        //     delta: note.Delta / 1000,
+        //     startTime,
+        //     x,
+        //     width
+        //   });
+        // }
         
         return block;
       });
 
-      console.log(`Total blocks created: ${blocksRef.current.length}`);
+      // console.log(`Total blocks created: ${blocksRef.current.length}`);
     }
 
     return () => {
@@ -113,7 +113,7 @@ function CanvasMovingBlocks({ playing, triggerVisibleNote, midiObject }: Props) 
   }, [midiObject]);
 
   useEffect(() => {
-    console.log('Playing state changed:', playing);
+    // console.log('Playing state changed:', playing);
     
     if (!canvasRef.current || !playing) {
       if (animationFrameRef.current) {
@@ -130,21 +130,21 @@ function CanvasMovingBlocks({ playing, triggerVisibleNote, midiObject }: Props) 
     startTimeRef.current = performance.now();
     lastLogTimeRef.current = startTimeRef.current;
 
-    console.log('Animation starting at:', startTimeRef.current);
+    // console.log('Animation starting at:', startTimeRef.current);
 
     const animate = (currentTime: number) => {
       const elapsedTime = currentTime - startTimeRef.current;
       
       // Log timing info every second
-      if (currentTime - lastLogTimeRef.current >= 1000) {
-        console.log('Timing check:', {
-          currentTime,
-          elapsedTime,
-          startTime: startTimeRef.current,
-          timeSinceLastLog: currentTime - lastLogTimeRef.current
-        });
-        lastLogTimeRef.current = currentTime;
-      }
+      // if (currentTime - lastLogTimeRef.current >= 1000) {
+      //   console.log('Timing check:', {
+      //     currentTime,
+      //     elapsedTime,
+      //     startTime: startTimeRef.current,
+      //     timeSinceLastLog: currentTime - lastLogTimeRef.current
+      //   });
+      //   lastLogTimeRef.current = currentTime;
+      // }
 
       ctx.fillStyle = '#333333';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -166,12 +166,12 @@ function CanvasMovingBlocks({ playing, triggerVisibleNote, midiObject }: Props) 
             const triggerY = canvas.height - block.height;
             if (y >= triggerY && y <= triggerY + 2) {
               triggeredNotes++;
-              console.log('Triggering note in CanvasMovingBlocks:', {
-                noteNumber: block.noteNumber,
-                y,
-                triggerY,
-                duration: block.duration * 1000
-              });
+              // console.log('Triggering note in CanvasMovingBlocks:', {
+              //   noteNumber: block.noteNumber,
+              //   y,
+              //   triggerY,
+              //   duration: block.duration * 1000
+              // });
               triggerVisibleNote(block.noteNumber, block.duration * 1000);
             }
           }
@@ -187,7 +187,7 @@ function CanvasMovingBlocks({ playing, triggerVisibleNote, midiObject }: Props) 
       )) {
         animationFrameRef.current = requestAnimationFrame(animate);
       } else {
-        console.log('Animation complete');
+        // console.log('Animation complete');
       }
     };
 
@@ -196,7 +196,7 @@ function CanvasMovingBlocks({ playing, triggerVisibleNote, midiObject }: Props) 
     return () => {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
-        console.log('Animation cleanup');
+        // console.log('Animation cleanup');
       }
     };
   }, [playing, triggerVisibleNote]);

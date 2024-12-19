@@ -3,10 +3,16 @@ import { useThree, useFrame } from '@react-three/fiber';
 import {  Object3D, Color, PlaneGeometry, MeshBasicMaterial } from 'three';
 import {factor, speed, white_size_vector, black_width, white_width, white_color, black_color} from '../utils/constants';
 import { y, calculateHeight, isBlack, groupByDelta } from '../utils/functions.js';
-
+import usePlayStore from '../store/playStore'
 let idx = 0
 
 function MovingBlocks({ playing, triggerVisibleNote, midiObject }) {
+
+  const playingRef = useRef(usePlayStore.getState().playing)
+    // Connect to the store on mount, disconnect on unmount, catch state-changes in a reference
+  useEffect(() => usePlayStore.subscribe(
+        state => (playingRef.current = state.playing)
+  ), [])
     
   const { viewport } = useThree();
   const [blocks, setBlocks] = useState([]);
@@ -38,7 +44,7 @@ function MovingBlocks({ playing, triggerVisibleNote, midiObject }) {
           position: position,
         };
       });
-      console.log("newBlocks: ", newBlocks)
+
       const grouped = groupByDelta(newBlocks);
       setBlocks(newBlocks);
       setGroupedBlocks(grouped);
@@ -53,13 +59,16 @@ function MovingBlocks({ playing, triggerVisibleNote, midiObject }) {
   const tempColor = useMemo(() => new Color(), []);
   const geometry = useMemo(() => new PlaneGeometry(1, 1), []);
   const material = useMemo(() => new MeshBasicMaterial({ transparent: true, opacity: 0.75 }), []);
+  // console.log("distance: ", distance)
 
   useFrame((_, delta) => {
-    if (meshRef.current && playing && blocks.length > 0) {
+    if (meshRef.current && playingRef.current && blocks.length > 0) {
       const speed_in_seconds = speed * 1000;
       timeRef.current += delta * speed_in_seconds;
 
       const movement = (distance * delta * speed) / factor;
+
+      // console.log("movement: ", movement)
 
       for (let i = 0; i < blocks.length; i++) {
         const block = blocks[i];
@@ -81,7 +90,7 @@ function MovingBlocks({ playing, triggerVisibleNote, midiObject }) {
 
       meshRef.current.instanceMatrix.needsUpdate = true;
       meshRef.current.instanceColor.needsUpdate = true;
-
+      // console.log(keys[idx])
       while (idx < keys.length && timeRef.current >= keys[idx]) {
         const currentBlocks = groupedBlocks[idx][keys[idx]];
         currentBlocks.forEach(block => {

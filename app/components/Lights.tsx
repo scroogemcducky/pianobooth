@@ -6,10 +6,9 @@ const Lights  = () => {
                 intensity={1}
                 position={[-30, 105, -10]}
                 color={"white"}
-
               />
       <directionalLight
-                intensity={6}
+                intensity={4}
                 position={[-10,110, -20]}
                 color={"#ffffff"}
                 // castShadow={false}
