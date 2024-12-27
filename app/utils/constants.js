@@ -12,7 +12,7 @@ const F_Sharp_offset = white_width/2
 const G_Sharp_offset = white_width/2
 const A_Sharp_offset = white_width/2
 
-export const factor = 2
+export const factor = 4
 export const speed = 0.75
 
 export const note_positions = {

@@ -36,13 +36,17 @@ export function y(note, height, top_of_screen_to_keys, half_screen, firstNoteDel
   
 export function groupByDelta(arr) {
     const grouped = new Map();
-  
     arr.forEach(item => {
-        const deltaKey = item.delta; 
-        if (!grouped.has(deltaKey)) {
-            grouped.set(deltaKey, []); 
-        }
-        grouped.get(deltaKey).push(item); 
+      const deltaKey = item.delta; 
+      if (!grouped.has(deltaKey)) {
+        grouped.set(deltaKey, []); 
+      }
+        grouped.get(deltaKey).push({
+            noteNumber: item.noteNumber,
+            duration: item.duration
+        });
+
+        // grouped.get(deltaKey).push(item); 
     });
   
   

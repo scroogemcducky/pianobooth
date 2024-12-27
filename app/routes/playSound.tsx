@@ -1,3 +1,5 @@
+// non-instanced original version
+// used to be /play
 import React, { useState, useEffect } from 'react'
 import { Canvas } from '@react-three/fiber'
 // import React from 'react'

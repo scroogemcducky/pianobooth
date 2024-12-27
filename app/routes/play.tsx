@@ -29,7 +29,7 @@ export default function Video()  {
 
   useEffect(() => {
     if (ac) {
-        console.log("ac: ", ac)
+        // console.log("ac: ", ac)
         soundFont.instrument(ac, 'acoustic_grand_piano').then(function (piano) {
             setInstrument(piano);
         });
@@ -59,20 +59,18 @@ export default function Video()  {
 
   // TODO pass note parameters to playNote
   const playNote = (noteName, duration=4) => {
-    console.log("playing")
     if (instrument) {
-      console.log("playinh 2")
       instrument.play(noteName, ac.currentTime, {gain:1, duration: duration, release: 2.5, sustain: 2, delay: 2});
     }
   }
 
   const triggerVisibleNote = (noteName, duration) => {
-    console.log("triggering")
+
     useKeyStore.getState().setKey(noteName, true);
     playNote(noteName)
     setTimeout(() => useKeyStore.getState().setKey(noteName, false), duration); 
   }
-  console.log("shader imp")
+
 
   return ( 
     <React.StrictMode >
@@ -80,12 +78,12 @@ export default function Video()  {
       <Canvas 
           style={{ background: "black" }}  
           orthographic 
-          camera={{zoom: 7, rotation: [Math.PI/2, 0, -Math.PI/2]}}>
+          camera={{zoom: 9, rotation: [Math.PI/2, 0, -Math.PI/2], position: [0, -20, 0]}}>
           {lights ? <Lights /> : <>
               <ambientLight intensity={3} />
               <pointLight position={[10, 10, 10]} />
                </>}
-          <ambientLight intensity={5} />
+          {/* <ambientLight intensity={5} /> */}
           <Camera /> 
           <Keys /> 
           {midiObject && <ShaderBlocks 
@@ -99,9 +97,9 @@ export default function Video()  {
       {/* <LightsButton 
         lights={lights} 
         onClick={() => {setLights(prevLights => !prevLights)}} /> */}
-        <SettingsButton 
-            lights={lights} 
-            lightsClick={() => {setLights(prevLights => !prevLights)}}/>
+      <SettingsButton 
+        lights={lights} 
+        lightsClick={() => {setLights(prevLights => !prevLights)}}/>
     </div>
     </React.StrictMode>
   )

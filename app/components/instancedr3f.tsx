@@ -94,7 +94,7 @@ const CustomGeometryParticles: React.FC<CustomGeometryParticlesProps> = ({
   blocks,
   distance,
   groupedBlocks,
-  keys,
+  notes,
   triggerVisibleNote
 }) => {
     const playingRef = useRef(usePlayStore.getState().playing);
@@ -160,16 +160,18 @@ const CustomGeometryParticles: React.FC<CustomGeometryParticlesProps> = ({
 
     let idx = 0;
     const timeRef = useRef(0);
+    const speed_in_seconds = speed * 1000;
+    const speed_adjusted = speed * distance /factor
     useFrame((_, delta) => {
         if (playingRef.current && materialRef.current) {
-            const speed_in_seconds = speed * 1000;
+           
             timeRef.current += delta * speed_in_seconds;
-
-            accumulatedRef.current += (distance * delta * speed) / factor;
+            // accumulatedRef.current += (distance * delta * speed) / factor;
+            accumulatedRef.current += (delta * speed_adjusted);
             materialRef.current.uniforms.uAccum.value = accumulatedRef.current;
 
-            while (idx < keys.length && timeRef.current >= keys[idx]) {
-                const currentBlocks = groupedBlocks[idx][keys[idx]];
+            while (idx < notes.length && timeRef.current >= notes[idx]) {
+                const currentBlocks = groupedBlocks[idx][notes[idx]];
                 currentBlocks.forEach(block => {
                   triggerVisibleNote(block.noteNumber, block.duration * 1000 / speed);
                 });
@@ -179,7 +181,7 @@ const CustomGeometryParticles: React.FC<CustomGeometryParticlesProps> = ({
     });
 
     if (!blocks.length || !geometry) return null;
-    console.log("instancede3f")
+
     return (
         <mesh>
             <primitive object={geometry} attach="geometry" />
