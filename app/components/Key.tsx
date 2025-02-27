@@ -16,11 +16,11 @@ const variants = {
   },
 };
 // const black_color = "rgb(214, 13, 67)"
-const blackRgbValues = black_color.match(/\d+/g).map(Number);
-const normalizedBlackRGB = blackRgbValues.map(value => value / 255);
+// const blackRgbValues = black_color.match(/\d+/g).map(Number);
+// const normalizedBlackRGB = blackRgbValues.map(value => value / 255);
 
-const whiteRgbValues = white_color.match(/\d+/g).map(Number);
-const normalizedWhiteRGB = whiteRgbValues.map(value => value / 255);
+// const whiteRgbValues = white_color.match(/\d+/g).map(Number);
+// const normalizedWhiteRGB = whiteRgbValues.map(value => value / 255);
 
 function Scaffold(props) {
   const { noteNumber, pos, materials, color, geometryObject} = props;
