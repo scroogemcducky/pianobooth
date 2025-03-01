@@ -6,7 +6,7 @@ import useMidiStore from '../store/midiStore'
 import LightsButton from '../components/LightsButton'
 import PlayPauseButton from '../components/PlayPauseButton'
 import Lights from '../components/Lights'
-import Camera from '../components/Camera'
+import Camera from '../components/SetupCamera'
 import Keys from '../components/Keyboard2' 
 import CanvasMovingBlocks from '../components/CanvasMovingBlocks';
 

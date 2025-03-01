@@ -11,7 +11,7 @@ import PlayPauseButton from '../components/PlayPauseButton'
 import SettingsButton from '../components/SettingsButton'
 import ShaderBlocks from '../components/shaderBlocks'
 import Lights from '../components/Lights'
-import Camera from '../components/Camera'
+import Camera from '../components/SetupCamera'
 import Keys from '../components/Keyboard' 
 import soundFont from 'soundfont-player'
 
