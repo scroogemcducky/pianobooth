@@ -1,20 +1,12 @@
 const Lights  = () => {
     return (
       <>
-      <ambientLight color={"white"} intensity={2} />
+      <ambientLight color={"white"} intensity={3} />
       <directionalLight
-                intensity={1}
-                position={[-30, 105, -10]}
+                intensity={0.4}
+                position={[30, -10, 210]}
                 color={"white"}
               />
-      <directionalLight
-                intensity={4}
-                position={[-10,110, -20]}
-                color={"#ffffff"}
-                // castShadow={false}
-              />
-      {/* <hemisphereLight intensity={10} color="#ffffff" /> */}
-      {/* <hemisphereLight intensity={10} color="#ffffff" /> */}
       </>
     )
   }
