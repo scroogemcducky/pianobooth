@@ -189,6 +189,17 @@ function Scaffold2(props) {
   );
 }
 
+// export function A_rot(props) {
+//   const {  pos} = props
+//   const { nodes, materials } = useGLTF('/rotated/a_rotated_new2-transformed.glb')
+
+//   return (
+//     <Scaffold noteNumber={2} pos={pos} nodes={nodes} materials={materials} color={"white"} geometryObject={nodes.Cube1051.geometry}/>
+//   )
+// }
+
+
+
 export function C(props) {
   const { noteNumber, pos} = props;
   const { nodes, materials } = useGLTF('/c-transformed.glb');
