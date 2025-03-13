@@ -11,7 +11,7 @@ export function A_sharp_new(props) {
   const { nodes, materials } = useGLTF('/a_sharp_new-transformed.glb')
   return (
     <group {...props} dispose={null}>
-      <mesh geometry={nodes.Black004.geometry} material={materials.Material} position={[13.879, 8.094, 1.922]} rotation={[0, 0, -Math.PI / 2]} />
+      <mesh geometry={nodes.Black004.geometry} material={materials.Material} position={[13.879, 0, 1.922]} rotation={[0, 0, -Math.PI / 2]} />
     </group>
   )
 }

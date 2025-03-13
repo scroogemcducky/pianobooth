@@ -14,7 +14,8 @@ import ShaderBlocks from '../components/experimentalShaderBlocks'
 import Lights from '../components/Lights'
 import Camera from '../components/experimentalCamera'
 import soundFont from 'soundfont-player'
-import {Octave} from '../components/experimentalOctave'
+// import {Octave} from '../components/experimentalOctave'
+import Keys from '../components/experimentalKeys'
 
 export default function Video()  {  
   const [midiObject, setMidiObject] = useState();
@@ -29,7 +30,6 @@ export default function Video()  {
 
   useEffect(() => {
     if (ac) {
-        // console.log("ac: ", ac)
         soundFont.instrument(ac, 'acoustic_grand_piano').then(function (piano) {
             setInstrument(piano);
         });
@@ -65,7 +65,6 @@ export default function Video()  {
   }
 
   const triggerVisibleNote = (noteName, duration) => {
-
     useKeyStore.getState().setKey(noteName, true);
     playNote(noteName)
     setTimeout(() => useKeyStore.getState().setKey(noteName, false), duration); 
@@ -77,23 +76,17 @@ export default function Video()  {
       <Canvas 
           style={{ background: "black" }}  
           orthographic 
-          camera={{zoom: 9}}>
+          camera={{ zoom: 9 }}
+          >
           {lights ? <Lights /> : 
           <>
             <ambientLight intensity={3} /> 
             <pointLight position={[10, 10, 10]} /> 
           </>}
-          
-          <Octave octave={0} />
-          <Octave octave={1} />
-          <Octave octave={2} />
-          <Octave octave={3} />
-          <Octave octave={4} />
-          <Octave octave={5} />
-          {/* <axesHelper args={[5]} />
-          <gridHelper args={[100, 100, 100]} /> */}
+      
           <Camera /> 
-          {/* <Keys />  */}
+          <Keys />  
+          
           {midiObject && <ShaderBlocks 
             midiObject={midiObject} 
             triggerVisibleNote={triggerVisibleNote} />} 

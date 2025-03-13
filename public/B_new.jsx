@@ -11,7 +11,7 @@ export function B_new(props) {
   const { nodes, materials } = useGLTF('/b_new-transformed.glb')
   return (
     <group {...props} dispose={null}>
-      <group position={[15.184, 8.152, -1.683]} rotation={[0, 0, -Math.PI / 2]}>
+      <group position={[15.184, 0, -1.683]} rotation={[0, 0, -Math.PI / 2]}>
         <mesh geometry={nodes.Cube1060.geometry} material={materials.white} />
         <mesh geometry={nodes.Cube1060_1.geometry} material={materials.Material} />
       </group>

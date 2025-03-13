@@ -12,11 +12,10 @@ export function isBlack(numba) {
 export function y_shader(note, height, distance, half_screen, firstNoteDelta) {
     const position_array = note_positions[note.NoteNumber]
     // delta in milliseconds + 1000 milliseconds
-    const newDelta = parseInt((note.Delta)/1000) - firstNoteDelta
+    const newDelta = parseInt((note.Delta)/1000) 
     const new_position_array = [...position_array]
-    new_position_array[1] = height/2
+    new_position_array[1] = height/2 + half_screen+   distance*(newDelta/1000)/factor
     // new_position_array[1] = (half_screen + height/2) + top_of_screen_to_keys*(newDelta/1000-1) / factor
-    
     // TODO No need to do this here, just when initialising
     new_position_array[2] = -0.05
     return new_position_array
