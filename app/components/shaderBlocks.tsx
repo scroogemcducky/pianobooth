@@ -5,7 +5,7 @@ import { y_shader, calculateHeight, isBlack, groupByDelta } from '../utils/funct
 
 import { useThree } from "@react-three/fiber";
 
-export default function ShaderBlocks({ midiObject, triggerVisibleNote }) {
+function ShaderBlocks({ midiObject, triggerVisibleNote }) {
 
     const { viewport } = useThree();
     const [blocks, setBlocks] = useState([]);
@@ -52,3 +52,5 @@ export default function ShaderBlocks({ midiObject, triggerVisibleNote }) {
     </>
   );
 }
+
+export default ShaderBlocks;
