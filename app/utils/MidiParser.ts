@@ -90,6 +90,7 @@ const getConstantDataFromMidiFile = (file: any) => {
     // Convert to note events JSON
     const noteEvents = ConvertToNoteEventsJSON(MidiObject, 500000, constantData);
   
+    console.log("noteWEvents: ", noteEvents)
     return noteEvents;
   };
   

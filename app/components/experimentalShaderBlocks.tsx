@@ -12,7 +12,7 @@ export default function ShaderBlocks({ midiObject, triggerVisibleNote }) {
     const [blocks, setBlocks] = useState([]);
     const [groupedBlocks, setGroupedBlocks] = useState([]);
     const [notes, setNotes] = useState<number[]>([]); // array of note start times
-
+    // console.log(midiObject[0])
 
     const half_screen = viewport.height / 2;
     const distance = viewport.height / 2

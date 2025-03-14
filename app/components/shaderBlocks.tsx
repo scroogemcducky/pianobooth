@@ -7,7 +7,7 @@ import { useThree } from "@react-three/fiber";
 
 
 export default function ShaderBlocks({ midiObject, triggerVisibleNote }) {
-  console.log("midiObject: " , midiObject)
+  // console.log("midiObject: " , midiObject)
 
     const { viewport } = useThree();
     const [blocks, setBlocks] = useState([]);
@@ -17,15 +17,15 @@ export default function ShaderBlocks({ midiObject, triggerVisibleNote }) {
     const half_screen = viewport.height / 2;
     const distance = viewport.height - (white_size_vector.x + 5);
     const firstNoteDelta = midiObject[0] ? parseInt(midiObject[0].Delta / 1000) - 1000 : 0;
-    console.log("firstnoteDelta normal shaderblocks: ", firstNoteDelta)
+    // console.log("firstnoteDelta normal shaderblocks: ", firstNoteDelta)
 
     useEffect(() => {
         if (midiObject) {
         const newBlocks = midiObject.map((note, index) => {
             const height = calculateHeight(note.Duration, distance) / factor;
-            console.log("height: ", height)
+            // console.log("height: ", height)
             const position = y_shader(note, height, distance, half_screen, firstNoteDelta);
-            console.log("position: ", position)
+            // console.log("position: ", position)
 
             return {
               id: `${index}`,

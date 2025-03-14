@@ -52,7 +52,16 @@ const convertToNoteEventsJSON = (file, microsecondsPerQuarter, staticMidiFileDat
     });
 
 
-    return finalNotes.sort((a, b) => a.Delta - b.Delta);
+    // return finalNotes.sort((a, b) => a.Delta - b.Delta);
+    const sortedNotes = finalNotes.sort((a, b) => a.Delta - b.Delta);
+    if (sortedNotes.length > 0) {
+        const minDelta = sortedNotes[0].Delta;
+        sortedNotes.forEach(note => {
+            note.Delta -= minDelta;
+        });
+    }
+
+    return sortedNotes;
 };
 
 export default convertToNoteEventsJSON;
