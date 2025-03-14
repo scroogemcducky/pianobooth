@@ -2,19 +2,19 @@
 // used to be /shader
 
 import React, { useState, useEffect } from 'react'
-import { Canvas } from '@react-three/fiber'
+
+import { Canvas, } from '@react-three/fiber'
 import midiParser from '../utils/MidiParser'
 import useKeyStore from '../store/keyPressStore'  
 import useMidiStore from '../store/midiStore'
 import usePlayStore from '../store/playStore'
 import PlayPauseButton from '../components/PlayPauseButton'
 import SettingsButton from '../components/SettingsButton'
-import ShaderBlocks from '../components/shaderBlocks'
+import ShaderBlocks from '../components/ShaderBlocks'
 import Lights from '../components/Lights'
-import Camera from '../components/SetupCamera'
-import Keys from '../components/Keyboard' 
+import Camera from '../components/Camera'
 import soundFont from 'soundfont-player'
-
+import Keys from '../components/Keys'
 
 export default function Video()  {  
   const [midiObject, setMidiObject] = useState();
@@ -29,7 +29,6 @@ export default function Video()  {
 
   useEffect(() => {
     if (ac) {
-        // console.log("ac: ", ac)
         soundFont.instrument(ac, 'acoustic_grand_piano').then(function (piano) {
             setInstrument(piano);
         });
@@ -60,43 +59,40 @@ export default function Video()  {
   // TODO pass note parameters to playNote
   const playNote = (noteName, duration=4) => {
     if (instrument) {
-      instrument.play(noteName, ac.currentTime, {gain:1, duration: duration, release: 2.5, sustain: 2, delay: 2});
+      instrument.play(noteName, ac.currentTime, {gain: 1, duration: duration, release: 2.5, sustain: 2, delay: 2});
     }
   }
 
   const triggerVisibleNote = (noteName, duration) => {
-
     useKeyStore.getState().setKey(noteName, true);
     playNote(noteName)
     setTimeout(() => useKeyStore.getState().setKey(noteName, false), duration); 
   }
-
-
+  
   return ( 
     <React.StrictMode >
     <div style={{height: "100%"}}>
       <Canvas 
           style={{ background: "black" }}  
           orthographic 
-          camera={{zoom: 9, rotation: [Math.PI/2, 0, -Math.PI/2], position: [0, -20, 0]}}>
-          {lights ? <Lights /> : <>
-              <ambientLight intensity={3} />
-              <pointLight position={[10, 10, 10]} />
-               </>}
-          {/* <ambientLight intensity={5} /> */}
+          camera={{ zoom: 9 }}
+          >
+          {lights ? <Lights /> : 
+          <>
+            <ambientLight intensity={3} /> 
+            <pointLight position={[10, 10, 10]} /> 
+          </>}
+      
           <Camera /> 
-          <Keys /> 
+          <Keys />  
+          
           {midiObject && <ShaderBlocks 
             midiObject={midiObject} 
-            // playing={playing} 
             triggerVisibleNote={triggerVisibleNote} />} 
       </Canvas>
       <PlayPauseButton 
         onClick={() => usePlayStore.getState().setPlaying(!playing)}
          />
-      {/* <LightsButton 
-        lights={lights} 
-        onClick={() => {setLights(prevLights => !prevLights)}} /> */}
       <SettingsButton 
         lights={lights} 
         lightsClick={() => {setLights(prevLights => !prevLights)}}/>
@@ -104,4 +100,5 @@ export default function Video()  {
     </React.StrictMode>
   )
 }
+
 

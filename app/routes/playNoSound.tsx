@@ -9,7 +9,7 @@ import LightsButton from '../components/LightsButton'
 import PlayPauseButton from '../components/PlayPauseButton'
 import MovingBlocks from '../components/MovingBlocks'
 import Lights from '../components/Lights'
-import Camera from '../components/SetupCamera'
+import Camera from '../components/SetupCameraOriginal'
 import Keys from '../components/Keyboard' 
 
 // const ac = new AudioContext()
