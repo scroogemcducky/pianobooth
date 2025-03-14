@@ -1,20 +1,18 @@
 import {  useEffect, useState  } from 'react';
-import InstancedShaderRectangles from './experimentalInstances';
-import {factor, speed, white_size_vector, black_width, white_width, white_color, black_color} from '../utils/experimentalConstants';
-import { y_shader, calculateHeight, isBlack, groupByDelta } from '../utils/experimentalFunctions.js';
+import InstancedShaderRectangles from './Instances';
+import {factor, speed, white_size_vector, black_width, white_width, white_color, black_color} from '../utils/constants';
+import { y_shader, calculateHeight, isBlack, groupByDelta } from '../utils/functions.js';
 
 import { useThree } from "@react-three/fiber";
 
 export default function ShaderBlocks({ midiObject, triggerVisibleNote }) {
-    // console.log("midiObjecexpereret: " , midiObject)
 
     const { viewport } = useThree();
     const [blocks, setBlocks] = useState([]);
     const [groupedBlocks, setGroupedBlocks] = useState([]);
     const [notes, setNotes] = useState<number[]>([]); // array of note start times
-    // console.log(midiObject[0])
 
-    const half_screen = viewport.height / 2;
+    const half_screen = viewport.height / 2
     const distance = viewport.height / 2
     const firstNoteDelta = midiObject[0] ? parseInt(midiObject[0].Delta / 1000) + 1000  : 0;
 

@@ -1,8 +1,8 @@
 import { useEffect, useState, useRef, useMemo } from "react";
 import { useThree, useFrame } from '@react-three/fiber';
 import {  Object3D, Color, PlaneGeometry, MeshBasicMaterial, Mesh } from 'three';
-import {factor, speed, white_size_vector, black_width, white_width, white_color, black_color} from '../utils/constants';
-import { y, calculateHeight, isBlack, groupByDelta } from '../utils/functions.js';
+import {factor, speed, white_size_vector, black_width, white_width, white_color, black_color} from '../utils/constantsOriginal';
+import { y, calculateHeight, isBlack, groupByDelta } from '../utils/functionsOriginal.js';
 
 let idx = 0
 

@@ -1,7 +1,6 @@
 import usePlayStore from '../store/playStore'
 import { IoMdPlay, IoMdPause, } from 'react-icons/io';
 
-
 const PlayPauseButton = () => {
   const playing = usePlayStore((state) => state.playing);
     return (<button
