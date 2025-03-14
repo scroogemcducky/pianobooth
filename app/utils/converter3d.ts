@@ -1,4 +1,3 @@
-
 // function convert3DTo2D(position, canvasWidth, canvasHeight) {
 //   // Field of view in radians (default R3F camera uses 75 degrees)
 //   const fov = 75 * (Math.PI / 180);

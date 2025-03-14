@@ -83,9 +83,8 @@ export default function Video()  {
             <pointLight position={[10, 10, 10]} /> 
           </>}
       
-          <Camera /> 
+          {/* <Camera />  */}
           <Keys />  
-          
           {midiObject && <ShaderBlocks 
             midiObject={midiObject} 
             triggerVisibleNote={triggerVisibleNote} />} 

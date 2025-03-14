@@ -53,7 +53,7 @@ function Octave( { octave }) {
 
 
 function C_new({ noteNumber }) {
-    const { nodes, materials } = useGLTF('/c_new-transformed.glb')
+    const { nodes, materials } = useGLTF('/c.glb')
     const isPressed = useStore(state => state[noteNumber])
     // Bypass react rendering
     // useEffect(() => {
@@ -79,7 +79,7 @@ function C_new({ noteNumber }) {
   
 function C_sharp_new({ noteNumber }) {
     const isPressed = useStore(state => state[noteNumber])
-    const { nodes, materials } = useGLTF('/c_sharp_new-transformed.glb')
+    const { nodes, materials } = useGLTF('/c_sharp.glb')
     return (
     <group dispose={null}>
         <mesh geometry={nodes.Black.geometry} material={isPressed ? redMaterial : materials.Material} position={[1.133, 0, 1.922]} rotation={[0, 0, -Math.PI / 2]} />
@@ -89,7 +89,7 @@ function C_sharp_new({ noteNumber }) {
   
 function D_new({ noteNumber}) {
     const isPressed = useStore(state => state[noteNumber])
-    const { nodes, materials } = useGLTF('/d_new-transformed.glb')
+    const { nodes, materials } = useGLTF('/d.glb')
     return (
         <group position={[2.434, 0, -1.683]} rotation={[0, 0, -Math.PI / 2]}>
             <mesh geometry={nodes.Cube1055.geometry} material={isPressed ? redMaterial : materials.white} />
@@ -100,7 +100,7 @@ function D_new({ noteNumber}) {
   
 function D_sharp_new({noteNumber}) {
     const isPressed = useStore(state => state[noteNumber])
-    const { nodes, materials } = useGLTF('/d_sharp_new-transformed.glb')
+    const { nodes, materials } = useGLTF('/d_sharp.glb')
     return (
     <group dispose={null}>
         <mesh geometry={nodes.Black001.geometry} material={isPressed ? redMaterial : materials.Material} position={[3.755, 0, 1.922]} rotation={[0, 0, -Math.PI / 2]} />
@@ -110,7 +110,7 @@ function D_sharp_new({noteNumber}) {
 
 function E_new({noteNumber}) {
     const isPressed = useStore(state => state[noteNumber])
-    const { nodes, materials } = useGLTF('/e_new-transformed.glb')
+    const { nodes, materials } = useGLTF('/e.glb')
     return (
         <group position={[4.984, 0, -1.683]} rotation={[0, 0, -Math.PI / 2]}>
             <mesh geometry={nodes.Cube1056.geometry} material={isPressed ? redMaterial : materials.white} />
@@ -121,7 +121,7 @@ function E_new({noteNumber}) {
     
 function F_new({noteNumber}) {
     const isPressed = useStore(state => state[noteNumber])
-    const { nodes, materials } = useGLTF('/f_new-transformed.glb')
+    const { nodes, materials } = useGLTF('/f.glb')
     return (
         <group position={[7.534, 0, -1.683]} rotation={[0, 0, -Math.PI / 2]}>
             <mesh geometry={nodes.Cube1057.geometry} material={isPressed ? redMaterial : materials.white} />
@@ -132,7 +132,7 @@ function F_new({noteNumber}) {
 
 function F_sharp_new({noteNumber}) {
     const isPressed = useStore(state => state[noteNumber])
-    const { nodes, materials } = useGLTF('/f_sharp_new-transformed.glb')
+    const { nodes, materials } = useGLTF('/f_sharp.glb')
     return (
         <mesh geometry={nodes.Black002.geometry} material={isPressed ? redMaterial : materials.Material} position={[8.816, 0, 1.922]} rotation={[0, 0, -Math.PI / 2]} />
     )
@@ -140,7 +140,7 @@ function F_sharp_new({noteNumber}) {
     
 function G_new({noteNumber}) {
     const isPressed = useStore(state => state[noteNumber])
-    const { nodes, materials } = useGLTF('/g_new-transformed.glb')
+    const { nodes, materials } = useGLTF('/g.glb')
     return (
         <group position={[10.084, 0, -1.692]} rotation={[0, 0, -Math.PI / 2]}>
             <mesh geometry={nodes.Cube1058.geometry} material={isPressed ? redMaterial : materials.white} />
@@ -151,7 +151,7 @@ function G_new({noteNumber}) {
 
 function G_sharp_new({noteNumber}) {
     const isPressed = useStore(state => state[noteNumber])
-    const { nodes, materials } = useGLTF('/g_sharp_new-transformed.glb')
+    const { nodes, materials } = useGLTF('/g_sharp.glb')
     return (
 
         <mesh geometry={nodes.Black003.geometry} material={isPressed ? redMaterial : materials.Material} position={[11.345, 0, 1.922]} rotation={[0, 0, -Math.PI / 2]} />
@@ -161,7 +161,7 @@ function G_sharp_new({noteNumber}) {
     
 function A_new({noteNumber}) {
     const isPressed = useStore(state => state[noteNumber])
-    const { nodes, materials } = useGLTF('/a_new-transformed.glb')
+    const { nodes, materials } = useGLTF('/a.glb')
     return (
         <group position={[12.634, 0, -1.683]} rotation={[0, 0, -Math.PI / 2]}>
         <mesh geometry={nodes.Cube1059.geometry} material={isPressed ? redMaterial : materials.white} />
@@ -173,7 +173,7 @@ function A_new({noteNumber}) {
   
 function A_sharp_new({noteNumber}) {
     const isPressed = useStore(state => state[noteNumber])
-    const { nodes, materials } = useGLTF('/a_sharp_new-transformed.glb')
+    const { nodes, materials } = useGLTF('/a_sharp.glb')
     return (
         <mesh geometry={nodes.Black004.geometry} material={isPressed ? redMaterial : materials.Material} position={[13.879, 0, 1.922]} rotation={[0, 0, -Math.PI / 2]} />
     )
@@ -181,7 +181,7 @@ function A_sharp_new({noteNumber}) {
     
 function B_new({noteNumber}) {
     const isPressed = useStore(state => state[noteNumber])
-    const { nodes, materials } = useGLTF('/b_new-transformed.glb')
+    const { nodes, materials } = useGLTF('/b.glb')
     return (
         <group position={[15.184, 0, -1.683]} rotation={[0, 0, -Math.PI / 2]}>
         <mesh geometry={nodes.Cube1060.geometry} material={isPressed ? redMaterial : materials.white} />
@@ -191,7 +191,7 @@ function B_new({noteNumber}) {
 }
     
   
-  useGLTF.preload(['/c_new-transformed.glb', '/c_sharp_new-transformed.glb', '/d_new-transformed.glb', '/d_sharp_new-transformed.glb', '/e_new-transformed.glb', '/f_new-transformed.glb', '/f_sharp_new-transformed.glb', '/g_new-transformed.glb', '/g_sharp_new-transformed.glb', '/a_new-transformed.glb', '/a_sharp_new-transformed.glb', '/b_new-transformed.glb'])
+  useGLTF.preload(['/c.glb', '/c_sharp.glb', '/d.glb', '/d_sharp.glb', '/e.glb', '/f.glb', '/f_sharp.glb', '/g.glb', '/g_sharp.glb', '/a.glb', '/a_sharp.glb', '/b.glb'])
   
   
 
