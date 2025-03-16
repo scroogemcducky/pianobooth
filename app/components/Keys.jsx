@@ -16,14 +16,18 @@ const offset = 7*2.55
 const Keys = () => {
   const { viewport } = useThree();
   
-  // Calculate a scaling factor based on the viewport width
+  // Calculate a more aggressive scaling factor based on the viewport width
   // This ensures the full keyboard fits on screen regardless of device size
   // 6 octaves * offset is approximately the total width needed
   const totalKeyboardWidth = 6 * offset;
-  const scaleFactor = Math.min(1, viewport.width / totalKeyboardWidth);
+  // More aggressive scaling - using 0.8 as a multiplier to scale down further
+  const scaleFactor = Math.min(0.8, viewport.width / totalKeyboardWidth * 0.9);
   
   return <>
-    <group scale={[scaleFactor, scaleFactor, 1]} position={[0, -viewport.height/8, 0]}>
+    {/* Center the keyboard horizontally and vertically */}
+    <group 
+      scale={[scaleFactor, scaleFactor, 1]} 
+      position={[0, 0, 0]}>
       <Octave octave={0} />
       <Octave octave={1} />
       <Octave octave={2} />

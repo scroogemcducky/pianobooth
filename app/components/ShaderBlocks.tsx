@@ -12,10 +12,11 @@ function ShaderBlocks({ midiObject, triggerVisibleNote }) {
     const [groupedBlocks, setGroupedBlocks] = useState([]);
     const [notes, setNotes] = useState<number[]>([]); // array of note start times
 
-    // Calculate the same scaling factor used in Keys.jsx
+    // Calculate the same aggressive scaling factor used in Keys.jsx
     const offset = 7*2.55;
     const totalKeyboardWidth = 6 * offset;
-    const scaleFactor = Math.min(1, viewport.width / totalKeyboardWidth);
+    // More aggressive scaling - using 0.8 as a multiplier to scale down further
+    const scaleFactor = Math.min(0.8, viewport.width / totalKeyboardWidth * 0.9);
 
     const half_screen = viewport.height / 2
     const distance = viewport.height / 2
