@@ -7,6 +7,10 @@ export const factor = 1
 export const speed = 1
 export const keysOffset = 0
 
+// NOTE: The keyboard is now scaled using a dynamic scaling factor in Keys.jsx
+// calculated as: Math.min(1, viewport.width / (6 * offset))
+// This ensures the keyboard fits on different screen sizes
+
 export const white_key_dimensions = {y: 15.367410659790039, x: 2.268760919570923, z: 2.4666976928710938}
 export const black_key_dimensions = {y: 10.125563621520996, x: 1.9746508598327637, z: 1.9570356607437134}
 

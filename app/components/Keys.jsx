@@ -15,13 +15,22 @@ const offset = 7*2.55
 
 const Keys = () => {
   const { viewport } = useThree();
+  
+  // Calculate a scaling factor based on the viewport width
+  // This ensures the full keyboard fits on screen regardless of device size
+  // 6 octaves * offset is approximately the total width needed
+  const totalKeyboardWidth = 6 * offset;
+  const scaleFactor = Math.min(1, viewport.width / totalKeyboardWidth);
+  
   return <>
-    <Octave octave={0} />
-    <Octave octave={1} />
-    <Octave octave={2} />
-    <Octave octave={3} />
-    <Octave octave={4} />
-    <Octave octave={5} />
+    <group scale={[scaleFactor, scaleFactor, 1]} position={[0, -viewport.height/8, 0]}>
+      <Octave octave={0} />
+      <Octave octave={1} />
+      <Octave octave={2} />
+      <Octave octave={3} />
+      <Octave octave={4} />
+      <Octave octave={5} />
+    </group>
 
     <mesh position={[0, -viewport.height/4 , 0]}>
             <planeGeometry args={[viewport.width, viewport.height / 2]} />

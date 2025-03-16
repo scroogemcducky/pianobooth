@@ -28,6 +28,7 @@ interface CustomGeometryParticlesProps {
   groupedBlocks: GroupedBlocks
   notes: number[]
   triggerVisibleNote: (note: number, duration: number) => void
+  scaleFactor?: number
 }
   
 // shaders/vertex.glsl
@@ -87,7 +88,8 @@ const CustomGeometryParticles: React.FC<CustomGeometryParticlesProps> = ({
   distance,
   groupedBlocks,
   notes,
-  triggerVisibleNote
+  triggerVisibleNote,
+  scaleFactor = 1
 }) => {
   const playing = usePlayStore(state => state.playing)
   const materialRef = useRef<CustomShaderMaterial>(null)
@@ -141,11 +143,13 @@ const CustomGeometryParticles: React.FC<CustomGeometryParticlesProps> = ({
 
     blocks.forEach((block, i) => {
       const [x, y, z] = block.position
-      positions[i * 3] = x
+      // Apply scaling factor to x position to match keyboard scaling
+      positions[i * 3] = x * scaleFactor
       positions[i * 3 + 1] = y
       positions[i * 3 + 2] = z
       heights[i] = block.height
-      widths[i] = block.width
+      // Apply scaling factor to width to match keyboard scaling
+      widths[i] = block.width * scaleFactor
       colors[i] = block.isBlack ? 1 : 0
     })
 
@@ -153,7 +157,7 @@ const CustomGeometryParticles: React.FC<CustomGeometryParticlesProps> = ({
     geometry.attributes.instanceHeight.needsUpdate = true
     geometry.attributes.instanceWidth.needsUpdate = true
     geometry.attributes.isBlackKey.needsUpdate = true
-  }, [blocks, geometry])
+  }, [blocks, geometry, scaleFactor])
 
   const speedAdjusted = speed * distance / factor
   const speed_ms = speed * 1000
