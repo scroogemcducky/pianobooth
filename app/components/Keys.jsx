@@ -2,7 +2,7 @@ import { useThree } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei'
 import useStore from '../store/keyPressStore'
 import * as THREE from 'three'
-
+import { scalingFactor } from '../utils/functions'
 const redMaterial = new THREE.MeshStandardMaterial({
   color: 'red',
   roughness: 0.5,
@@ -21,7 +21,7 @@ const Keys = () => {
   // 6 octaves * offset is approximately the total width needed
   const totalKeyboardWidth = 6 * offset;
   // More aggressive scaling - using 0.8 as a multiplier to scale down further
-  const scaleFactor = Math.min(0.8, viewport.width / totalKeyboardWidth * 0.9);
+  const scaleFactor = scalingFactor(viewport.width, totalKeyboardWidth)
   
   return <>
     {/* Center the keyboard horizontally and vertically */}

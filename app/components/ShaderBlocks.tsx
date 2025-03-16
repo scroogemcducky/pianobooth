@@ -1,7 +1,7 @@
 import {  useEffect, useState  } from 'react';
 import InstancedShaderRectangles from './Instances';
 import {factor, speed, white_size_vector, black_width, white_width, white_color, black_color} from '../utils/constants';
-import { y_shader, calculateHeight, isBlack, groupByDelta } from '../utils/functions.js';
+import { y_shader, calculateHeight, isBlack, groupByDelta, scalingFactor } from '../utils/functions.js';
 
 import { useThree } from "@react-three/fiber";
 
@@ -15,8 +15,9 @@ function ShaderBlocks({ midiObject, triggerVisibleNote }) {
     // Calculate the same aggressive scaling factor used in Keys.jsx
     const offset = 7*2.55;
     const totalKeyboardWidth = 6 * offset;
+    const scaleFactor = scalingFactor(viewport.width, totalKeyboardWidth)
     // More aggressive scaling - using 0.8 as a multiplier to scale down further
-    const scaleFactor = Math.min(0.8, viewport.width / totalKeyboardWidth * 0.9);
+    // const scaleFactor = Math.min(1.1, viewport.width / totalKeyboardWidth * 0.9);
 
     const half_screen = viewport.height / 2
     const distance = viewport.height / 2

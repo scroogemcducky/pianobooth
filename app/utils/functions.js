@@ -9,6 +9,9 @@ export function isBlack(numba) {
     return (numba % 12 === 1 || numba % 12 === 3 || numba % 12 === 6 || numba % 12 === 8 || numba % 12 === 10)
   }
   
+export function scalingFactor(width, keyboardWidth){
+  return Math.min(1.1, width / keyboardWidth * 0.9);
+}
 export function y_shader(note, height, distance, half_screen, firstNoteDelta) {
     const position_array = note_positions[note.NoteNumber]
     // delta in milliseconds + 1000 milliseconds
