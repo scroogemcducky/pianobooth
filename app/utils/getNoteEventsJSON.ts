@@ -19,26 +19,67 @@ const convertToNoteEventsJSON = (file, microsecondsPerQuarter, staticMidiFileDat
             microsecondsPerQuarter = event.setTempo.microsecondsPerQuarter;
             tickTime = microsecondsPerQuarter / staticMidiFileData.division;
         } else if ('noteOn' in event) {
+            // In MIDI, a noteOn with velocity 0 is equivalent to a noteOff
+            if (event.noteOn.velocity === 0) {
+                // Handle it as a noteOff event
+                const noteNumber = event.noteOn.noteNumber - 21;
+                // Check range to avoid out of bounds error
+                if (noteNumber < 0 || noteNumber >= pianoKeys.length) {
+                    return;
+                }
+                const note = pianoKeys[noteNumber];
+                note.Duration = Math.floor(timePassed - note.Delta);
+
+                if (!sustainOn) {
+                    note.SoundDuration = note.Duration;
+                    if (note.Velocity && note.Delta >= 0) {
+                        // Create a copy of the note instead of using the reference
+                        finalNotes.push({...note});
+                    }
+                } else {
+                    // Create a copy of the note instead of using the reference
+                    waitingQueue.push({...note});
+                }
+                pianoKeys[noteNumber] = getEmptyNoteEvent(noteNumber + 21);
+                noteOffCount++;
+                return;
+            }
+            
             const noteNumber = event.noteOn.noteNumber - 21;
+            // Check range to avoid out of bounds error
+            if (noteNumber < 0 || noteNumber >= pianoKeys.length) {
+                return;
+            }
             pianoKeys[noteNumber].Delta = Math.floor(timePassed);
             pianoKeys[noteNumber].Velocity = event.noteOn.velocity;
+            noteOnCount++;
         } else if ('noteOff' in event) {
             const noteNumber = event.noteOff.noteNumber - 21;
+            // Check range to avoid out of bounds error
+            if (noteNumber < 0 || noteNumber >= pianoKeys.length) {
+                return;
+            }
             const note = pianoKeys[noteNumber];
             note.Duration = Math.floor(timePassed - note.Delta);
 
-            if ( !sustainOn ) {
+            if (!sustainOn) {
                 note.SoundDuration = note.Duration;
                 if (note.Velocity && note.Delta >= 0) {
-                    finalNotes.push(note);
+                    // Create a copy of the note instead of using the reference
+                    finalNotes.push({...note});
                 }
             } else {
-                waitingQueue.push(note);
+                // Create a copy of the note instead of using the reference
+                waitingQueue.push({...note});
             }
             pianoKeys[noteNumber] = getEmptyNoteEvent(noteNumber + 21);
+            noteOffCount++;
         } else if ('controlChange' in event && event.controlChange.type === 64) {
+            const wasSustainOn = sustainOn;
             sustainOn = event.controlChange.value > 63;
-            if (!sustainOn) {
+            sustainEvents++;
+            
+            if (wasSustainOn && !sustainOn) {
                 waitingQueue.forEach(note => {
                     note.SoundDuration = Math.floor(timePassed - note.Delta);
                     if (note.Velocity && note.Delta >= 0) {
