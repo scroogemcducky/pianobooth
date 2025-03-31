@@ -1,10 +1,10 @@
 import { CreateMidiNoteEventsArray, getEmptyNoteEvent } from "./smallFunctions";
 
 const convertToNoteEventsJSON = (file, microsecondsPerQuarter, staticMidiFileData) => {
-    console.log("Starting note events conversion with file:", file);
-    console.log("microsecondsPerQuarter:", microsecondsPerQuarter, "division:", staticMidiFileData.division);
+    // console.log("Starting note events conversion with file:", file);
+    // console.log("microsecondsPerQuarter:", microsecondsPerQuarter, "division:", staticMidiFileData.division);
     let tickTime = microsecondsPerQuarter / staticMidiFileData.division;
-    console.log("Calculated tickTime:", tickTime);
+    // console.log("Calculated tickTime:", tickTime);
     let pianoKeys = CreateMidiNoteEventsArray(88, 21);
     let sustainOn = false;
     let waitingQueue = [];
@@ -91,21 +91,21 @@ const convertToNoteEventsJSON = (file, microsecondsPerQuarter, staticMidiFileDat
         }
     };
 
-    console.log("Processing MIDI format", file.format, "file with", file.tracks.length, "tracks");
+    // console.log("Processing MIDI format", file.format, "file with", file.tracks.length, "tracks");
     
     if (file.format === 0) {
         // Format 0: single track containing all channels
-        console.log("Format 0 MIDI file: processing single track");
+        // console.log("Format 0 MIDI file: processing single track");
         let timePassed = 0;
         file.tracks[0].forEach(event => {
             timePassed += event.delta * tickTime;
             processEvent(event, timePassed);
         });
         trackNoteCounts.push(finalNotes.length);
-        console.log("Track 0 produced", finalNotes.length, "notes");
+        // console.log("Track 0 produced", finalNotes.length, "notes");
     } else {
         // Format 1: multiple tracks to be played simultaneously
-        console.log("Format 1/2 MIDI file: processing all tracks simultaneously");
+        // console.log("Format 1/2 MIDI file: processing all tracks simultaneously");
         let timePassed = 0;
         file.tracks.forEach((track, trackIndex) => {
             let trackNoteCount = 0;
@@ -119,7 +119,7 @@ const convertToNoteEventsJSON = (file, microsecondsPerQuarter, staticMidiFileDat
                 }
             });
             trackNoteCounts.push(trackNoteCount);
-            console.log("Track", trackIndex, "produced approximately", trackNoteCount, "notes");
+            // console.log("Track", trackIndex, "produced approximately", trackNoteCount, "notes");
         });
     }
 
@@ -133,12 +133,12 @@ const convertToNoteEventsJSON = (file, microsecondsPerQuarter, staticMidiFileDat
         });
     }
 
-    console.log("Track note counts:", trackNoteCounts);
-    console.log("Total notes after processing:", sortedNotes.length);
+    // console.log("Track note counts:", trackNoteCounts);
+    // console.log("Total notes after processing:", sortedNotes.length);
     
-    if (sortedNotes.length === 0) {
-        console.warn("WARNING: No notes were extracted from the MIDI file!");
-    }
+    // if (sortedNotes.length === 0) {
+    //     console.warn("WARNING: No notes were extracted from the MIDI file!");
+    // }
 
     return sortedNotes;
 };
