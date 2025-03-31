@@ -83,14 +83,21 @@ const getConstantDataFromMidiFile = (file: any) => {
   
     // Parse MIDI file
     const MidiObject = await ReadMidiFile(buffer);
+    console.log("MidiObject format:", MidiObject.format, "Number of tracks:", MidiObject.tracks.length);
+    MidiObject.tracks.forEach((track, index) => {
+      const noteOnEvents = track.filter(event => 'noteOn' in event).length;
+      const noteOffEvents = track.filter(event => 'noteOff' in event).length;
+      console.log(`Track ${index}: ${track.length} events, ${noteOnEvents} noteOn, ${noteOffEvents} noteOff`);
+    });
   
     // Get constant data
     const constantData = getConstantDataFromMidiFile(MidiObject);
+    console.log("MIDI timing data:", constantData);
   
     // Convert to note events JSON
     const noteEvents = ConvertToNoteEventsJSON(MidiObject, 500000, constantData);
   
-    console.log("noteWEvents: ", noteEvents)
+    console.log("Final note events count:", noteEvents.length)
     return noteEvents;
   };
   
