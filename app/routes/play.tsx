@@ -15,6 +15,8 @@ import Lights from '../components/Lights'
 import Camera from '../components/Camera'
 import soundFont from 'soundfont-player'
 import Keys from '../components/Keys'
+import * as THREE from 'three'
+
 
 export default function Video()  {  
   const [midiObject, setMidiObject] = useState();
@@ -76,12 +78,27 @@ export default function Video()  {
           style={{ background: "black" }}  
           orthographic 
           camera={{ zoom: 9 }}
+          gl={{ 
+            toneMapping: THREE.NoToneMapping,
+            outputColorSpace: THREE.LinearSRGBColorSpace 
+          }}
           >
-          {lights ? <Lights /> : 
+          {/* {lights ? <Lights /> :  */}
           <>
-            <ambientLight intensity={3} /> 
-            <pointLight position={[10, 10, 10]} /> 
-          </>}
+          <ambientLight intensity={7.5} /> 
+          {/* <hemisphereLight 
+            skyColor={0xffffbb} 
+            groundColor={0x080820} 
+            intensity={10} 
+          /> */}
+          <directionalLight 
+            position={[11, -4, 90]} 
+            intensity={0.15}
+            // castShadow
+          />
+          {/* <pointLight position={[10, 10, 10]} />  */}
+        </>
+        {/* } */}
       
           {/* <Camera />  */}
           <Keys />  
@@ -92,9 +109,9 @@ export default function Video()  {
       <PlayPauseButton 
         onClick={() => usePlayStore.getState().setPlaying(!playing)}
          />
-      <SettingsButton 
-        lights={lights} 
-        lightsClick={() => {setLights(prevLights => !prevLights)}}/>
+      {/* <SettingsButton 
+        lights={false} 
+        lightsClick={() => {setLights(prevLights => !prevLights)}}/> */}
     </div>
     </React.StrictMode>
   )

@@ -3,14 +3,16 @@ import { useGLTF } from '@react-three/drei'
 import useStore from '../store/keyPressStore'
 import * as THREE from 'three'
 import { scalingFactor } from '../utils/functions'
-const redMaterial = new THREE.MeshStandardMaterial({
-  color: 'red',
-  roughness: 0.5,
-  metalness: 0.2,
-  emissive: '#ff3333',
-  emissiveIntensity: 0.2
+
+
+const redMaterialBlack = new THREE.MeshBasicMaterial({
+    color: new THREE.Color(0.80, 0.05, 0.33),
 })
 
+  const redMaterialWhite = new THREE.MeshBasicMaterial({
+    color: new THREE.Color(0.95, 0.120, 0.28),
+})
+  
 const offset = 7*2.55
 
 const Keys = () => {
@@ -84,7 +86,7 @@ function C_new({ noteNumber }) {
   
     return (
         <group position={[-0.116, 0, -1.695]} rotation={[0, 0, -Math.PI / 2]}>
-          <mesh geometry={nodes.Cube1051.geometry} material={isPressed ? redMaterial : materials.white} />
+          <mesh geometry={nodes.Cube1051.geometry} material={isPressed ? redMaterialWhite : materials.white} />
           {/* <mesh geometry={nodes.Cube1051_1.geometry} material={materials.Material} /> */}
         </group>
     )
@@ -95,7 +97,7 @@ function C_sharp_new({ noteNumber }) {
     const { nodes, materials } = useGLTF('/c_sharp.glb')
     return (
     <group dispose={null}>
-        <mesh geometry={nodes.Black.geometry} material={isPressed ? redMaterial : materials.Material} position={[1.133, 0, 1.922]} rotation={[0, 0, -Math.PI / 2]} />
+        <mesh geometry={nodes.Black.geometry} material={isPressed ? redMaterialBlack : materials.Material} position={[1.133, 0, 1.922]} rotation={[0, 0, -Math.PI / 2]} />
     </group>
     )
 }
@@ -105,7 +107,7 @@ function D_new({ noteNumber}) {
     const { nodes, materials } = useGLTF('/d.glb')
     return (
         <group position={[2.434, 0, -1.683]} rotation={[0, 0, -Math.PI / 2]}>
-            <mesh geometry={nodes.Cube1055.geometry} material={isPressed ? redMaterial : materials.white} />
+            <mesh geometry={nodes.Cube1055.geometry} material={isPressed ? redMaterialWhite : materials.white} />
             {/* <mesh geometry={nodes.Cube1055_1.geometry} material={materials.Material} /> */}
         </group>
     )
@@ -116,7 +118,7 @@ function D_sharp_new({noteNumber}) {
     const { nodes, materials } = useGLTF('/d_sharp.glb')
     return (
     <group dispose={null}>
-        <mesh geometry={nodes.Black001.geometry} material={isPressed ? redMaterial : materials.Material} position={[3.755, 0, 1.922]} rotation={[0, 0, -Math.PI / 2]} />
+        <mesh geometry={nodes.Black001.geometry} material={isPressed ? redMaterialBlack : materials.Material} position={[3.755, 0, 1.922]} rotation={[0, 0, -Math.PI / 2]} />
     </group>
     )
 }
@@ -126,7 +128,7 @@ function E_new({noteNumber}) {
     const { nodes, materials } = useGLTF('/e.glb')
     return (
         <group position={[4.984, 0, -1.683]} rotation={[0, 0, -Math.PI / 2]}>
-            <mesh geometry={nodes.Cube1056.geometry} material={isPressed ? redMaterial : materials.white} />
+            <mesh geometry={nodes.Cube1056.geometry} material={isPressed ? redMaterialWhite : materials.white} />
             {/* <mesh geometry={nodes.Cube1056_1.geometry} material={materials.Material} /> */}
         </group>
     )
@@ -137,7 +139,7 @@ function F_new({noteNumber}) {
     const { nodes, materials } = useGLTF('/f.glb')
     return (
         <group position={[7.534, 0, -1.683]} rotation={[0, 0, -Math.PI / 2]}>
-            <mesh geometry={nodes.Cube1057.geometry} material={isPressed ? redMaterial : materials.white} />
+            <mesh geometry={nodes.Cube1057.geometry} material={isPressed ? redMaterialWhite : materials.white} />
             {/* <mesh geometry={nodes.Cube1057_1.geometry} material={materials.Material} /> */}
         </group>
     )
@@ -147,7 +149,7 @@ function F_sharp_new({noteNumber}) {
     const isPressed = useStore(state => state[noteNumber])
     const { nodes, materials } = useGLTF('/f_sharp.glb')
     return (
-        <mesh geometry={nodes.Black002.geometry} material={isPressed ? redMaterial : materials.Material} position={[8.816, 0, 1.922]} rotation={[0, 0, -Math.PI / 2]} />
+        <mesh geometry={nodes.Black002.geometry} material={isPressed ? redMaterialBlack : materials.Material} position={[8.816, 0, 1.922]} rotation={[0, 0, -Math.PI / 2]} />
     )
 }
     
@@ -156,7 +158,7 @@ function G_new({noteNumber}) {
     const { nodes, materials } = useGLTF('/g.glb')
     return (
         <group position={[10.084, 0, -1.692]} rotation={[0, 0, -Math.PI / 2]}>
-            <mesh geometry={nodes.Cube1058.geometry} material={isPressed ? redMaterial : materials.white} />
+            <mesh geometry={nodes.Cube1058.geometry} material={isPressed ? redMaterialWhite : materials.white} />
             {/* <mesh geometry={nodes.Cube1058_1.geometry} material={materials.Material} /> */}
         </group>
     )
@@ -167,7 +169,7 @@ function G_sharp_new({noteNumber}) {
     const { nodes, materials } = useGLTF('/g_sharp.glb')
     return (
 
-        <mesh geometry={nodes.Black003.geometry} material={isPressed ? redMaterial : materials.Material} position={[11.345, 0, 1.922]} rotation={[0, 0, -Math.PI / 2]} />
+        <mesh geometry={nodes.Black003.geometry} material={isPressed ? redMaterialBlack : materials.Material} position={[11.345, 0, 1.922]} rotation={[0, 0, -Math.PI / 2]} />
 
     )
 }
@@ -177,7 +179,7 @@ function A_new({noteNumber}) {
     const { nodes, materials } = useGLTF('/a.glb')
     return (
         <group position={[12.634, 0, -1.683]} rotation={[0, 0, -Math.PI / 2]}>
-        <mesh geometry={nodes.Cube1059.geometry} material={isPressed ? redMaterial : materials.white} />
+        <mesh geometry={nodes.Cube1059.geometry} material={isPressed ? redMaterialWhite : materials.white} />
         {/* <mesh geometry={nodes.Cube1059_1.geometry} material={materials.Material} /> */}
         </group>
     )
@@ -188,7 +190,7 @@ function A_sharp_new({noteNumber}) {
     const isPressed = useStore(state => state[noteNumber])
     const { nodes, materials } = useGLTF('/a_sharp.glb')
     return (
-        <mesh geometry={nodes.Black004.geometry} material={isPressed ? redMaterial : materials.Material} position={[13.879, 0, 1.922]} rotation={[0, 0, -Math.PI / 2]} />
+        <mesh geometry={nodes.Black004.geometry} material={isPressed ? redMaterialBlack : materials.Material} position={[13.879, 0, 1.922]} rotation={[0, 0, -Math.PI / 2]} />
     )
 }
     
@@ -197,7 +199,7 @@ function B_new({noteNumber}) {
     const { nodes, materials } = useGLTF('/b.glb')
     return (
         <group position={[15.184, 0, -1.683]} rotation={[0, 0, -Math.PI / 2]}>
-        <mesh geometry={nodes.Cube1060.geometry} material={isPressed ? redMaterial : materials.white} />
+        <mesh geometry={nodes.Cube1060.geometry} material={isPressed ? redMaterialWhite : materials.white} />
         {/* <mesh geometry={nodes.Cube1060_1.geometry} material={materials.Material} /> */}
         </group>
     )
