@@ -11,8 +11,8 @@ import usePlayStore from '../store/playStore'
 import PlayPauseButton from '../components/PlayPauseButton'
 import SettingsButton from '../components/SettingsButton'
 import ShaderBlocks from '../components/ShaderBlocks'
-import Lights from '../components/Lights'
-import Camera from '../components/Camera'
+// import Lights from '../components/Lights'
+// import Camera from '../components/Camera'
 import soundFont from 'soundfont-player'
 import Keys from '../components/Keys'
 import * as THREE from 'three'
@@ -20,7 +20,7 @@ import * as THREE from 'three'
 
 export default function Video()  {  
   const [midiObject, setMidiObject] = useState();
-  const [lights, setLights] = useState(true)
+  // const [lights, setLights] = useState(true)
   const [ac, setAc] = useState(null)
   const [instrument, setInstrument] = useState(null)
 
@@ -36,6 +36,13 @@ export default function Video()  {
         });
     }
   }, [ac]);
+
+  useEffect(() => {
+    return () => {
+      // Reset playing state when leaving the page
+      usePlayStore.getState().setPlaying(false);
+    };
+  }, []);
 
   const midiFile = useMidiStore((state) => state.midiFile);
 
@@ -109,9 +116,10 @@ export default function Video()  {
       <PlayPauseButton 
         onClick={() => usePlayStore.getState().setPlaying(!playing)}
          />
-      {/* <SettingsButton 
-        lights={false} 
-        lightsClick={() => {setLights(prevLights => !prevLights)}}/> */}
+      <SettingsButton 
+        // lights={false} 
+        // lightsClick={() => {setLights(prevLights => !prevLights)}}
+        />
     </div>
     </React.StrictMode>
   )

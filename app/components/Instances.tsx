@@ -5,7 +5,8 @@ import { ShaderMaterial } from 'three';
 import { extend, useFrame } from '@react-three/fiber';
 import { useMemo, useRef, useEffect } from 'react';
 import usePlayStore from '../store/playStore';
-import { factor, speed } from '../utils/constants';
+import { factor, speed, BLACK_KEY_COLOR, WHITE_KEY_COLOR } from '../utils/constants';
+// import { BLACK_KEY_COLOR, WHITE_KEY_COLOR } from '../utils/constants';
 
 interface Block {
     position: [number, number, number]
@@ -37,8 +38,8 @@ const fragmentShader = /* glsl */ `
 
     void main() {
         vec3 color = vIsBlackKey > 0.5 ?
-            vec3(0.80, 0.05, 0.33) :
-            vec3(0.95, 0.120, 0.28);
+            vec3(${BLACK_KEY_COLOR[0]}, ${BLACK_KEY_COLOR[1]}, ${BLACK_KEY_COLOR[2]}) :
+            vec3(${WHITE_KEY_COLOR[0]}, ${WHITE_KEY_COLOR[1]}, ${WHITE_KEY_COLOR[2]});
         gl_FragColor = vec4(color, 1.0);
     }
 `;

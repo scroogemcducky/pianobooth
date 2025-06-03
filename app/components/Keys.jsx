@@ -3,14 +3,15 @@ import { useGLTF } from '@react-three/drei'
 import useStore from '../store/keyPressStore'
 import * as THREE from 'three'
 import { scalingFactor } from '../utils/functions'
+import { BLACK_KEY_COLOR, WHITE_KEY_COLOR } from '../utils/constants'
 
 
 const redMaterialBlack = new THREE.MeshBasicMaterial({
-    color: new THREE.Color(0.80, 0.05, 0.33),
+    color: new THREE.Color(...BLACK_KEY_COLOR),
 })
 
-  const redMaterialWhite = new THREE.MeshBasicMaterial({
-    color: new THREE.Color(0.95, 0.120, 0.28),
+const redMaterialWhite = new THREE.MeshBasicMaterial({
+    color: new THREE.Color(...WHITE_KEY_COLOR),
 })
   
 const offset = 7*2.55

@@ -111,6 +111,10 @@ export const note_positions = {
   "107": [ 3 * offset + position + 6 * white_width, 0, 0],                    // B
 }
 
+// Shader/Material colors
+export const BLACK_KEY_COLOR = [0.15, 0.15, 1.0];
+export const WHITE_KEY_COLOR = [0.8, 0.10, 0.02];
+
 
 
 
