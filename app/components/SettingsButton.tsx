@@ -2,12 +2,14 @@ import { mdiCog, mdiClose, mdiDeskLampOn, mdiDeskLamp } from '@mdi/js';
 import Icon from '@mdi/react';
 import { useState, useEffect, useRef } from "react";
 import { useHydrated } from "remix-utils/use-hydrated";
+import usePlayStore from '../store/playStore';
 
 const SettingsButton = ({ onClick ,  lightsClick}: { onClick: () => void }) => {
   const isHydrated = useHydrated();
   const [isOpen, setIsOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const [selectedSpeed, setSelectedSpeed] = useState(1.0);
+  const speed = usePlayStore(state => state.speed);
+  const setSpeed = usePlayStore(state => state.setSpeed);
 
 
   const handleToggle = () => {
@@ -77,8 +79,8 @@ const SettingsButton = ({ onClick ,  lightsClick}: { onClick: () => void }) => {
                 min="0"
                 max="2"
                 step="0.1"
-                value={selectedSpeed}
-                onChange={(e) => setSelectedSpeed(parseFloat(e.target.value))}
+                value={speed}
+                onChange={(e) => setSpeed(parseFloat(e.target.value))}
                 className="w-full accent-white"
               />
             </li>
