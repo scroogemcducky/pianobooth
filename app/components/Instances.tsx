@@ -93,6 +93,7 @@ const CustomGeometryParticles: React.FC<CustomGeometryParticlesProps> = ({
   scaleFactor = 1
 }) => {
   const playing = usePlayStore(state => state.playing)
+  const speed = usePlayStore(state => state.speed)
   const materialRef = useRef<CustomShaderMaterial>(null)
 
   const timeRef = useRef(0)
