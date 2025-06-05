@@ -111,11 +111,12 @@ function useFrameBasedMidi(midiObject: MidiNote[] | null, currentFrame: number) 
   }, [currentFrame, midiObject])
 }
 
-// Server action to process frames and generate video
+// Server action to process frames and generate video with optional audio
 export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData()
   const framesData = formData.get('frames') as string
   const fps = parseInt(formData.get('fps') as string) || 60
+  const audioFile = formData.get('audio') as File | null
   
   if (!framesData) {
     return json({ error: 'No frames data provided' }, { status: 400 })
@@ -133,7 +134,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const mkdir = promisify(fs.mkdir)
     
     // Create temporary directory
-    const tempDir = path.join(process.cwd(), 'temp_frames')
+    const tempDir = path.join(process.cwd(), 'temp_frames', `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`)
     await mkdir(tempDir, { recursive: true })
     
     console.log(`Processing ${frames.length} frames...`)
@@ -152,26 +153,54 @@ export async function action({ request }: ActionFunctionArgs) {
     await Promise.all(framePromises)
     console.log('All frames saved to disk')
     
-    // Generate video with ffmpeg
+    // Handle audio file if provided
+    let audioPath: string | null = null
+    if (audioFile && audioFile.size > 0) {
+      const audioBuffer = Buffer.from(await audioFile.arrayBuffer())
+      audioPath = path.join(tempDir, 'audio.wav')
+      await writeFile(audioPath, audioBuffer)
+      console.log('Audio file saved')
+    }
+    
+    // Generate video with ffmpeg (with or without audio)
     const outputPath = path.join(process.cwd(), 'public', `piano_video_${Date.now()}.mp4`)
     
     return new Promise((resolve) => {
-      const ffmpeg = spawn('ffmpeg', [
+      const ffmpegArgs = [
         '-framerate', fps.toString(),
-        '-i', path.join(tempDir, 'frame_%06d.png'),
+        '-i', path.join(tempDir, 'frame_%06d.png')
+      ]
+      
+      // Add audio input if provided
+      if (audioPath) {
+        ffmpegArgs.push('-i', audioPath)
+        ffmpegArgs.push('-c:a', 'aac')
+        ffmpegArgs.push('-b:a', '192k') // High quality audio
+      }
+      
+      // Video encoding settings
+      ffmpegArgs.push(
         '-c:v', 'libx264',
         '-pix_fmt', 'yuv420p',
         '-preset', 'fast',
-        '-crf', '18', // High quality
-        outputPath
-      ])
+        '-crf', '18' // High quality
+      )
+      
+      // If audio is provided, ensure video and audio are same length
+      if (audioPath) {
+        ffmpegArgs.push('-shortest')
+      }
+      
+      ffmpegArgs.push(outputPath)
+      
+      const ffmpeg = spawn('ffmpeg', ffmpegArgs)
       
       ffmpeg.stderr.on('data', (data) => {
         console.log(`ffmpeg: ${data}`)
       })
       
       ffmpeg.on('close', async (code) => {
-        // Clean up temporary frames
+        // Clean up temporary files
         try {
           const files = await fs.promises.readdir(tempDir)
           await Promise.all(files.map(file => fs.promises.unlink(path.join(tempDir, file))))
@@ -182,10 +211,11 @@ export async function action({ request }: ActionFunctionArgs) {
         
         if (code === 0) {
           const videoFileName = path.basename(outputPath)
+          const hasAudio = audioPath ? ' with audio' : ''
           resolve(json({ 
             success: true, 
             videoUrl: `/${videoFileName}`,
-            message: `Video generated: ${videoFileName}`
+            message: `Video generated${hasAudio}: ${videoFileName}`
           }))
         } else {
           resolve(json({ error: 'ffmpeg failed' }, { status: 500 }))
@@ -207,6 +237,7 @@ export default function Record() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const midiFile = useMidiStore((state) => state.midiFile)
   const [isProcessingVideo, setIsProcessingVideo] = useState(false)
+  const [audioFile, setAudioFile] = useState<File | null>(null)
   const fetcher = useFetcher()
 
   // Load MIDI file
@@ -263,6 +294,7 @@ export default function Record() {
     }
   }
 
+
   // Process frames into video using server action
   const processVideo = () => {
     setIsProcessingVideo(true)
@@ -270,6 +302,11 @@ export default function Record() {
     const formData = new FormData()
     formData.append('frames', JSON.stringify(capturedFrames))
     formData.append('fps', FPS.toString())
+    
+    // Add audio file if selected
+    if (audioFile) {
+      formData.append('audio', audioFile)
+    }
     
     fetcher.submit(formData, { method: 'POST' })
   }
@@ -330,56 +367,60 @@ export default function Record() {
         borderRadius: '10px',
         color: 'white'
       }}>
-        <h3>Frame-by-Frame Recorder</h3>
-        <p>Total frames: {totalFrames} ({(totalFrames / FPS).toFixed(1)}s)</p>
-        <p>Current frame: {currentFrame + 1}</p>
-        {isRecording && <p>Recording... {((currentFrame / totalFrames) * 100).toFixed(1)}%</p>}
-        {isProcessingVideo && <p>Processing video with ffmpeg...</p>}
+        <input
+          type="file"
+          accept="audio/*"
+          onChange={(e) => setAudioFile(e.target.files?.[0] || null)}
+          style={{
+            marginBottom: '15px',
+            padding: '5px',
+            background: '#333',
+            color: 'white',
+            border: '1px solid #666',
+            borderRadius: '3px'
+          }}
+        />
         
-        <div style={{ marginTop: '10px' }}>
+        <div>
           <button 
-            onClick={startRecording} 
-            disabled={isRecording || !midiObject || isProcessingVideo}
+            onClick={isRecording ? stopRecording : startRecording} 
+            disabled={!midiObject || isProcessingVideo}
             style={{
-              padding: '10px 20px',
-              marginRight: '10px',
-              background: isRecording ? '#666' : '#ff4444',
+              background: !midiObject || isProcessingVideo ? '#666' : (isRecording ? '#ff4757' : '#ff4757'),
               color: 'white',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: isRecording ? 'not-allowed' : 'pointer'
+              border: isRecording ? '3px solid #fff' : 'none',
+              borderRadius: '50%',
+              cursor: (!midiObject || isProcessingVideo) ? 'not-allowed' : 'pointer',
+              width: '60px',
+              height: '60px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.2s ease',
+              position: 'relative',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
             }}
           >
-            {isRecording ? 'Recording...' : 'Start Recording'}
-          </button>
-          
-          <button 
-            onClick={stopRecording} 
-            disabled={!isRecording}
-            style={{
-              padding: '10px 20px',
-              background: !isRecording ? '#666' : '#44ff44',
-              color: 'white',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: !isRecording ? 'not-allowed' : 'pointer'
-            }}
-          >
-            Stop & Create Video
+            {isRecording ? (
+              <div style={{
+                width: '18px',
+                height: '18px',
+                backgroundColor: 'white',
+                borderRadius: '2px'
+              }} />
+            ) : (
+              <div style={{
+                width: '18px',
+                height: '18px',
+                backgroundColor: 'white',
+                borderRadius: '50%'
+              }} />
+            )}
           </button>
         </div>
         
-        <div style={{ marginTop: '15px', fontSize: '12px' }}>
-          <p>Instructions:</p>
-          <ol style={{ margin: 0, paddingLeft: '20px' }}>
-            <li>Load a MIDI file from the home page</li>
-            <li>Click &quot;Start Recording&quot; to begin frame capture</li>
-            <li>Frames will be automatically saved as PNG files</li>
-            <li>Use FFmpeg to compile: <code style={{background:'#333', padding:'2px'}}>
-              ffmpeg -framerate {FPS} -i frame_%06d.png -c:v libx264 -pix_fmt yuv420p output.mp4
-            </code></li>
-          </ol>
-        </div>
+        {isRecording && <p style={{ marginTop: '10px', fontSize: '12px' }}>Recording... {((currentFrame / totalFrames) * 100).toFixed(1)}%</p>}
+        {isProcessingVideo && <p style={{ marginTop: '10px', fontSize: '12px' }}>Processing video...</p>}
       </div>
 
       <Canvas 
