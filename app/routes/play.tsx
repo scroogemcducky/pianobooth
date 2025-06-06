@@ -48,20 +48,22 @@ export default function Video()  {
 
   useEffect(() => {
     const getFileAndSetPlayer = async (file) => {
-      const result = await midiParser(file)
-      if(result) {
-          setMidiObject(result)
+      console.log('Processing file:', file);
+      try {
+        const result = await midiParser(file)
+        console.log('Parser result:', result);
+        if(result) {
+            setMidiObject(result)
+        }
+      } catch (error) {
+        console.error('MIDI parsing error:', error);
       }
     }
 
-    const localStorageJson = localStorage.getItem('midiFile')
     if (midiFile) {
+        console.log('MIDI file received:', midiFile);
         getFileAndSetPlayer(midiFile)
         return
-    } 
-    else if (localStorageJson) {
-        const localStorageMidiFile = JSON.parse(localStorageJson)
-        getFileAndSetPlayer(localStorageMidiFile)
     }
   }, [midiFile]);
 

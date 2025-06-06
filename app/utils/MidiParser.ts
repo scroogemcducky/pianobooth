@@ -66,21 +66,42 @@ const getConstantDataFromMidiFile = (file: any) => {
     };
   };
   
-  const parseMidiFile = async (midiData: MidiData) => {
-    if (midiData.type !== 'audio/midi' && midiData.type !== 'audio/mid') {
-      throw new Error('Invalid MIDI file type');
+  // Helper to yield control back to the browser
+  const yieldToMain = () => {
+    return new Promise(resolve => {
+      if (typeof requestIdleCallback !== 'undefined') {
+        requestIdleCallback(resolve);
+      } else {
+        setTimeout(resolve, 0);
+      }
+    });
+  };
+
+  const parseMidiFile = async (midiFile: File | MidiData) => {
+    let buffer: ArrayBuffer;
+    
+    if (midiFile instanceof File) {
+      // Direct File object - convert to ArrayBuffer (non-blocking)
+      buffer = await midiFile.arrayBuffer();
+    } else {
+      // Legacy base64 format for backwards compatibility
+      if (midiFile.type !== 'audio/midi' && midiFile.type !== 'audio/mid') {
+        throw new Error('Invalid MIDI file type');
+      }
+      
+      const base64 = midiFile.data.split(',')[1];
+      const binaryString = window.atob(base64);
+      const len = binaryString.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      buffer = bytes.buffer;
     }
   
-    // Convert base64 to ArrayBuffer
-    const base64 = midiData.data.split(',')[1];
-    const binaryString = window.atob(base64);
-    const len = binaryString.length;
-    const bytes = new Uint8Array(len);
-    for (let i = 0; i < len; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
-    const buffer = bytes.buffer;
-  
+    // Yield control before heavy parsing
+    await yieldToMain();
+    
     // Parse MIDI file
     const MidiObject = await ReadMidiFile(buffer);
     // console.log("MidiObject format:", MidiObject.format, "Number of tracks:", MidiObject.tracks.length);
@@ -92,12 +113,13 @@ const getConstantDataFromMidiFile = (file: any) => {
   
     // Get constant data
     const constantData = getConstantDataFromMidiFile(MidiObject);
-    // console.log("MIDI timing data:", constantData);
   
+    // Yield control before heavy note processing
+    await yieldToMain();
+    
     // Convert to note events JSON
     const noteEvents = ConvertToNoteEventsJSON(MidiObject, 500000, constantData);
   
-    // console.log("Final note events count:", noteEvents.length)
     return noteEvents;
   };
   

@@ -3,28 +3,6 @@ import { useRef, useState, useEffect} from 'react';
 import  useMidiStore  from '../store/midiStore'
 import { useNavigate,  } from "@remix-run/react"; 
 import { Link } from '@remix-run/react';
-const SaveAsBase64 = (element) => {
-  
-    return new Promise((resolve, reject) => {
-      const file = element;
-      const reader = new FileReader();
-      reader.onload = function(event) {
-        if (typeof event.target?.result === 'string') {
-          resolve({
-            data: event.target.result,
-            type: file.type
-          });
-        } else {
-          reject(new Error('Failed to convert file to base64'));
-        }
-      };
-      reader.onerror = function(error) {
-        reject(error);
-      };
-      reader.readAsDataURL(file);
-    });
-  // }
-};
 
 const App = () => {
   const [isClient, setIsClient] = useState(false);
@@ -44,24 +22,16 @@ const App = () => {
   const handleFileInput = async () => {
     if (typeof window === 'undefined') return;
     const selectedFile = MidiFileRef.current.files[0];
-    // console.log('selectedFile:', selectedFile)
     const {isValid, error} = validateMidiFile(selectedFile)
     if(isValid){
       try {
-        // console.log("trying")
-        const result = await SaveAsBase64(selectedFile);
-        setMidiStore(result); // Set the MIDI file in the Zustand store
-        localStorage.setItem('midiFile', JSON.stringify(result));
-        // console.log("Setting local storage")
+        setMidiStore(selectedFile); // Store File object directly
         navigate("/play")
       } 
       catch (error) {
         alert('Error processing the MIDI file. Please try again.');
       }
-    } else {
-        // console.log("Error")
-      }
-    // }
+    }
   };
 
 
