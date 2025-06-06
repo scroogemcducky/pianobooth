@@ -1,10 +1,7 @@
 import { CreateMidiNoteEventsArray, getEmptyNoteEvent } from "./smallFunctions";
 
 const convertToNoteEventsJSON = (file, microsecondsPerQuarter, staticMidiFileData) => {
-    // console.log("Starting note events conversion with file:", file);
-    // console.log("microsecondsPerQuarter:", microsecondsPerQuarter, "division:", staticMidiFileData.division);
     let tickTime = microsecondsPerQuarter / staticMidiFileData.division;
-    // console.log("Calculated tickTime:", tickTime);
     let pianoKeys = CreateMidiNoteEventsArray(88, 21);
     let sustainOn = false;
     let waitingQueue = [];
@@ -90,24 +87,20 @@ const convertToNoteEventsJSON = (file, microsecondsPerQuarter, staticMidiFileDat
             }
         }
     };
-
-    // console.log("Processing MIDI format", file.format, "file with", file.tracks.length, "tracks");
     
     if (file.format === 0) {
         // Format 0: single track containing all channels
-        // console.log("Format 0 MIDI file: processing single track");
         let timePassed = 0;
         file.tracks[0].forEach(event => {
             timePassed += event.delta * tickTime;
             processEvent(event, timePassed);
         });
         trackNoteCounts.push(finalNotes.length);
-        // console.log("Track 0 produced", finalNotes.length, "notes");
     } else {
         // Format 1: multiple tracks to be played simultaneously
         // console.log("Format 1/2 MIDI file: processing all tracks simultaneously");
         let timePassed = 0;
-        file.tracks.forEach((track, trackIndex) => {
+        file.tracks.forEach((track) => {
             let trackNoteCount = 0;
             timePassed = 0;
             track.forEach(event => {
@@ -119,12 +112,10 @@ const convertToNoteEventsJSON = (file, microsecondsPerQuarter, staticMidiFileDat
                 }
             });
             trackNoteCounts.push(trackNoteCount);
-            // console.log("Track", trackIndex, "produced approximately", trackNoteCount, "notes");
         });
     }
 
 
-    // return finalNotes.sort((a, b) => a.Delta - b.Delta);
     const sortedNotes = finalNotes.sort((a, b) => a.Delta - b.Delta);
     if (sortedNotes.length > 0) {
         const minDelta = sortedNotes[0].Delta;
@@ -132,13 +123,6 @@ const convertToNoteEventsJSON = (file, microsecondsPerQuarter, staticMidiFileDat
             note.Delta -= minDelta;
         });
     }
-
-    // console.log("Track note counts:", trackNoteCounts);
-    // console.log("Total notes after processing:", sortedNotes.length);
-    
-    // if (sortedNotes.length === 0) {
-    //     console.warn("WARNING: No notes were extracted from the MIDI file!");
-    // }
 
     return sortedNotes;
 };

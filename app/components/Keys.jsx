@@ -26,11 +26,29 @@ const Keys = () => {
   // More aggressive scaling - using 0.8 as a multiplier to scale down further
   const scaleFactor = scalingFactor(viewport.width, totalKeyboardWidth)
   
+  // Calculate safe keyboard positioning
+  // White keys are ~16 units tall, extending downward from group position
+  const whiteKeyHeight = 16;
+  const renderedKeyHeight = whiteKeyHeight * scaleFactor;
+  
+  // Bottom margin: 5% of screen height
+  const bottomMargin = viewport.height * 0.05;
+  const screenBottom = -viewport.height / 2;
+  const safeBottom = screenBottom + bottomMargin;
+  
+  // Bottom edge of keyboard = keyboardY - renderedKeyHeight
+  // This must be >= safeBottom, so: keyboardY >= safeBottom + renderedKeyHeight
+  const maxKeyboardY = safeBottom + renderedKeyHeight;
+  
+  // Only move down if it would move more than 5% of screen height
+  const minMovement = viewport.height * 0.05;
+  const keyboardY = maxKeyboardY < -minMovement ? maxKeyboardY : 0;
+  
   return <>
-    {/* Center the keyboard horizontally and vertically */}
+    {/* Position keyboard horizontally centered and as low as safely possible */}
     <group 
       scale={[scaleFactor, scaleFactor, 1]} 
-      position={[0, 0, 0]}>
+      position={[0, keyboardY, 0]}>
       <Octave octave={0} />
       <Octave octave={1} />
       <Octave octave={2} />
@@ -39,8 +57,8 @@ const Keys = () => {
       <Octave octave={5} />
     </group>
 
-    <mesh position={[0, -viewport.height/4 , 0]}>
-            <planeGeometry args={[viewport.width, viewport.height / 2]} />
+    <mesh position={[0, (keyboardY + screenBottom) / 2, 0]}>
+            <planeGeometry args={[viewport.width, keyboardY - screenBottom]} />
             <meshBasicMaterial color="black" />
     </mesh>
     </>;

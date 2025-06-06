@@ -1,7 +1,7 @@
 // Shader implementation of PlayStandardSound
 // used to be /shader
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 
 import { Canvas, } from '@react-three/fiber'
 import midiParser from '../utils/MidiParser'
@@ -48,20 +48,41 @@ export default function Video()  {
 
   useEffect(() => {
     const getFileAndSetPlayer = async (file) => {
-      const result = await midiParser(file)
-      if(result) {
-          setMidiObject(result)
+      console.log('Processing file:', file);
+      try {
+        const result = await midiParser(file)
+        console.log('Parser result:', result);
+        if(result) {
+            setMidiObject(result)
+            // Store processed MIDI data for persistence
+            localStorage.setItem('processedMidiData', JSON.stringify(result));
+        }
+      } catch (error) {
+        console.error('MIDI parsing error:', error);
       }
     }
 
-    const localStorageJson = localStorage.getItem('midiFile')
+    const loadFromLocalStorage = () => {
+      const storedData = localStorage.getItem('processedMidiData');
+      if (storedData) {
+        try {
+          const parsedData = JSON.parse(storedData);
+          console.log('Loaded from localStorage:', parsedData);
+          setMidiObject(parsedData);
+        } catch (error) {
+          console.error('Error loading from localStorage:', error);
+          localStorage.removeItem('processedMidiData');
+        }
+      }
+    }
+
     if (midiFile) {
+        console.log('MIDI file received:', midiFile);
         getFileAndSetPlayer(midiFile)
         return
-    } 
-    else if (localStorageJson) {
-        const localStorageMidiFile = JSON.parse(localStorageJson)
-        getFileAndSetPlayer(localStorageMidiFile)
+    } else {
+        // Try to load from localStorage if no file in store
+        loadFromLocalStorage()
     }
   }, [midiFile]);
 
@@ -72,10 +93,25 @@ export default function Video()  {
     }
   }
 
+  const activeTimeouts = useRef(new Map());
+
   const triggerVisibleNote = (noteName, duration) => {
+    // Clear any existing timeout for this note
+    if (activeTimeouts.current.has(noteName)) {
+      clearTimeout(activeTimeouts.current.get(noteName));
+    }
+    
+    // Always turn key on immediately
     useKeyStore.getState().setKey(noteName, true);
-    playNote(noteName)
-    setTimeout(() => useKeyStore.getState().setKey(noteName, false), duration); 
+    playNote(noteName);
+    
+    // Set new timeout and store it
+    const timeoutId = setTimeout(() => {
+      useKeyStore.getState().setKey(noteName, false);
+      activeTimeouts.current.delete(noteName);
+    }, duration);
+    
+    activeTimeouts.current.set(noteName, timeoutId);
   }
   
   return ( 
