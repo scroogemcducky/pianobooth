@@ -57,8 +57,8 @@ const Keys = () => {
       <Octave octave={5} />
     </group>
 
-    <mesh position={[0, keyboardY - renderedKeyHeight / 2, 0]}>
-            <planeGeometry args={[viewport.width, renderedKeyHeight + bottomMargin]} />
+    <mesh position={[0, (keyboardY + screenBottom) / 2, 0]}>
+            <planeGeometry args={[viewport.width, keyboardY - screenBottom]} />
             <meshBasicMaterial color="black" />
     </mesh>
     </>;
