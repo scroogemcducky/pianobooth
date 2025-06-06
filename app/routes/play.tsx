@@ -1,7 +1,7 @@
 // Shader implementation of PlayStandardSound
 // used to be /shader
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 
 import { Canvas, } from '@react-three/fiber'
 import midiParser from '../utils/MidiParser'
@@ -93,10 +93,25 @@ export default function Video()  {
     }
   }
 
+  const activeTimeouts = useRef(new Map());
+
   const triggerVisibleNote = (noteName, duration) => {
+    // Clear any existing timeout for this note
+    if (activeTimeouts.current.has(noteName)) {
+      clearTimeout(activeTimeouts.current.get(noteName));
+    }
+    
+    // Always turn key on immediately
     useKeyStore.getState().setKey(noteName, true);
-    playNote(noteName)
-    setTimeout(() => useKeyStore.getState().setKey(noteName, false), duration); 
+    playNote(noteName);
+    
+    // Set new timeout and store it
+    const timeoutId = setTimeout(() => {
+      useKeyStore.getState().setKey(noteName, false);
+      activeTimeouts.current.delete(noteName);
+    }, duration);
+    
+    activeTimeouts.current.set(noteName, timeoutId);
   }
   
   return ( 
