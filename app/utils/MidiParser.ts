@@ -1,4 +1,3 @@
-// import { parseArrayBuffer } from 'midi-json-parser';
 import ConvertToNoteEventsJSON from './getNoteEventsJSON';
 
 let midiParser;
@@ -9,7 +8,7 @@ const loadParser  = async () => {
     midiParser = parser.parseArrayBuffer;
   }
 }
-const ReadMidiFile = async (input) => {
+const ReadMidiFile = async (arrayBuffer: ArrayBuffer) => {
   if (typeof window === 'undefined') {
     throw new Error("Server side")
   }
@@ -17,29 +16,11 @@ const ReadMidiFile = async (input) => {
     await loadParser();
   }
   
-  const convertToArrayBuffer = async (data) => {
-    if (data instanceof ArrayBuffer) return data;
-    if (data instanceof Blob) return await data.arrayBuffer();
-    if (typeof data === 'string') {
-      const binaryString = atob(data);
-      return Uint8Array.from(binaryString, c => c.charCodeAt(0)).buffer;
-    }
-    throw new Error('Unsupported input type');
-  };
-
-  
-  const arrayBuffer = await convertToArrayBuffer(input);
-  // return await parseArrayBuffer(arrayBuffer);
-  return await midiParser(arrayBuffer)
- 
+  return await midiParser(arrayBuffer);
 };
 
 
 
-interface MidiData {
-  data: string;
-  type: string;
-}
 
 interface TimeSignature {
   numerator: number;
@@ -77,40 +58,16 @@ const getConstantDataFromMidiFile = (file: any) => {
     });
   };
 
-  const parseMidiFile = async (midiFile: File | MidiData) => {
-    let buffer: ArrayBuffer;
-    
-    if (midiFile instanceof File) {
-      // Direct File object - convert to ArrayBuffer (non-blocking)
-      buffer = await midiFile.arrayBuffer();
-    } else {
-      // Legacy base64 format for backwards compatibility
-      if (midiFile.type !== 'audio/midi' && midiFile.type !== 'audio/mid') {
-        throw new Error('Invalid MIDI file type');
-      }
-      
-      const base64 = midiFile.data.split(',')[1];
-      const binaryString = window.atob(base64);
-      const len = binaryString.length;
-      const bytes = new Uint8Array(len);
-      for (let i = 0; i < len; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-      buffer = bytes.buffer;
-    }
+  const parseMidiFile = async (midiFile: File) => {
+    // Direct File object - convert to ArrayBuffer (non-blocking)
+    const buffer = await midiFile.arrayBuffer();
   
     // Yield control before heavy parsing
     await yieldToMain();
     
     // Parse MIDI file
     const MidiObject = await ReadMidiFile(buffer);
-    // console.log("MidiObject format:", MidiObject.format, "Number of tracks:", MidiObject.tracks.length);
-    // MidiObject.tracks.forEach((track, index) => {
-    //   const noteOnEvents = track.filter(event => 'noteOn' in event).length;
-    //   const noteOffEvents = track.filter(event => 'noteOff' in event).length;
-    //   // console.log(`Track ${index}: ${track.length} events, ${noteOnEvents} noteOn, ${noteOffEvents} noteOff`);
-    // });
-  
+   
     // Get constant data
     const constantData = getConstantDataFromMidiFile(MidiObject);
   

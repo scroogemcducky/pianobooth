@@ -54,9 +54,25 @@ export default function Video()  {
         console.log('Parser result:', result);
         if(result) {
             setMidiObject(result)
+            // Store processed MIDI data for persistence
+            localStorage.setItem('processedMidiData', JSON.stringify(result));
         }
       } catch (error) {
         console.error('MIDI parsing error:', error);
+      }
+    }
+
+    const loadFromLocalStorage = () => {
+      const storedData = localStorage.getItem('processedMidiData');
+      if (storedData) {
+        try {
+          const parsedData = JSON.parse(storedData);
+          console.log('Loaded from localStorage:', parsedData);
+          setMidiObject(parsedData);
+        } catch (error) {
+          console.error('Error loading from localStorage:', error);
+          localStorage.removeItem('processedMidiData');
+        }
       }
     }
 
@@ -64,6 +80,9 @@ export default function Video()  {
         console.log('MIDI file received:', midiFile);
         getFileAndSetPlayer(midiFile)
         return
+    } else {
+        // Try to load from localStorage if no file in store
+        loadFromLocalStorage()
     }
   }, [midiFile]);
 
