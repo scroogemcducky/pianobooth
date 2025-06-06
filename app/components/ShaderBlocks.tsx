@@ -20,7 +20,18 @@ function ShaderBlocks({ midiObject, triggerVisibleNote }) {
     // const scaleFactor = Math.min(1.1, viewport.width / totalKeyboardWidth * 0.9);
 
     const half_screen = viewport.height / 2
-    const distance = viewport.height / 2
+    
+    // Calculate keyboard position using same logic as Keys.jsx
+    const whiteKeyHeight = 16;
+    const renderedKeyHeight = whiteKeyHeight * scaleFactor;
+    const bottomMargin = viewport.height * 0.05;
+    const screenBottom = -viewport.height / 2;
+    const safeBottom = screenBottom + bottomMargin;
+    const maxKeyboardY = safeBottom + renderedKeyHeight;
+    const minMovement = viewport.height * 0.05;
+    const keyboardY = maxKeyboardY < -minMovement ? maxKeyboardY : 0;
+    
+    const distance = viewport.height / 2 + (-keyboardY)
     const firstNoteDelta = midiObject[0] ? parseInt(midiObject[0].Delta / 1000) + 1000  : 0;
 
     useEffect(() => {
