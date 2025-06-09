@@ -44,6 +44,22 @@ export default function Video()  {
     };
   }, []);
 
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.code === 'Space') {
+        event.preventDefault();
+        const currentPlaying = usePlayStore.getState().playing;
+        usePlayStore.getState().setPlaying(!currentPlaying);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
   const midiFile = useMidiStore((state) => state.midiFile);
 
   useEffect(() => {
