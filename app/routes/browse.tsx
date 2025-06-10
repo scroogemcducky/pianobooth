@@ -1,6 +1,7 @@
 import { LoaderFunctionArgs } from "@remix-run/node";
 import { useLoaderData, Link } from "@remix-run/react";
 import { createClient } from "~/utils/supabase.server";
+import useMidiStore from '../store/midiStore';
 // import process from 'process'
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
@@ -27,13 +28,36 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
 export default function Index() {
   const { todos } = useLoaderData<typeof loader>();
+  const setMidiStore = useMidiStore((state) => state.setMidiFile);
 
   const handleSongClick = (midiData: string) => {
-    const midiFile = {
-      data: midiData,
-      type: 'audio/midi'
-    };
-    localStorage.setItem('midiFile', JSON.stringify(midiFile));
+    try {
+      // Clear any existing MIDI data
+      localStorage.removeItem('processedMidiData');
+      
+      // The data is in data URL format: "data:audio/midi;base64,ABC123..."
+      // Extract just the base64 part after the comma
+      const base64Data = midiData.split(',')[1];
+      if (!base64Data) {
+        throw new Error('Invalid data URL format');
+      }
+      
+      // Decode base64 data and create a File object
+      const binaryString = atob(base64Data);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      
+      const blob = new Blob([bytes], { type: 'audio/midi' });
+      const file = new File([blob], 'catalog-song.mid', { type: 'audio/midi' });
+      
+      // Update the midi store with the new file
+      setMidiStore(file);
+    } catch (error) {
+      console.error('Error processing catalog MIDI data:', error);
+      alert('Error loading the selected song. Please try again.');
+    }
   };
 
   return (

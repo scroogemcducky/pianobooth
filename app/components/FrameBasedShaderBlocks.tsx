@@ -182,7 +182,18 @@ function FrameBasedShaderBlocks({ midiObject, currentFrame }: FrameBasedShaderBl
   const scaleFactor = scalingFactor(viewport.width, totalKeyboardWidth);
   
   const half_screen = viewport.height / 2;
-  const distance = viewport.height / 2;
+  
+  // Calculate keyboard position using same logic as Keys.jsx and ShaderBlocks
+  const whiteKeyHeight = 16;
+  const renderedKeyHeight = whiteKeyHeight * scaleFactor;
+  const bottomMargin = viewport.height * 0.05;
+  const screenBottom = -viewport.height / 2;
+  const safeBottom = screenBottom + bottomMargin;
+  const maxKeyboardY = safeBottom + renderedKeyHeight;
+  const minMovement = viewport.height * 0.05;
+  const keyboardY = maxKeyboardY < -minMovement ? maxKeyboardY : 0;
+  
+  const distance = viewport.height / 2 + (-keyboardY);
   const firstNoteDelta = midiObject[0] ? parseInt(midiObject[0].Delta.toString()) + 1000 : 0;
 
   useEffect(() => {
@@ -207,7 +218,7 @@ function FrameBasedShaderBlocks({ midiObject, currentFrame }: FrameBasedShaderBl
 
       setBlocks(newBlocks);
     }
-  }, [midiObject, viewport.height, viewport.width, half_screen, distance, firstNoteDelta]);
+  }, [midiObject, viewport.height, viewport.width, half_screen, distance, firstNoteDelta, scaleFactor]);
 
   const currentTimeMs = currentFrame * (1000 / 60); // 60 FPS
 

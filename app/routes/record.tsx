@@ -243,20 +243,41 @@ export default function Record() {
   // Load MIDI file
   useEffect(() => {
     const getFileAndSetPlayer = async (file: unknown) => {
-      const result = await midiParser(file)
-      if(result) {
-        setMidiObject(result)
+      console.log('Processing file:', file);
+      try {
+        const result = await midiParser(file)
+        console.log('Parser result:', result);
+        if(result) {
+            setMidiObject(result)
+            // Store processed MIDI data for persistence
+            localStorage.setItem('processedMidiData', JSON.stringify(result));
+        }
+      } catch (error) {
+        console.error('MIDI parsing error:', error);
       }
     }
 
-    const localStorageJson = localStorage.getItem('midiFile')
+    const loadFromLocalStorage = () => {
+      const storedData = localStorage.getItem('processedMidiData');
+      if (storedData) {
+        try {
+          const parsedData = JSON.parse(storedData);
+          console.log('Loaded from localStorage:', parsedData);
+          setMidiObject(parsedData);
+        } catch (error) {
+          console.error('Error loading from localStorage:', error);
+          localStorage.removeItem('processedMidiData');
+        }
+      }
+    }
+
     if (midiFile) {
-      getFileAndSetPlayer(midiFile)
-      return
-    } 
-    else if (localStorageJson) {
-      const localStorageMidiFile = JSON.parse(localStorageJson)
-      getFileAndSetPlayer(localStorageMidiFile)
+        console.log('MIDI file received:', midiFile);
+        getFileAndSetPlayer(midiFile)
+        return
+    } else {
+        // Try to load from localStorage if no file in store
+        loadFromLocalStorage()
     }
   }, [midiFile])
 
@@ -383,6 +404,7 @@ export default function Record() {
         
         <div>
           <button 
+            id="record-button"
             onClick={isRecording ? stopRecording : startRecording} 
             disabled={!midiObject || isProcessingVideo}
             style={{
