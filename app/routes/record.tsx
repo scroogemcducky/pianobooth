@@ -11,6 +11,7 @@ import Keys from '../components/Keys'
 import * as THREE from 'three'
 import { ActionFunctionArgs, json } from '@remix-run/cloudflare'
 import { useFetcher } from '@remix-run/react'
+import { synthesizeAudioFromMIDI } from '../utils/audioSynthesis.server'
 
 interface MidiNote {
   Delta: number;
@@ -117,6 +118,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const framesData = formData.get('frames') as string
   const fps = parseInt(formData.get('fps') as string) || 60
   const audioFile = formData.get('audio') as File | null
+  const midiData = formData.get('midiData') as string | null
   
   if (!framesData) {
     return json({ error: 'No frames data provided' }, { status: 400 })
@@ -153,13 +155,25 @@ export async function action({ request }: ActionFunctionArgs) {
     await Promise.all(framePromises)
     console.log('All frames saved to disk')
     
-    // Handle audio file if provided
+    // Handle audio file if provided, or generate from MIDI
     let audioPath: string | null = null
     if (audioFile && audioFile.size > 0) {
       const audioBuffer = Buffer.from(await audioFile.arrayBuffer())
       audioPath = path.join(tempDir, 'audio.wav')
       await writeFile(audioPath, audioBuffer)
       console.log('Audio file saved')
+    } else if (midiData) {
+      // Generate audio from MIDI data
+      try {
+        const midiNotes = JSON.parse(midiData) as MidiNote[]
+        console.log(`Generating audio from ${midiNotes.length} MIDI notes`)
+        const audioBuffer = synthesizeAudioFromMIDI(midiNotes)
+        audioPath = path.join(tempDir, 'generated_audio.wav')
+        await writeFile(audioPath, audioBuffer)
+        console.log('Generated audio file saved')
+      } catch (error) {
+        console.error('Failed to generate audio from MIDI:', error)
+      }
     }
     
     // Generate video with ffmpeg (with or without audio)
@@ -211,11 +225,11 @@ export async function action({ request }: ActionFunctionArgs) {
         
         if (code === 0) {
           const videoFileName = path.basename(outputPath)
-          const hasAudio = audioPath ? ' with audio' : ''
+          const audioType = audioFile ? ' with uploaded audio' : (midiData ? ' with generated piano audio' : '')
           resolve(json({ 
             success: true, 
             videoUrl: `/${videoFileName}`,
-            message: `Video generated${hasAudio}: ${videoFileName}`
+            message: `Video generated${audioType}: ${videoFileName}`
           }))
         } else {
           resolve(json({ error: 'ffmpeg failed' }, { status: 500 }))
@@ -324,9 +338,11 @@ export default function Record() {
     formData.append('frames', JSON.stringify(capturedFrames))
     formData.append('fps', FPS.toString())
     
-    // Add audio file if selected
+    // Add audio file if selected, or MIDI data for generation
     if (audioFile) {
       formData.append('audio', audioFile)
+    } else if (midiObject) {
+      formData.append('midiData', JSON.stringify(midiObject))
     }
     
     fetcher.submit(formData, { method: 'POST' })
@@ -388,19 +404,29 @@ export default function Record() {
         borderRadius: '10px',
         color: 'white'
       }}>
-        <input
-          type="file"
-          accept="audio/*"
-          onChange={(e) => setAudioFile(e.target.files?.[0] || null)}
-          style={{
-            marginBottom: '15px',
-            padding: '5px',
-            background: '#333',
-            color: 'white',
-            border: '1px solid #666',
-            borderRadius: '3px'
-          }}
-        />
+        <div style={{ marginBottom: '15px' }}>
+          <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px' }}>
+            Optional audio file (leave empty to generate piano audio from MIDI):
+          </label>
+          <input
+            type="file"
+            accept="audio/*"
+            onChange={(e) => setAudioFile(e.target.files?.[0] || null)}
+            style={{
+              padding: '5px',
+              background: '#333',
+              color: 'white',
+              border: '1px solid #666',
+              borderRadius: '3px',
+              width: '100%'
+            }}
+          />
+          {!audioFile && midiObject && (
+            <p style={{ fontSize: '10px', color: '#aaa', marginTop: '5px' }}>
+              Piano audio will be automatically generated from MIDI
+            </p>
+          )}
+        </div>
         
         <div>
           <button 
