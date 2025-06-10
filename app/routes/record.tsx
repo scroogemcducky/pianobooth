@@ -11,7 +11,7 @@ import Keys from '../components/Keys'
 import * as THREE from 'three'
 import { ActionFunctionArgs, json } from '@remix-run/cloudflare'
 import { useFetcher } from '@remix-run/react'
-import { synthesizeAudioFromMIDI } from '../utils/audioSynthesis.server'
+import soundFont, { Player } from 'soundfont-player'
 
 interface MidiNote {
   Delta: number;
@@ -19,6 +19,13 @@ interface MidiNote {
   NoteNumber: number;
   Velocity: number;
   SoundDuration: number;
+}
+
+interface FetcherData {
+  success?: boolean;
+  videoUrl?: string;
+  message?: string;
+  error?: string;
 }
 
 // Frame recording configuration
@@ -54,13 +61,51 @@ function calculateTotalFrames(midiObject: MidiNote[]): number {
   
   // Find the last note end time
   const lastNoteEnd = Math.max(...midiObject.map((note: MidiNote) => 
-    parseInt(note.Delta / 1000) + (note.Duration / 1000000 * 1000)
+    Math.floor(note.Delta / 1000) + (note.Duration / 1000000 * 1000)
   ))
   
   // Add some padding at the end (2 seconds)
   const totalDurationMs = lastNoteEnd + 2000
   
   return Math.ceil(totalDurationMs / FRAME_DURATION_MS)
+}
+
+// Convert AudioBuffer to WAV blob
+function audioBufferToWav(buffer: AudioBuffer): Blob {
+  const length = buffer.length;
+  const sampleRate = buffer.sampleRate;
+  const arrayBuffer = new ArrayBuffer(44 + length * 2);
+  const view = new DataView(arrayBuffer);
+  
+  // WAV header
+  const writeString = (offset: number, string: string) => {
+    for (let i = 0; i < string.length; i++) {
+      view.setUint8(offset + i, string.charCodeAt(i));
+    }
+  };
+  
+  writeString(0, 'RIFF');
+  view.setUint32(4, 36 + length * 2, true);
+  writeString(8, 'WAVE');
+  writeString(12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  writeString(36, 'data');
+  view.setUint32(40, length * 2, true);
+  
+  // Convert to 16-bit PCM
+  const channelData = buffer.getChannelData(0);
+  for (let i = 0; i < length; i++) {
+    const sample = Math.max(-1, Math.min(1, channelData[i]));
+    view.setInt16(44 + i * 2, sample * 0x7FFF, true);
+  }
+  
+  return new Blob([arrayBuffer], { type: 'audio/wav' });
 }
 
 // Frame-based note triggering system
@@ -114,11 +159,22 @@ function useFrameBasedMidi(midiObject: MidiNote[] | null, currentFrame: number) 
 
 // Server action to process frames and generate video with optional audio
 export async function action({ request }: ActionFunctionArgs) {
-  const formData = await request.formData()
+  console.log('🚀 Server action started')
+  
+  let formData;
+  try {
+    formData = await request.formData()
+    console.log('📝 Form data received successfully')
+  } catch (error) {
+    console.error('❌ Failed to parse form data:', error)
+    return json({ error: 'Failed to parse form data - possibly too large' }, { status: 413 })
+  }
+  
   const framesData = formData.get('frames') as string
   const fps = parseInt(formData.get('fps') as string) || 60
-  const audioFile = formData.get('audio') as File | null
-  const midiData = formData.get('midiData') as string | null
+  const audioBase64 = formData.get('audio_base64') as string | null;
+  
+  console.log('📋 Form entries:', Array.from(formData.keys()))
   
   if (!framesData) {
     return json({ error: 'No frames data provided' }, { status: 400 })
@@ -155,25 +211,16 @@ export async function action({ request }: ActionFunctionArgs) {
     await Promise.all(framePromises)
     console.log('All frames saved to disk')
     
-    // Handle audio file if provided, or generate from MIDI
-    let audioPath: string | null = null
-    if (audioFile && audioFile.size > 0) {
-      const audioBuffer = Buffer.from(await audioFile.arrayBuffer())
-      audioPath = path.join(tempDir, 'audio.wav')
-      await writeFile(audioPath, audioBuffer)
-      console.log('Audio file saved')
-    } else if (midiData) {
-      // Generate audio from MIDI data
-      try {
-        const midiNotes = JSON.parse(midiData) as MidiNote[]
-        console.log(`Generating audio from ${midiNotes.length} MIDI notes`)
-        const audioBuffer = synthesizeAudioFromMIDI(midiNotes)
-        audioPath = path.join(tempDir, 'generated_audio.wav')
-        await writeFile(audioPath, audioBuffer)
-        console.log('Generated audio file saved')
-      } catch (error) {
-        console.error('Failed to generate audio from MIDI:', error)
-      }
+    // Handle audio file if provided
+    let audioPath: string | null = null;
+    if (audioBase64) {
+      console.log(`📄 Base64 audio data received, decoding...`);
+      const audioBuffer = Buffer.from(audioBase64, 'base64');
+      audioPath = path.join(tempDir, 'audio.wav');
+      await writeFile(audioPath, audioBuffer);
+      console.log(`✅ Audio file saved from base64 to: ${audioPath}`);
+    } else {
+      console.log('❌ No audio data provided to server.');
     }
     
     // Generate video with ffmpeg (with or without audio)
@@ -187,9 +234,12 @@ export async function action({ request }: ActionFunctionArgs) {
       
       // Add audio input if provided
       if (audioPath) {
+        console.log(`🎵 Adding audio input: ${audioPath}`)
         ffmpegArgs.push('-i', audioPath)
         ffmpegArgs.push('-c:a', 'aac')
         ffmpegArgs.push('-b:a', '192k') // High quality audio
+      } else {
+        console.log('🔇 No audio - creating video without sound')
       }
       
       // Video encoding settings
@@ -207,6 +257,7 @@ export async function action({ request }: ActionFunctionArgs) {
       
       ffmpegArgs.push(outputPath)
       
+      console.log(`🎬 FFmpeg command: ffmpeg ${ffmpegArgs.join(' ')}`)
       const ffmpeg = spawn('ffmpeg', ffmpegArgs)
       
       ffmpeg.stderr.on('data', (data) => {
@@ -225,7 +276,7 @@ export async function action({ request }: ActionFunctionArgs) {
         
         if (code === 0) {
           const videoFileName = path.basename(outputPath)
-          const audioType = audioFile ? ' with uploaded audio' : (midiData ? ' with generated piano audio' : '')
+          const audioType = audioPath ? ' with audio' : ''
           resolve(json({ 
             success: true, 
             videoUrl: `/${videoFileName}`,
@@ -252,7 +303,23 @@ export default function Record() {
   const midiFile = useMidiStore((state) => state.midiFile)
   const [isProcessingVideo, setIsProcessingVideo] = useState(false)
   const [audioFile, setAudioFile] = useState<File | null>(null)
-  const fetcher = useFetcher()
+  const [ac, setAc] = useState<AudioContext | null>(null)
+  const [instrument, setInstrument] = useState<Player | null>(null)
+  const fetcher = useFetcher<FetcherData>()
+
+  // Initialize audio context and instrument
+  useEffect(() => {
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    setAc(audioContext);
+  }, []);
+
+  useEffect(() => {
+    if (ac) {
+      soundFont.instrument(ac, 'acoustic_grand_piano').then(function (piano: Player) {
+        setInstrument(piano);
+      });
+    }
+  }, [ac]);
 
   // Load MIDI file
   useEffect(() => {
@@ -300,6 +367,87 @@ export default function Record() {
 
   const totalFrames = midiObject ? calculateTotalFrames(midiObject) : 0
 
+  // Generate audio from MIDI using soundfont
+  const generateAudioFromMIDI = async (): Promise<Blob | null> => {
+    if (!midiObject || !ac || !instrument) {
+      console.log('Cannot generate audio: missing dependencies', { midiObject: !!midiObject, ac: !!ac, instrument: !!instrument });
+      return null;
+    }
+
+    console.log(`Generating audio from MIDI using soundfont for ${midiObject.length} notes...`);
+    
+    // Calculate total duration with 1 second delay
+    const VISUAL_DELAY_MS = 1000;
+    const totalDurationMs = Math.max(...midiObject.map(note => 
+      Math.floor(note.Delta / 1000) + (note.Duration / 1000000 * 1000)
+    )) + VISUAL_DELAY_MS + 2000;
+    
+    const totalDurationSec = totalDurationMs / 1000;
+    console.log(`Total audio duration: ${totalDurationSec.toFixed(2)} seconds`);
+
+    // Create offline audio context for rendering (use lower sample rate to reduce file size)
+    const sampleRate = 22050; // Half the normal rate to reduce file size by ~50%
+    const totalSamples = Math.floor(totalDurationSec * sampleRate);
+    console.log(`Creating OfflineAudioContext: ${totalSamples} samples at ${sampleRate}Hz`);
+    
+    const offlineContext = new OfflineAudioContext(1, totalSamples, sampleRate);
+    
+    // Load instrument for offline context
+    console.log('Loading soundfont instrument for offline context...');
+    const offlineInstrument = await soundFont.instrument(offlineContext, 'acoustic_grand_piano');
+    console.log('Offline instrument loaded');
+    
+    // Schedule all notes
+    let scheduledNotes = 0;
+    midiObject.forEach((note, index) => {
+      const startTime = (Math.floor(note.Delta / 1000) + VISUAL_DELAY_MS) / 1000;
+      const duration = note.Duration / 1000000;
+      const velocity = note.Velocity / 127;
+      
+      if (startTime < totalDurationSec) {
+        console.log(`Scheduling note ${index}: MIDI ${note.NoteNumber} at ${startTime.toFixed(3)}s, duration ${duration.toFixed(3)}s, velocity ${velocity.toFixed(3)}`);
+        offlineInstrument.play(note.NoteNumber, startTime, {
+          gain: velocity,
+          duration: duration,
+          release: 2.5,
+          sustain: 2,
+          delay: 0
+        });
+        scheduledNotes++;
+      }
+    });
+    
+    console.log(`Scheduled ${scheduledNotes} notes. Starting rendering...`);
+
+    // Render audio
+    const audioBuffer = await offlineContext.startRendering();
+    console.log(`Audio rendering complete. Buffer length: ${audioBuffer.length} samples, duration: ${audioBuffer.duration.toFixed(2)}s`);
+
+    // Check if audio was actually generated (avoid stack overflow with large buffers)
+    const channelData = audioBuffer.getChannelData(0);
+    let maxAmplitude = 0;
+    let minAmplitude = 0;
+    
+    // Sample check instead of checking all values
+    const sampleStep = Math.max(1, Math.floor(channelData.length / 1000));
+    for (let i = 0; i < channelData.length; i += sampleStep) {
+      const sample = channelData[i];
+      if (sample > maxAmplitude) maxAmplitude = sample;
+      if (sample < minAmplitude) minAmplitude = sample;
+    }
+    
+    console.log(`Audio amplitude range: ${minAmplitude.toFixed(6)} to ${maxAmplitude.toFixed(6)}`);
+    
+    if (maxAmplitude === 0 && minAmplitude === 0) {
+      console.warn('⚠️ Generated audio buffer is silent!');
+    }
+
+    // Convert to WAV blob
+    const wavBlob = audioBufferToWav(audioBuffer);
+    console.log(`WAV blob created: ${wavBlob.size} bytes`);
+    return wavBlob;
+  }
+
   // Frame capture function
   const captureFrame = (frameNumber: number) => {
     const canvas = canvasRef.current
@@ -329,21 +477,62 @@ export default function Record() {
     }
   }
 
-
   // Process frames into video using server action
-  const processVideo = () => {
+  const processVideo = async () => {
     setIsProcessingVideo(true)
     
     const formData = new FormData()
     formData.append('frames', JSON.stringify(capturedFrames))
     formData.append('fps', FPS.toString())
     
-    // Add audio file if selected, or MIDI data for generation
+    const blobToBase64 = (blob: Blob): Promise<string> => {
+      return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+              const base64String = (reader.result as string).split(',')[1];
+              resolve(base64String);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+      });
+    };
+
+    // Add audio file if selected, or generate from MIDI
     if (audioFile) {
-      formData.append('audio', audioFile)
-    } else if (midiObject) {
-      formData.append('midiData', JSON.stringify(midiObject))
+      console.log(`📎 Adding uploaded audio file: ${audioFile.size} bytes`)
+      const audioBase64 = await blobToBase64(audioFile);
+      formData.append('audio_base64', audioBase64);
+    } else if (midiObject && ac && instrument) {
+      try {
+        console.log('Generating soundfont audio...')
+        const audioBlob = await generateAudioFromMIDI()
+        if (audioBlob) {
+          console.log(`📎 Converting generated audio to base64...`);
+          const audioBase64 = await blobToBase64(audioBlob);
+          formData.append('audio_base64', audioBase64);
+          console.log('✅ Generated audio converted and added to form data');
+        } else {
+          console.error('❌ Failed to generate audio blob')
+        }
+      } catch (error) {
+        console.error('❌ Failed to generate audio:', error)
+      }
+    } else {
+      console.log('⚠️ No audio will be included - missing dependencies')
     }
+    
+    // Log total form data size
+    let totalSize = 0;
+    for (const [key, value] of formData.entries()) {
+      if (value instanceof File) {
+        totalSize += value.size;
+        console.log(`FormData entry "${key}": ${value.size} bytes (${value.type})`);
+      } else {
+        totalSize += value.length;
+        console.log(`FormData entry "${key}": ${value.length} characters`);
+      }
+    }
+    console.log(`📦 Total form data size: ${(totalSize / 1024 / 1024).toFixed(2)} MB`);
     
     fetcher.submit(formData, { method: 'POST' })
   }
@@ -352,14 +541,17 @@ export default function Record() {
   useEffect(() => {
     if (fetcher.data) {
       setIsProcessingVideo(false)
-      if (fetcher.data.success) {
+      if (fetcher.data.success && fetcher.data.videoUrl) {
         alert(`Video created successfully! Download: ${fetcher.data.videoUrl}`)
         // Auto-download the video
         const link = document.createElement('a')
         link.href = fetcher.data.videoUrl
-        link.download = fetcher.data.videoUrl.split('/').pop()
+        const videoName = fetcher.data.videoUrl.split('/').pop()
+        if (videoName) {
+          link.download = videoName
+        }
         link.click()
-      } else {
+      } else if (fetcher.data.error) {
         alert(`Error: ${fetcher.data.error}`)
       }
       setCapturedFrames([]) // Clear frames from memory
@@ -405,10 +597,11 @@ export default function Record() {
         color: 'white'
       }}>
         <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px' }}>
-            Optional audio file (leave empty to generate piano audio from MIDI):
+          <label htmlFor="audio-file-input" style={{ display: 'block', marginBottom: '5px', fontSize: '12px' }}>
+            Optional audio file (leave empty to use soundfont piano):
           </label>
           <input
+            id="audio-file-input"
             type="file"
             accept="audio/*"
             onChange={(e) => setAudioFile(e.target.files?.[0] || null)}
@@ -421,9 +614,9 @@ export default function Record() {
               width: '100%'
             }}
           />
-          {!audioFile && midiObject && (
+          {!audioFile && midiObject && instrument && (
             <p style={{ fontSize: '10px', color: '#aaa', marginTop: '5px' }}>
-              Piano audio will be automatically generated from MIDI
+              Soundfont piano audio will be automatically generated
             </p>
           )}
         </div>
