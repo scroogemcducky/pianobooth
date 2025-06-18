@@ -112,8 +112,12 @@ export const note_positions = {
 }
 
 // Shader/Material colors
-export const BLACK_KEY_COLOR = [0.4, 0.05, 0.01];
-export const WHITE_KEY_COLOR = [0.8, 0.10, 0.02];
+export const BLACK_KEY_COLOR = [0.47, 0.04, 0.004]; // rgb(120, 10, 1)
+export const WHITE_KEY_COLOR = [0.94, 0.075, 0.28]; // rgb(240, 19, 71)
+
+// Second hand colors (blue)
+export const SECOND_HAND_BLACK_KEY_COLOR = [0.15, 0.15, 1.0];
+export const SECOND_HAND_WHITE_KEY_COLOR = [0.4, 0.05, 0.01];
 
 
 
