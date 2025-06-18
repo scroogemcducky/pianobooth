@@ -1,4 +1,4 @@
-export const black_color = "rgb(90, 20, 45)"
+export const black_color = "rgb(120, 10, 1)"
 export const white_color = "rgb(240, 19, 71)" // "rgb(230, 70, 90)"
 const offset = 7*2.55
 export const white_width = 2.55
@@ -112,7 +112,7 @@ export const note_positions = {
 }
 
 // Shader/Material colors
-export const BLACK_KEY_COLOR = [0.15, 0.15, 1.0];
+export const BLACK_KEY_COLOR = [0.4, 0.05, 0.01];
 export const WHITE_KEY_COLOR = [0.8, 0.10, 0.02];
 
 
