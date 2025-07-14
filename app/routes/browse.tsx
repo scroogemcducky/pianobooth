@@ -83,45 +83,48 @@ export default function Index() {
   const regularComposers = Object.entries(groupedByComposer || {}).filter(([composer]) => composer !== 'Pirate');
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8"></div>
-      <div className="grid grid-cols-2 gap-12">
-        {regularComposers.map(([composer, pieces]) => (
-          <div key={composer} className="mb-12">
-            {/* Composer Header */}
-            <div className="flex mb-6">
-              {composerImages[composer] && (
-                <img 
-                  src={composerImages[composer]} 
-                  alt={composer}
-                  className="w-56 object-cover mr-6"
-                />
-              )}
-              <div>
-                <h2 className="text-2xl font-bold font-garamond text-gray-800 mb-4">{composer}</h2>
-                
-                {/* Pieces List */}
+    <div>
+      <div className="container mx-auto px-4 py-8 min-h-screen">
+        <div className="mb-16"></div>
+        
+        <div className="grid grid-cols-2 gap-12 h-full">
+          {regularComposers.map(([composer, pieces]) => (
+            <div key={composer} className="mb-24">
+              {/* Composer Header */}
+              <div className="flex mb-6">
+                {composerImages[composer] && (
+                  <img 
+                    src={composerImages[composer]} 
+                    alt={composer}
+                    className="w-56 object-cover mr-6"
+                  />
+                )}
                 <div>
-                  {pieces.map((piece) => (
-                    <Link 
-                      key={piece.id}
-                      to="/play" 
-                      onClick={() => handleSongClick(piece.Data)}
-                      className="block mb-2 text-xl font-garamond text-gray-800 hover:text-blue-600 transition-colors"
-                    >
-                      {piece.Song}
-                    </Link>
-                  ))}
+                  <h2 className="text-2xl font-bold font-garamond text-gray-800 mb-4">{composer}</h2>
+                  
+                  {/* Pieces List */}
+                  <div>
+                    {pieces.map((piece) => (
+                      <Link 
+                        key={piece.id}
+                        to="/play" 
+                        onClick={() => handleSongClick(piece.Data)}
+                        className="block mb-2 text-xl font-garamond text-gray-800 hover:text-blue-600 transition-colors"
+                      >
+                        {piece.Album ? `${piece.Album} - ${piece.Song}` : piece.Song}
+                      </Link>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
       
       {/* Pirate Section */}
       {pirateComposer && (
-        <div className="mt-12 text-center">
+        <div className="text-center py-8">
           <h2 className="text-2xl font-bold font-garamond text-gray-800 mb-4">Jack Sparrow</h2>
           <div>
             {pirateComposer.map((piece) => (
