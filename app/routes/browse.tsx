@@ -60,47 +60,104 @@ export default function Index() {
     }
   };
 
+  // Group pieces by composer
+  const groupedByComposer = todos?.reduce((acc, todo) => {
+    const composer = todo.Artist;
+    if (!acc[composer]) {
+      acc[composer] = [];
+    }
+    acc[composer].push(todo);
+    return acc;
+  }, {} as Record<string, typeof todos>);
+
+  // Composer images mapping
+  const composerImages = {
+    'Bach': '/images/Bach2.png',
+    'Beethoven': '/images/Beethoven4.png',
+    'Chopin': '/images/Chopin3.png',
+    'Debussy': '/images/Debussy3.png'
+  };
+
+  // Filter out Pirate for separate display
+  const pirateComposer = groupedByComposer?.['Pirate'];
+  const regularComposers = Object.entries(groupedByComposer || {}).filter(([composer]) => composer !== 'Pirate');
+
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-12 text-center font-garamond">Catalogue</h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {todos?.map((todo) => (
-          <Link 
-            key={todo.id}
-            to="/play" 
-            onClick={() => handleSongClick(todo.Data)}
-            className="block"
-          >
-            <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden">
-              <div className="p-6">
-                <div className="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    // className="w-8 h-8 text-rose-600 ml-1" 
-                    className="w-8 h-8 text-white"
-                    viewBox="0 0 24 24" 
-                    fill="currentColor"
-                  >
-                    <path 
-                      fillRule="evenodd" 
-                      d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653z" 
-                      clipRule="evenodd" 
-                    />
-                  </svg>
+      <div className="mb-8"></div>
+      <div className="grid grid-cols-2 gap-12">
+        {regularComposers.map(([composer, pieces]) => (
+          <div key={composer} className="mb-12">
+            {/* Composer Header */}
+            <div className="flex mb-6">
+              {composerImages[composer] && (
+                <img 
+                  src={composerImages[composer]} 
+                  alt={composer}
+                  className="w-56 object-cover mr-6"
+                />
+              )}
+              <div>
+                <h2 className="text-2xl font-bold font-garamond text-gray-800 mb-4">{composer}</h2>
+                
+                {/* Pieces List */}
+                <div>
+                  {pieces.map((piece) => (
+                    <Link 
+                      key={piece.id}
+                      to="/play" 
+                      onClick={() => handleSongClick(piece.Data)}
+                      className="block mb-2 text-xl font-garamond text-gray-800 hover:text-blue-600 transition-colors"
+                    >
+                      {piece.Song}
+                    </Link>
+                  ))}
                 </div>
-                {/* <h2 className="text-xl font-semibold text-center text-gray-800 mb-2 truncate">
-                  {todo.Song}
-                </h2>
-                <p className="text-gray-600 text-center truncate">
-                  {todo.Artist}
-                </p> */}
-                <p className="text-xl mb-2 text-center font-garamond">{todo.Song}</p>
-                <p className="text-gray-700 text-center font-garamond">{todo.Artist}</p>
               </div>
-              
             </div>
-          </Link>
+          </div>
         ))}
+      </div>
+      
+      {/* Pirate Section */}
+      {pirateComposer && (
+        <div className="mt-12 text-center">
+          <h2 className="text-2xl font-bold font-garamond text-gray-800 mb-4">Jack Sparrow</h2>
+          <div>
+            {pirateComposer.map((piece) => (
+              <Link 
+                key={piece.id}
+                to="/play" 
+                onClick={() => handleSongClick(piece.Data)}
+                className="block mb-2 text-xl font-garamond text-gray-800 hover:text-blue-600 transition-colors"
+              >
+                Arrr
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+      
+      {/* Copyright Section */}
+      <div className="mt-16 pt-8 border-t border-black">
+        <div className="text-center text-sm font-garamond text-gray-700 leading-relaxed">
+          <p className="mb-2">
+            The MIDI files of Bernd Krueger are licensed under the cc-by-sa Germany License.
+          </p>
+          <p className="mb-2">
+            This means, that you can use and adapt the files, as long as you attribute to the copyright holder
+          </p>
+          <p className="mb-2">
+            <strong>Name:</strong> Bernd Krueger<br />
+            <strong>Source:</strong> <a href="http://www.piano-midi.de" className="text-blue-600 hover:underline">http://www.piano-midi.de</a>
+          </p>
+          <p className="mb-2">
+            The distribution or public playback of the files is only allowed under identical license conditions.
+          </p>
+          <p>
+            The scores are open source.
+          </p>
+        </div>
       </div>
     </div>
   );

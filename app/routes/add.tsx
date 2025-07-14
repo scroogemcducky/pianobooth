@@ -5,6 +5,7 @@ interface SongRow {
   id: string;
   artist: string;
   song: string;
+  album: string;
   data: string;
 }
 
@@ -30,7 +31,7 @@ const SaveAsBase64 = (file: File): Promise<{ data: string; type: string }> => {
 
 export default function Editor() {
   const [rows, setRows] = useState<SongRow[]>([
-    { id: '1', artist: '', song: '', data: '' }
+    { id: '1', artist: '', song: '', album: '', data: '' }
   ]);
 
   const handleArtistChange = (id: string, value: string) => {
@@ -42,6 +43,12 @@ export default function Editor() {
   const handleSongChange = (id: string, value: string) => {
     setRows(rows.map(row => 
       row.id === id ? { ...row, song: value } : row
+    ));
+  };
+
+  const handleAlbumChange = (id: string, value: string) => {
+    setRows(rows.map(row => 
+      row.id === id ? { ...row, album: value } : row
     ));
   };
 
@@ -68,14 +75,15 @@ export default function Editor() {
       id: String(rows.length + 1),
       artist: '',
       song: '',
+      album: '',
       data: ''
     }]);
   };
 
   const downloadCSV = () => {
     const csvContent = [
-      ['Artist', 'Song', 'Data'],
-      ...rows.map(row => [row.artist, row.song, row.data])
+      ['Artist', 'Song', 'Album', 'Data'],
+      ...rows.map(row => [row.artist, row.song, row.album, row.data])
     ].map(row => row.join('\t')).join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv' });
@@ -106,6 +114,13 @@ export default function Editor() {
               value={row.song}
               onChange={(e) => handleSongChange(row.id, e.target.value)}
               placeholder="Song"
+              className="border p-2 rounded"
+            />
+            <input
+              type="text"
+              value={row.album}
+              onChange={(e) => handleAlbumChange(row.id, e.target.value)}
+              placeholder="Album"
               className="border p-2 rounded"
             />
             <div className="relative">
