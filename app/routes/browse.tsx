@@ -95,15 +95,15 @@ export default function Index() {
           {regularComposers.map(([composer, pieces]) => (
             <div key={composer} className="mb-24">
               {/* Composer Header */}
-              <div className="flex mb-6">
+              <div className="flex flex-col md:flex-row mb-6">
                 {composerImages[composer] && (
                   <img 
                     src={composerImages[composer]} 
                     alt={composer}
-                    className="w-56 h-64 object-cover mr-6 flex-shrink-0"
+                    className="w-56 h-64 object-cover mb-4 md:mb-0 md:mr-6 flex-shrink-0 mx-auto md:mx-0"
                   />
                 )}
-                <div>
+                <div className="ml-4 md:ml-0">
                   <h2 className="text-2xl font-bold font-garamond text-gray-800 mb-4 underline">{composer === 'Pirate' ? 'Jack Sparrow' : composer}</h2>
                   
                   {/* Pieces List */}
