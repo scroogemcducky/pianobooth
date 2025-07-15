@@ -87,7 +87,7 @@ export default function Index() {
       <div className="container mx-auto px-4 py-8 min-h-screen">
         <div className="mb-16"></div>
         
-        <div className="grid grid-cols-2 gap-12 h-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 h-full">
           {regularComposers.map(([composer, pieces]) => (
             <div key={composer} className="mb-24">
               {/* Composer Header */}
@@ -96,11 +96,11 @@ export default function Index() {
                   <img 
                     src={composerImages[composer]} 
                     alt={composer}
-                    className="w-56 object-cover mr-6"
+                    className="w-56 h-64 object-cover mr-6 flex-shrink-0"
                   />
                 )}
                 <div>
-                  <h2 className="text-2xl font-bold font-garamond text-gray-800 mb-4">{composer}</h2>
+                  <h2 className="text-2xl font-bold font-garamond text-gray-800 mb-4 underline">{composer}</h2>
                   
                   {/* Pieces List */}
                   <div>
@@ -125,7 +125,7 @@ export default function Index() {
       {/* Pirate Section */}
       {pirateComposer && (
         <div className="text-center py-8">
-          <h2 className="text-2xl font-bold font-garamond text-gray-800 mb-4">Jack Sparrow</h2>
+          <h2 className="text-2xl font-bold font-garamond text-gray-800 mb-4 underline">Jack Sparrow</h2>
           <div>
             {pirateComposer.map((piece) => (
               <Link 
