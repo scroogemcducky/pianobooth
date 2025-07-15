@@ -75,12 +75,16 @@ export default function Index() {
     'Bach': '/images/Bach2.png',
     'Beethoven': '/images/Beethoven4.png',
     'Chopin': '/images/Chopin3.png',
-    'Debussy': '/images/Debussy3.png'
+    'Debussy': '/images/Debussy3.png',
+    'Pirate': '/images/Sparrow3.png'
   };
 
-  // Filter out Pirate for separate display
-  const pirateComposer = groupedByComposer?.['Pirate'];
-  const regularComposers = Object.entries(groupedByComposer || {}).filter(([composer]) => composer !== 'Pirate');
+  // Include all composers in regular layout, with Pirate (Sparrow) last
+  const regularComposers = Object.entries(groupedByComposer || {}).sort(([a], [b]) => {
+    if (a === 'Pirate') return 1;
+    if (b === 'Pirate') return -1;
+    return a.localeCompare(b);
+  });
 
   return (
     <div>
@@ -100,7 +104,7 @@ export default function Index() {
                   />
                 )}
                 <div>
-                  <h2 className="text-2xl font-bold font-garamond text-gray-800 mb-4 underline">{composer}</h2>
+                  <h2 className="text-2xl font-bold font-garamond text-gray-800 mb-4 underline">{composer === 'Pirate' ? 'Jack Sparrow' : composer}</h2>
                   
                   {/* Pieces List */}
                   <div>
@@ -111,7 +115,7 @@ export default function Index() {
                         onClick={() => handleSongClick(piece.Data)}
                         className="block mb-2 text-xl font-garamond text-gray-800 hover:text-blue-600 transition-colors"
                       >
-                        {piece.Album ? `${piece.Album} - ${piece.Song}` : piece.Song}
+                        {composer === 'Pirate' ? 'Arrr' : (piece.Album ? `${piece.Album} - ${piece.Song}` : piece.Song)}
                       </Link>
                     ))}
                   </div>
@@ -121,25 +125,6 @@ export default function Index() {
           ))}
         </div>
       </div>
-      
-      {/* Pirate Section */}
-      {pirateComposer && (
-        <div className="text-center py-8">
-          <h2 className="text-2xl font-bold font-garamond text-gray-800 mb-4 underline">Jack Sparrow</h2>
-          <div>
-            {pirateComposer.map((piece) => (
-              <Link 
-                key={piece.id}
-                to="/play" 
-                onClick={() => handleSongClick(piece.Data)}
-                className="block mb-2 text-xl font-garamond text-gray-800 hover:text-blue-600 transition-colors"
-              >
-                Arrr
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
       
       {/* Copyright Section */}
       <div className="mt-16 pt-8 border-t border-black">

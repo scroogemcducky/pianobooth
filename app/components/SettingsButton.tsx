@@ -58,7 +58,7 @@ const SettingsButton = ({ onClick ,  lightsClick}: { onClick: () => void }) => {
       {isOpen && (
         <div className="settings-menu">
           <ul>
-            <li
+            {/* <li
               className="border-b border-white py-2 flex justify-center items-center"
             >
               <Icon 
@@ -70,7 +70,7 @@ const SettingsButton = ({ onClick ,  lightsClick}: { onClick: () => void }) => {
                 style={{ transform: 'scale(-1, 1)' }}
                 className="cursor-pointer"
               />
-            </li>
+            </li> */}
             <li
               className="border-b border-white py-2"
             >
