@@ -1,4 +1,4 @@
-import { LoaderFunctionArgs } from "@remix-run/node";
+import { LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
 import { useLoaderData, Link } from "@remix-run/react";
 import { createClient } from "~/utils/supabase.server";
 import useMidiStore from '../store/midiStore';
@@ -25,6 +25,13 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     throw error;
   }
 }
+
+export const meta: MetaFunction = () => {
+  return [
+    { title: "Browse Classical Piano Music | Piano Learning App" },
+    { name: "description", content: "Browse and discover classical piano pieces from Bach, Beethoven, Chopin, Debussy, and more. Interactive piano learning with MIDI playback." }
+  ];
+};
 
 export default function Index() {
   const { todos } = useLoaderData<typeof loader>();

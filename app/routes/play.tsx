@@ -2,6 +2,7 @@
 // used to be /shader
 
 import React, { useState, useEffect, useRef } from 'react'
+import type { MetaFunction } from "@remix-run/node";
 
 import { Canvas, } from '@react-three/fiber'
 import midiParser from '../utils/MidiParser'
@@ -17,6 +18,12 @@ import soundFont from 'soundfont-player'
 import Keys from '../components/Keys'
 import * as THREE from 'three'
 
+export const meta: MetaFunction = () => {
+  return [
+    { title: "Piano Practice | Interactive MIDI Piano Player" },
+    { name: "description", content: "Practice piano with interactive MIDI playback, visual feedback, and real-time note highlighting. Perfect for learning classical piano pieces." }
+  ];
+};
 
 export default function Video()  {  
   const [midiObject, setMidiObject] = useState();

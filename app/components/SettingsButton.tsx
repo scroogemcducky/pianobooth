@@ -45,6 +45,8 @@ const SettingsButton = ({ onClick ,  lightsClick}: { onClick: () => void }) => {
     <button
       ref={buttonRef}
       tabIndex={-1}
+      aria-label="Settings menu"
+      aria-expanded={isOpen}
       onClick={handleToggle}
       className="absolute top-8 right-8 z-50 bg-transparent border-none outline-none cursor-pointer text-white text-2xl"
     >
@@ -80,6 +82,7 @@ const SettingsButton = ({ onClick ,  lightsClick}: { onClick: () => void }) => {
                 max="2"
                 step="0.1"
                 value={speed}
+                aria-label="Playback speed"
                 onChange={(e) => setSpeed(parseFloat(e.target.value))}
                 className="w-full accent-white"
               />

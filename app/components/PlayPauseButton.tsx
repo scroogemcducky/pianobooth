@@ -5,6 +5,7 @@ const PlayPauseButton = () => {
   const playing = usePlayStore((state) => state.playing);
     return (<button
       tabIndex="-1"
+      aria-label={playing ? "Pause music" : "Play music"}
       onClick={() => usePlayStore.getState().setPlaying(!playing)}
       style={{
         position: 'absolute',

@@ -3,6 +3,14 @@ import { useRef, useState, useEffect} from 'react';
 import  useMidiStore  from '../store/midiStore'
 import { useNavigate,  } from "@remix-run/react"; 
 import { Link } from '@remix-run/react';
+import type { MetaFunction } from "@remix-run/node";
+
+export const meta: MetaFunction = () => {
+  return [
+    { title: "Piano Learning App | Interactive MIDI Piano Practice" },
+    { name: "description", content: "Learn piano with interactive MIDI playback. Upload your MIDI files or browse classical pieces from Bach, Beethoven, Chopin, and more." }
+  ];
+};
 
 const App = () => {
   const [isClient, setIsClient] = useState(false);
