@@ -58,14 +58,31 @@ const App = () => {
   };
 
   return (
-    <div onDrop={handleDrop} onDragOver={handleDragOver} style={{ width: '100vw', height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', border: '2px dashed #ccc' }}>
-      <input type="file" ref={MidiFileRef} onChange={handleFileInput} style={{ display: 'none' }} />
-      <div className="text-center text-2xl text-gray-800">
-        <h1 className='font-garamond'>Drop a MIDI file here</h1>
-        <br />
-        <h2 className='font-garamond'>Or <Link to="/browse" className='italic underline'>browse..</Link></h2>
-      </div>
-    </div>
+    <main className="min-h-screen bg-stone-50 text-gray-900">
+      <section className="mx-auto flex min-h-screen max-w-4xl flex-col items-center justify-center gap-12 px-6 py-16 text-center">
+        <div className="flex flex-col gap-6">
+          <h1 className="font-garamond text-4xl font-semibold leading-tight text-stone-900">
+            Midi piano learning software designed to guide every practice session.
+          </h1>
+          <p className="text-lg text-stone-600">
+            Upload any MIDI arrangement, slow the tempo when technique needs attention, and loop the spots that demand repetition.
+            Browse a curated mix of classical repertoire and modern grooves, then follow an interactive keyboard that highlights each note you play.
+          </p>
+        </div>
+
+        <div
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          className="flex w-full max-w-2xl flex-col items-center gap-4 rounded-2xl border-2 border-dashed border-stone-300 bg-white/80 p-10 shadow-sm transition hover:border-stone-500 focus-within:border-stone-500"
+        >
+          <input type="file" ref={MidiFileRef} onChange={handleFileInput} className="hidden" />
+          <p className="font-garamond text-2xl text-stone-800">Drop a MIDI file to launch the session</p>
+          <p className="text-base text-stone-500">
+            Testing the waters? <Link to="/browse" className="italic text-stone-700 underline">Start with the library</Link>
+          </p>
+        </div>
+      </section>
+    </main>
   );
 }
 
