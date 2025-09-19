@@ -79,11 +79,11 @@ export default function Index() {
 
   // Composer images mapping
   const composerImages = {
-    'Bach': '/images/Bach2.png',
-    'Beethoven': '/images/Beethoven4.png',
-    'Chopin': '/images/Chopin3.png',
-    'Debussy': '/images/Debussy3.png',
-    'Pirate': '/images/Sparrow3.png'
+    'Bach': '/images/Bach2.jpg',
+    'Beethoven': '/images/Beethoven4.jpg',
+    'Chopin': '/images/Chopin3.jpg',
+    'Debussy': '/images/Debussy3.jpg',
+    'Pirate': '/images/Sparrow3.jpg'
   };
 
   // Include all composers in regular layout, with Pirate (Sparrow) last

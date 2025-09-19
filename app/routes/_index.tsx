@@ -76,9 +76,9 @@ const App = () => {
           className="flex w-full max-w-2xl flex-col items-center gap-4 rounded-2xl border-2 border-dashed border-stone-300 bg-white/80 p-10 shadow-sm transition hover:border-stone-500 focus-within:border-stone-500"
         >
           <input type="file" ref={MidiFileRef} onChange={handleFileInput} className="hidden" />
-          <p className="font-garamond text-2xl text-stone-800">Drop a MIDI file to launch the session</p>
+          <p className="font-garamond text-2xl text-stone-800">Drop a MIDI file to launch the session.</p>
           <p className="text-base text-stone-500">
-            Testing the waters? <Link to="/browse" className="italic text-stone-700 underline">Start with the library</Link>
+            Testing the waters? <Link to="/browse" className="italic text-stone-700 underline">Start with the library.</Link>
           </p>
         </div>
       </section>
