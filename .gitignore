@@ -1,12 +1,55 @@
-node_modules
+# Dependencies
+node_modules/
 
-/.cache
-/build
+# Build outputs
+build/
+public/build/
+dist/
+
+# Logs and diagnostics
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.eslintcache
+
+# Environment files
 .env
+.env.*
+!.env.example
+!.env.sample
 .dev.vars
 
-.wrangler
+# OS files
+.DS_Store
+DS_Store
+Thumbs.db
+Icon?
+.Spotlight-V100
+.Trashes
 
+# Editor/IDE
+.vscode/
+.idea/
+
+# TypeScript
+*.tsbuildinfo
+
+# Caches
+.cache/
+
+# Cloudflare/Wrangler
+.wrangler/
+
+# Supabase local state
+.supabase/
+
+# Agents
+AGENTS.md
+CLAUDE.md
 PLAN.md
 error.md
 todos.md
