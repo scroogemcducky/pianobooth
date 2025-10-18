@@ -7,7 +7,7 @@ import midiParser from '../utils/MidiParser'
 import useKeyStore from '../store/keyPressStore'
 import usePlayStore from '../store/playStore'
 import Keys from './Keys'
-import ShaderBlocks from './ShaderBlocks'
+import ShaderBlocks_component from './ShaderBlocks_component'
 import PlayPauseButton from './PlayPauseButton'
 import SettingsButton from './SettingsButton'
 import soundFont from 'soundfont-player'
@@ -44,6 +44,9 @@ export default function EmbeddedPlayView_component({
   const [midiObject, setMidiObject] = useState<MidiNote[] | null>(null)
   const [ac, setAc] = useState<AudioContext | null>(null)
   const [instrument, setInstrument] = useState<any>(null)
+  const [timelineDurationMs, setTimelineDurationMs] = useState<number>(0)
+  const [currentTimeMs, setCurrentTimeMs] = useState<number>(0)
+  const [isScrubbing, setIsScrubbing] = useState<boolean>(false)
 
   // Initialize audio context lazily on mount (client side only)
   useEffect(() => {
@@ -102,6 +105,7 @@ export default function EmbeddedPlayView_component({
       if (disposed) return
       setMidiObject(data)
       try { localStorage.setItem('processedMidiData', JSON.stringify(data)) } catch {}
+      setCurrentTimeMs(0)
     }
 
     const parseFile = async (file: File | Blob) => {
@@ -169,6 +173,31 @@ export default function EmbeddedPlayView_component({
     }
   }, [])
 
+  // Helper to clear all lit keys on seek
+  const clearAllKeys = () => {
+    try {
+      for (let n = 20; n <= 127; n++) {
+        useKeyStore.getState().setKey(n, false)
+      }
+    } catch {}
+  }
+
+  const handleSeekStart = () => {
+    setIsScrubbing(true)
+    // Stop any pending releases to avoid flicker while scrubbing
+    activeTimeouts.current.forEach((tid) => window.clearTimeout(tid))
+    activeTimeouts.current.clear()
+    clearAllKeys()
+  }
+
+  const handleSeek = (value: number) => {
+    setCurrentTimeMs(value)
+  }
+
+  const handleSeekEnd = () => {
+    setIsScrubbing(false)
+  }
+
   // Wrapper styles: let parent size control layout; Canvas fills 100%
   const wrapperStyle = useMemo<React.CSSProperties>(() => ({
     position: 'relative',
@@ -191,12 +220,50 @@ export default function EmbeddedPlayView_component({
         </>
         <Keys />
         {midiObject && (
-          <ShaderBlocks midiObject={midiObject} triggerVisibleNote={triggerVisibleNote} />
+          <ShaderBlocks_component
+            midiObject={midiObject}
+            triggerVisibleNote={triggerVisibleNote}
+            seekMs={currentTimeMs}
+            onPrepared={({ durationMs }) => {
+              setTimelineDurationMs(durationMs)
+            }}
+            onTimeUpdate={(ms) => {
+              if (!isScrubbing) setCurrentTimeMs(ms)
+            }}
+          />
         )}
       </Canvas>
       <PlayPauseButton />
       <SettingsButton onClick={() => { /* no-op to match existing usage */ }} />
+      {/* Time bar overlay */}
+      {midiObject && timelineDurationMs > 0 && (
+        <div
+          style={{
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            bottom: 8,
+            padding: '0 48px',
+            zIndex: 1001,
+            pointerEvents: 'auto',
+          }}
+        >
+          <input
+            type="range"
+            min={0}
+            max={Math.max(1, Math.floor(timelineDurationMs))}
+            step={10}
+            value={Math.min(currentTimeMs, timelineDurationMs)}
+            onMouseDown={handleSeekStart}
+            onTouchStart={handleSeekStart}
+            onChange={(e) => handleSeek(parseFloat((e.target as HTMLInputElement).value))}
+            onMouseUp={handleSeekEnd}
+            onTouchEnd={handleSeekEnd}
+            style={{ width: '100%' }}
+            aria-label="Timeline"
+          />
+        </div>
+      )}
     </div>
   )
 }
-
