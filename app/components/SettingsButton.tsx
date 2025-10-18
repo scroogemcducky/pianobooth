@@ -1,10 +1,16 @@
-import { mdiCog, mdiClose, mdiDeskLampOn, mdiDeskLamp } from '@mdi/js'; 
-import Icon from '@mdi/react';
-import { useState, useEffect, useRef } from "react";
-import { useHydrated } from "remix-utils/use-hydrated";
-import usePlayStore from '../store/playStore';
+import { mdiCog, mdiClose } from '@mdi/js'
+import Icon from '@mdi/react'
+import { useState, useEffect, useRef } from 'react'
+import { useHydrated } from 'remix-utils/use-hydrated'
+import usePlayStore from '../store/playStore'
 
-const SettingsButton = ({ onClick ,  lightsClick}: { onClick: () => void }) => {
+type Props = {
+  onClick?: () => void
+  className?: string
+  style?: React.CSSProperties
+}
+
+const SettingsButton = ({ onClick, className, style }: Props) => {
   const isHydrated = useHydrated();
   const [isOpen, setIsOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -18,11 +24,6 @@ const SettingsButton = ({ onClick ,  lightsClick}: { onClick: () => void }) => {
     }
     setIsOpen(!isOpen);
     // onClick();
-  };
-
-  const toggleLights = () => {
-    lightsClick();
-    // Add any additional logic needed when toggling lights
   };
 
   useEffect(() => {
@@ -48,7 +49,8 @@ const SettingsButton = ({ onClick ,  lightsClick}: { onClick: () => void }) => {
       aria-label="Settings menu"
       aria-expanded={isOpen}
       onClick={handleToggle}
-      className="absolute top-8 right-8 z-50 bg-transparent border-none outline-none cursor-pointer text-white text-2xl"
+      className={className ?? 'absolute top-8 right-8 z-50 bg-transparent border-none outline-none cursor-pointer text-white text-2xl'}
+      style={style}
     >
       {isHydrated && (
         <Icon 
@@ -95,4 +97,4 @@ const SettingsButton = ({ onClick ,  lightsClick}: { onClick: () => void }) => {
   );
 };
 
-export default SettingsButton;
+export default SettingsButton

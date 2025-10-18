@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { ShaderMaterial } from 'three'
 import { extend, useFrame } from '@react-three/fiber'
-import React, { useMemo, useRef, useEffect, forwardRef, useImperativeHandle } from 'react'
+import React, { useMemo, useRef, useEffect, type Ref } from 'react'
 import usePlayStore from '../store/playStore'
 import { factor, BLACK_KEY_COLOR, WHITE_KEY_COLOR } from '../utils/constants'
 
@@ -28,6 +28,7 @@ export interface CustomGeometryParticlesProps {
   triggerVisibleNote: (note: number, duration: number) => void
   scaleFactor?: number
   onTimeUpdate?: (timeMs: number) => void
+  visualizerRef?: Ref<VisualizerHandle>
 }
 
 export type VisualizerHandle = {
@@ -77,8 +78,7 @@ class CustomShaderMaterial extends ShaderMaterial {
 
 extend({ CustomShaderMaterial })
 
-const CustomGeometryParticles = forwardRef<VisualizerHandle, CustomGeometryParticlesProps>(
-({
+const CustomGeometryParticles: React.FC<CustomGeometryParticlesProps> = ({
   blocks,
   distance,
   groupedBlocks,
@@ -86,7 +86,8 @@ const CustomGeometryParticles = forwardRef<VisualizerHandle, CustomGeometryParti
   triggerVisibleNote,
   scaleFactor = 1,
   onTimeUpdate,
-}, ref) => {
+  visualizerRef,
+}) => {
   const playing = usePlayStore((state) => state.playing)
   const speed = usePlayStore((state) => state.speed)
   const materialRef = useRef<CustomShaderMaterial>(null)
@@ -133,25 +134,37 @@ const CustomGeometryParticles = forwardRef<VisualizerHandle, CustomGeometryParti
     geometry.attributes.isBlackKey.needsUpdate = true
   }, [blocks, geometry, scaleFactor])
 
-  // Expose imperative seek + current time getters
-  useImperativeHandle(ref, () => ({
-    seek: (ms: number) => {
-      timeRef.current = ms
-      if (materialRef.current) {
-        materialRef.current.uniforms.uAccum.value = (distance / factor) * (ms / 1000)
+  // Expose imperative seek + current time getters via a prop ref
+  useEffect(() => {
+    if (!visualizerRef) return
+    const handle: VisualizerHandle = {
+      seek: (ms: number) => {
+        timeRef.current = ms
+        if (materialRef.current) {
+          materialRef.current.uniforms.uAccum.value = (distance / factor) * (ms / 1000)
+        }
+        // Binary search to find first note strictly after ms
+        let lo = 0
+        let hi = notes.length
+        while (lo < hi) {
+          const mid = (lo + hi) >>> 1
+          if (notes[mid] <= ms) lo = mid + 1
+          else hi = mid
+        }
+        indexRef.current = lo
+      },
+      getCurrentTimeMs: () => timeRef.current,
+    }
+    if (typeof visualizerRef === 'function') {
+      visualizerRef(handle)
+      return () => visualizerRef(null as any)
+    } else {
+      (visualizerRef as any).current = handle
+      return () => {
+        if ((visualizerRef as any).current === handle) (visualizerRef as any).current = null
       }
-      // Binary search to find first note strictly after ms
-      let lo = 0
-      let hi = notes.length
-      while (lo < hi) {
-        const mid = (lo + hi) >>> 1
-        if (notes[mid] <= ms) lo = mid + 1
-        else hi = mid
-      }
-      indexRef.current = lo
-    },
-    getCurrentTimeMs: () => timeRef.current,
-  }), [distance, notes])
+    }
+  }, [visualizerRef, distance, notes])
 
   const speedAdjusted = useMemo(() => speed * distance / factor, [speed, distance])
   const speed_ms = useMemo(() => speed * 1000, [speed])
@@ -191,6 +204,6 @@ const CustomGeometryParticles = forwardRef<VisualizerHandle, CustomGeometryParti
       <customShaderMaterial ref={materialRef as any} key={blocks.length} />
     </mesh>
   )
-})
+}
 
 export default CustomGeometryParticles

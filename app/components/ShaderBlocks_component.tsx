@@ -93,7 +93,7 @@ export default function ShaderBlocks_component({
           distance={distance}
           scaleFactor={scaleFactor}
           onTimeUpdate={onTimeUpdate}
-          ref={visualizerRef as any}
+          visualizerRef={visualizerRef}
         />
       ) : null}
     </>

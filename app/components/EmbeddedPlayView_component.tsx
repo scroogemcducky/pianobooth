@@ -254,36 +254,53 @@ export default function EmbeddedPlayView_component({
           />
         )}
       </Canvas>
-      <PlayPauseButton />
-      <SettingsButton onClick={() => { /* no-op to match existing usage */ }} />
-      {/* Time bar overlay */}
+      {/* Controls + Timeline overlay */}
       {midiObject && timelineDurationMs > 0 && (
         <div
           style={{
             position: 'absolute',
             left: 0,
             right: 0,
-            bottom: 8,
-            padding: '0 48px',
+            bottom: 0,
+            padding: '8px 16px 4px 16px',
             zIndex: 1001,
             pointerEvents: 'auto',
+            background: 'transparent',
           }}
         >
-          <input
-            type="range"
-            min={0}
-            // max is set imperatively onPrepared
-            step={10}
-            defaultValue={0}
-            ref={sliderRef}
-            onMouseDown={handleSeekStart}
-            onTouchStart={handleSeekStart}
-            onChange={(e) => handleSeek(parseFloat((e.target as HTMLInputElement).value))}
-            onMouseUp={handleSeekEnd}
-            onTouchEnd={handleSeekEnd}
-            style={{ width: '100%' }}
-            aria-label="Timeline"
-          />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <PlayPauseButton
+              style={{
+                position: 'static',
+                background: 'none',
+                border: 'none',
+                outline: '0',
+                cursor: 'pointer',
+                fontSize: '22px',
+                color: 'white',
+              }}
+            />
+            <input
+              type="range"
+              min={0}
+              // max is set imperatively onPrepared
+              step={10}
+              defaultValue={0}
+              ref={sliderRef}
+              onMouseDown={handleSeekStart}
+              onTouchStart={handleSeekStart}
+              onChange={(e) => handleSeek(parseFloat((e.target as HTMLInputElement).value))}
+              onMouseUp={handleSeekEnd}
+              onTouchEnd={handleSeekEnd}
+              className="timeline-slider"
+              style={{ width: '100%', flex: 1 }}
+              aria-label="Timeline"
+            />
+            <SettingsButton
+              className="z-50 bg-transparent border-none outline-none cursor-pointer text-white text-2xl"
+              style={{ position: 'static' }}
+            />
+          </div>
         </div>
       )}
     </div>
