@@ -48,7 +48,7 @@ Icon?
 .supabase/
 
 # Agents
-AGENTS.md
+
 CLAUDE.md
 PLAN.md
 error.md
