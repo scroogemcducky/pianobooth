@@ -8,6 +8,7 @@ import useKeyStore from '../store/keyPressStore'
 import usePlayStore from '../store/playStore'
 import Keys from './Keys'
 import ShaderBlocks_component from './ShaderBlocks_component'
+import type { VisualizerHandle } from './Instances_component'
 import PlayPauseButton from './PlayPauseButton'
 import SettingsButton from './SettingsButton'
 import soundFont from 'soundfont-player'
@@ -45,8 +46,9 @@ export default function EmbeddedPlayView_component({
   const [ac, setAc] = useState<AudioContext | null>(null)
   const [instrument, setInstrument] = useState<any>(null)
   const [timelineDurationMs, setTimelineDurationMs] = useState<number>(0)
-  const [currentTimeMs, setCurrentTimeMs] = useState<number>(0)
   const [isScrubbing, setIsScrubbing] = useState<boolean>(false)
+  const visualizerRef = useRef<VisualizerHandle>(null)
+  const sliderRef = useRef<HTMLInputElement>(null)
 
   // Initialize audio context lazily on mount (client side only)
   useEffect(() => {
@@ -105,7 +107,8 @@ export default function EmbeddedPlayView_component({
       if (disposed) return
       setMidiObject(data)
       try { localStorage.setItem('processedMidiData', JSON.stringify(data)) } catch {}
-      setCurrentTimeMs(0)
+      // reset slider to 0 on new data
+      if (sliderRef.current) sliderRef.current.value = '0'
     }
 
     const parseFile = async (file: File | Blob) => {
@@ -191,7 +194,9 @@ export default function EmbeddedPlayView_component({
   }
 
   const handleSeek = (value: number) => {
-    setCurrentTimeMs(value)
+    // Update slider visually and perform imperative seek without re-rendering
+    if (sliderRef.current) sliderRef.current.value = String(Math.floor(value))
+    visualizerRef.current?.seek(value)
   }
 
   const handleSeekEnd = () => {
@@ -205,6 +210,19 @@ export default function EmbeddedPlayView_component({
     height: '100%',
     ...style,
   }), [style])
+
+  // Apply slider max/value when duration becomes known
+  useEffect(() => {
+    if (!sliderRef.current) return
+    if (timelineDurationMs > 0) {
+      sliderRef.current.max = String(Math.max(1, Math.floor(timelineDurationMs)))
+      // Ensure value is within range
+      const v = parseFloat(sliderRef.current.value || '0')
+      if (Number.isNaN(v) || v > timelineDurationMs) {
+        sliderRef.current.value = '0'
+      }
+    }
+  }, [timelineDurationMs])
 
   return (
     <div className={className} style={wrapperStyle}>
@@ -223,13 +241,16 @@ export default function EmbeddedPlayView_component({
           <ShaderBlocks_component
             midiObject={midiObject}
             triggerVisibleNote={triggerVisibleNote}
-            seekMs={currentTimeMs}
             onPrepared={({ durationMs }) => {
               setTimelineDurationMs(durationMs)
             }}
             onTimeUpdate={(ms) => {
-              if (!isScrubbing) setCurrentTimeMs(ms)
+              // Avoid React state updates; push to slider ref directly when not scrubbing
+              if (!isScrubbing && sliderRef.current) {
+                sliderRef.current.value = String(Math.floor(ms))
+              }
             }}
+            visualizerRef={visualizerRef}
           />
         )}
       </Canvas>
@@ -251,9 +272,10 @@ export default function EmbeddedPlayView_component({
           <input
             type="range"
             min={0}
-            max={Math.max(1, Math.floor(timelineDurationMs))}
+            // max is set imperatively onPrepared
             step={10}
-            value={Math.min(currentTimeMs, timelineDurationMs)}
+            defaultValue={0}
+            ref={sliderRef}
             onMouseDown={handleSeekStart}
             onTouchStart={handleSeekStart}
             onChange={(e) => handleSeek(parseFloat((e.target as HTMLInputElement).value))}

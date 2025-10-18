@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { ShaderMaterial } from 'three'
 import { extend, useFrame } from '@react-three/fiber'
-import { useMemo, useRef, useEffect } from 'react'
+import React, { useMemo, useRef, useEffect, forwardRef, useImperativeHandle } from 'react'
 import usePlayStore from '../store/playStore'
 import { factor, BLACK_KEY_COLOR, WHITE_KEY_COLOR } from '../utils/constants'
 
@@ -20,15 +20,19 @@ interface GroupedBlocks {
   }
 }
 
-interface CustomGeometryParticlesProps {
+export interface CustomGeometryParticlesProps {
   blocks: Block[]
   distance: number
   groupedBlocks: GroupedBlocks
   notes: number[]
   triggerVisibleNote: (note: number, duration: number) => void
   scaleFactor?: number
-  currentTimeMs?: number
   onTimeUpdate?: (timeMs: number) => void
+}
+
+export type VisualizerHandle = {
+  seek: (ms: number) => void
+  getCurrentTimeMs: () => number
 }
 
 const fragmentShader = /* glsl */ `
@@ -73,16 +77,16 @@ class CustomShaderMaterial extends ShaderMaterial {
 
 extend({ CustomShaderMaterial })
 
-const CustomGeometryParticles: React.FC<CustomGeometryParticlesProps> = ({
+const CustomGeometryParticles = forwardRef<VisualizerHandle, CustomGeometryParticlesProps>(
+({
   blocks,
   distance,
   groupedBlocks,
   notes,
   triggerVisibleNote,
   scaleFactor = 1,
-  currentTimeMs,
   onTimeUpdate,
-}) => {
+}, ref) => {
   const playing = usePlayStore((state) => state.playing)
   const speed = usePlayStore((state) => state.speed)
   const materialRef = useRef<CustomShaderMaterial>(null)
@@ -129,18 +133,25 @@ const CustomGeometryParticles: React.FC<CustomGeometryParticlesProps> = ({
     geometry.attributes.isBlackKey.needsUpdate = true
   }, [blocks, geometry, scaleFactor])
 
-  // Handle external seek/currentTime updates
-  useEffect(() => {
-    if (currentTimeMs == null) return
-    timeRef.current = currentTimeMs
-    if (materialRef.current) {
-      materialRef.current.uniforms.uAccum.value = (distance / factor) * (currentTimeMs / 1000)
-    }
-    // find first index with note time > currentTimeMs
-    let idx = 0
-    while (idx < notes.length && notes[idx] <= currentTimeMs) idx++
-    indexRef.current = idx
-  }, [currentTimeMs, distance, notes])
+  // Expose imperative seek + current time getters
+  useImperativeHandle(ref, () => ({
+    seek: (ms: number) => {
+      timeRef.current = ms
+      if (materialRef.current) {
+        materialRef.current.uniforms.uAccum.value = (distance / factor) * (ms / 1000)
+      }
+      // Binary search to find first note strictly after ms
+      let lo = 0
+      let hi = notes.length
+      while (lo < hi) {
+        const mid = (lo + hi) >>> 1
+        if (notes[mid] <= ms) lo = mid + 1
+        else hi = mid
+      }
+      indexRef.current = lo
+    },
+    getCurrentTimeMs: () => timeRef.current,
+  }), [distance, notes])
 
   const speedAdjusted = useMemo(() => speed * distance / factor, [speed, distance])
   const speed_ms = useMemo(() => speed * 1000, [speed])
@@ -180,7 +191,6 @@ const CustomGeometryParticles: React.FC<CustomGeometryParticlesProps> = ({
       <customShaderMaterial ref={materialRef as any} key={blocks.length} />
     </mesh>
   )
-}
+})
 
 export default CustomGeometryParticles
-

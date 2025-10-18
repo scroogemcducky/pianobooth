@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import InstancedShaderRectangles from './Instances_component'
+import type { Ref } from 'react'
+import InstancedShaderRectangles, { VisualizerHandle } from './Instances_component'
 import { factor, black_width, white_width, white_color, black_color } from '../utils/constants'
 import { y_shader, calculateHeight, isBlack, groupByDelta, scalingFactor } from '../utils/functions.js'
 import { useThree } from '@react-three/fiber'
@@ -14,15 +15,15 @@ type MidiNote = {
 export default function ShaderBlocks_component({
   midiObject,
   triggerVisibleNote,
-  seekMs,
   onPrepared,
   onTimeUpdate,
+  visualizerRef,
 }: {
   midiObject: MidiNote[]
   triggerVisibleNote: (noteNumber: number, durationMs: number) => void
-  seekMs?: number
   onPrepared?: (info: { durationMs: number; firstNoteMs: number }) => void
   onTimeUpdate?: (ms: number) => void
+  visualizerRef?: Ref<VisualizerHandle>
 }) {
   const { viewport } = useThree()
   const [blocks, setBlocks] = useState<any[]>([])
@@ -91,11 +92,10 @@ export default function ShaderBlocks_component({
           notes={notes}
           distance={distance}
           scaleFactor={scaleFactor}
-          currentTimeMs={seekMs}
           onTimeUpdate={onTimeUpdate}
+          ref={visualizerRef as any}
         />
       ) : null}
     </>
   )
 }
-
