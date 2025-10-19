@@ -25,6 +25,13 @@ body {
   }
 }
 
+/* Utility: EB Garamond font family */
+.font-eb {
+  font-family: 'EB Garamond', serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 /* Black & white timeline slider for the embedded play view */
 .timeline-slider {
   -webkit-appearance: none;

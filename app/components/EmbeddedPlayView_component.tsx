@@ -10,7 +10,7 @@ import Keys from './Keys'
 import ShaderBlocks_component from './ShaderBlocks_component'
 import type { VisualizerHandle } from './Instances_component'
 import PlayPauseButton from './PlayPauseButton'
-import SettingsButton from './SettingsButton'
+import EmbeddedSettingsButton from './EmbeddedSettingsButton'
 import soundFont from 'soundfont-player'
 
 type MidiNote = {
@@ -208,6 +208,9 @@ export default function EmbeddedPlayView_component({
     position: 'relative',
     width: '100%',
     height: '100%',
+    fontFamily: `'EB Garamond', serif`,
+    WebkitFontSmoothing: 'antialiased',
+    MozOsxFontSmoothing: 'grayscale',
     ...style,
   }), [style])
 
@@ -278,6 +281,7 @@ export default function EmbeddedPlayView_component({
                 cursor: 'pointer',
                 fontSize: '22px',
                 color: 'white',
+                lineHeight: 1,
               }}
             />
             <input
@@ -296,9 +300,9 @@ export default function EmbeddedPlayView_component({
               style={{ width: '100%', flex: 1 }}
               aria-label="Timeline"
             />
-            <SettingsButton
+            <EmbeddedSettingsButton
               className="z-50 bg-transparent border-none outline-none cursor-pointer text-white text-2xl"
-              style={{ position: 'static' }}
+              style={{ position: 'static', lineHeight: 1 }}
             />
           </div>
         </div>

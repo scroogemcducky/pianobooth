@@ -1,9 +1,8 @@
 import { useRef, useState, useEffect} from 'react';
-// import { checkExtension } from './utils/smallFunctions.ts';
+import { Link, useLoaderData, useNavigate } from "@remix-run/react"; 
 import  useMidiStore  from '../store/midiStore'
-import { useNavigate,  } from "@remix-run/react"; 
-import { Link } from '@remix-run/react';
-import type { MetaFunction } from "@remix-run/node";
+import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
+import { createClient } from "~/utils/supabase.server";
 
 export const meta: MetaFunction = () => {
   return [
@@ -12,7 +11,24 @@ export const meta: MetaFunction = () => {
   ];
 };
 
+export async function loader({ request, context }: LoaderFunctionArgs) {
+  try {
+    const supabaseUrl = (context as any)?.cloudflare?.env?.SUPABASE_URL;
+    const supabaseKey = (context as any)?.cloudflare?.env?.SUPABASE_KEY;
+    if (!supabaseUrl || !supabaseKey) {
+      return { todos: [] };
+    }
+    const supabase = createClient(request, { SUPABASE_URL: supabaseUrl, SUPABASE_ANON_KEY: supabaseKey });
+    const { data: todos } = await (supabase as any).from('Midi').select();
+    return { todos: todos ?? [] };
+  } catch (error) {
+    console.error('Error loading MIDI catalog:', error);
+    return { todos: [] };
+  }
+}
+
 const App = () => {
+  const { todos } = useLoaderData<typeof loader>() as { todos: any[] };
   const [isClient, setIsClient] = useState(false);
   const [file, setFile] = useState(null);
   const MidiFileRef = useRef<HTMLInputElement>(null)
@@ -57,9 +73,51 @@ const App = () => {
     event.preventDefault();
   };
 
+  // Group pieces by composer
+  const groupedByComposer = (todos || []).reduce((acc: Record<string, any[]>, todo: any) => {
+    const composer = todo.Artist;
+    if (!acc[composer]) acc[composer] = [];
+    acc[composer].push(todo);
+    return acc;
+  }, {} as Record<string, any[]>);
+
+  // Composer images mapping
+  const composerImages: Record<string, string> = {
+    'Bach': '/images/Bach2.jpg',
+    'Beethoven': '/images/Beethoven4.jpg',
+    'Chopin': '/images/Chopin3.jpg',
+    'Debussy': '/images/Debussy3.jpg',
+    'Pirate': '/images/Sparrow3.jpg'
+  };
+
+  // Include all composers in regular layout, with Pirate (Sparrow) last
+  const regularComposers = Object.entries(groupedByComposer).sort(([a], [b]) => {
+    if (a === 'Pirate') return 1;
+    if (b === 'Pirate') return -1;
+    return a.localeCompare(b);
+  });
+
+  const handleSongClick = (midiData: string) => {
+    try {
+      localStorage.removeItem('processedMidiData');
+      const base64Data = midiData.split(',')[1];
+      if (!base64Data) throw new Error('Invalid data URL format');
+      const binaryString = atob(base64Data);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
+      const blob = new Blob([bytes], { type: 'audio/midi' });
+      const file = new File([blob], 'catalog-song.mid', { type: 'audio/midi' });
+      setMidiStore(file);
+      navigate('/play');
+    } catch (error) {
+      console.error('Error processing catalog MIDI data:', error);
+      alert('Error loading the selected song. Please try again.');
+    }
+  };
+
   return (
-    <main className="min-h-screen bg-stone-50 text-gray-900">
-      <section className="mx-auto flex min-h-screen max-w-4xl flex-col items-center justify-center gap-12 px-6 py-16 text-center">
+    <main className="min-h-screen bg-white text-gray-900">
+      <section className="mx-auto flex max-w-4xl flex-col items-center justify-start gap-8 px-6 py-8 text-center">
         <div className="flex flex-col gap-6">
           <h1 className="font-garamond text-4xl font-semibold leading-tight text-stone-900">
             Midi piano learning software designed to guide every practice session.
@@ -82,6 +140,63 @@ const App = () => {
           </p>
         </div>
       </section>
+
+      {/* Artists/Composers from Browse */}
+      <section className="container mx-auto px-6 md:px-8 lg:px-10 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+          {regularComposers.map(([composer, pieces]) => (
+            <div key={composer} className="mb-8">
+              <div className="flex flex-col md:flex-row mb-6">
+                {composerImages[composer] && (
+                  <img
+                    src={composerImages[composer]}
+                    alt={composer}
+                    className="w-56 h-64 object-cover mb-4 md:mb-0 md:mr-6 flex-shrink-0 mx-auto md:mx-0"
+                  />
+                )}
+                <div className="ml-4 md:ml-0">
+                  <h2 className="text-2xl font-bold font-garamond text-gray-800 mb-4 underline">
+                    {composer === 'Pirate' ? 'Jack Sparrow' : composer}
+                  </h2>
+                  <div>
+                    {pieces.map((piece: any) => (
+                      <button
+                        key={piece.id}
+                        onClick={() => handleSongClick(piece.Data)}
+                        className="block text-left w-full mb-2 text-xl font-garamond text-gray-800 hover:text-blue-600 transition-colors"
+                      >
+                        {composer === 'Pirate' ? 'Arrr' : (piece.Album ? `${piece.Album} - ${piece.Song}` : piece.Song)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Copyright Section from Browse */}
+      <footer className="mt-16 pt-8 border-t border-black">
+        <div className="text-center text-sm font-garamond text-gray-700 leading-relaxed px-4">
+          <p className="mb-2">
+            The MIDI files of Bernd Krueger are licensed under the cc-by-sa Germany License.
+          </p>
+          <p className="mb-2">
+            This means, that you can use and adapt the files, as long as you attribute to the copyright holder
+          </p>
+          <p className="mb-2">
+            <strong>Name:</strong> Bernd Krueger<br />
+            <strong>Source:</strong> <a href="http://www.piano-midi.de" className="text-blue-600 hover:underline">http://www.piano-midi.de</a>
+          </p>
+          <p className="mb-2">
+            The distribution or public playback of the files is only allowed under identical license conditions.
+          </p>
+          <p>
+            The scores are open source.
+          </p>
+        </div>
+      </footer>
     </main>
   );
 }

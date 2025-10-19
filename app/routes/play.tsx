@@ -79,6 +79,33 @@ export default function Video()  {
             setMidiObject(result)
             // Store processed MIDI data for persistence
             localStorage.setItem('processedMidiData', JSON.stringify(result));
+            // Best-effort: extract and persist basic metadata for embed route fallback
+            try {
+              const buf = await file.arrayBuffer();
+              const { Midi } = await import('@tonejs/midi');
+              const midi = new Midi(buf);
+              const headerName = midi?.header?.name?.trim?.();
+              const trackNames = midi.tracks.map((t) => (t.name || '').trim()).filter(Boolean);
+              let title = headerName || '';
+              if (!title && trackNames.length) {
+                title = trackNames.reduce((a, b) => (b.length > a.length ? b : a), trackNames[0]);
+              }
+              let artist = '';
+              const artistCandidate = trackNames.find((n) => /bach|beethoven|chopin|debussy|mozart|liszt|schubert|schumann|rachmaninoff|handel|haydn|tchaikovsky|gershwin/i.test(n));
+              if (artistCandidate) artist = artistCandidate;
+              else if (trackNames.length) {
+                const hyphen = trackNames.find((n) => n.includes('-'));
+                if (hyphen) {
+                  const parts = hyphen.split('-').map((s) => s.trim());
+                  if (parts.length >= 2) {
+                    const [a, b] = parts;
+                    if (a.length <= b.length) artist = a;
+                    if (!title) title = b;
+                  }
+                }
+              }
+              localStorage.setItem('midiMeta', JSON.stringify({ title: title || 'Untitled', artist: artist || 'Piano' }));
+            } catch {}
         }
       } catch (error) {
         console.error('MIDI parsing error:', error);
@@ -172,9 +199,7 @@ export default function Video()  {
             midiObject={midiObject} 
             triggerVisibleNote={triggerVisibleNote} />} 
       </Canvas>
-      <PlayPauseButton 
-        onClick={() => usePlayStore.getState().setPlaying(!playing)}
-         />
+      <PlayPauseButton />
       <SettingsButton 
         // lights={false} 
         // lightsClick={() => {setLights(prevLights => !prevLights)}}
@@ -183,5 +208,3 @@ export default function Video()  {
     </React.StrictMode>
   )
 }
-
-
