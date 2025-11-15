@@ -90,10 +90,17 @@ export default function Video()  {
               if (!title && trackNames.length) {
                 title = trackNames.reduce((a, b) => (b.length > a.length ? b : a), trackNames[0]);
               }
+              // Prefer composer-only artist label
               let artist = '';
-              const artistCandidate = trackNames.find((n) => /bach|beethoven|chopin|debussy|mozart|liszt|schubert|schumann|rachmaninoff|handel|haydn|tchaikovsky|gershwin/i.test(n));
-              if (artistCandidate) artist = artistCandidate;
-              else if (trackNames.length) {
+              const composerRegex = /(bach|beethoven|chopin|debussy|mozart|liszt|schubert|schumann|rachmaninoff|handel|haydn|tchaikovsky|gershwin)/i;
+              const artistCandidate = trackNames.find((n) => composerRegex.test(n));
+              if (artistCandidate) {
+                const m = artistCandidate.match(composerRegex);
+                if (m && m[1]) {
+                  const name = m[1];
+                  artist = name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+                }
+              } else if (trackNames.length) {
                 const hyphen = trackNames.find((n) => n.includes('-'));
                 if (hyphen) {
                   const parts = hyphen.split('-').map((s) => s.trim());
@@ -101,6 +108,17 @@ export default function Video()  {
                     const [a, b] = parts;
                     if (a.length <= b.length) artist = a;
                     if (!title) title = b;
+                  }
+                }
+              }
+              // If the title contains the composer prefix like "Beethoven - Für Elise", strip it
+              if (title) {
+                const m = title.match(/^(.*?)[-:\u2013]\s*(.+)$/); // hyphen, colon, en-dash
+                if (m) {
+                  const maybeComposer = m[1].trim();
+                  const rest = m[2].trim();
+                  if (composerRegex.test(maybeComposer)) {
+                    title = rest;
                   }
                 }
               }
