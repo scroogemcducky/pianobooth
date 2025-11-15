@@ -49,6 +49,12 @@ export default function EmbeddedPlayView_component({
   const [isScrubbing, setIsScrubbing] = useState<boolean>(false)
   const visualizerRef = useRef<VisualizerHandle>(null)
   const sliderRef = useRef<HTMLInputElement>(null)
+  const [alwaysShowControls, setAlwaysShowControls] = useState<boolean>(false)
+  const [controlsVisible, setControlsVisible] = useState<boolean>(false)
+  const [hasFocusWithin, setHasFocusWithin] = useState<boolean>(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const controlsRef = useRef<HTMLDivElement>(null)
+  const hideTimerRef = useRef<number | null>(null)
 
   // Initialize audio context lazily on mount (client side only)
   useEffect(() => {
@@ -84,6 +90,64 @@ export default function EmbeddedPlayView_component({
       try { usePlayStore.getState().setPlaying(false) } catch {}
     }
   }, [])
+
+  // Prefer always-visible controls on touch devices (no hover)
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia === 'undefined') return
+    const mql = window.matchMedia('(hover: none)')
+    const update = () => setAlwaysShowControls(!!mql.matches)
+    update()
+    try { mql.addEventListener('change', update) } catch {
+      try { mql.addListener(update) } catch {}
+    }
+    return () => {
+      try { mql.removeEventListener('change', update) } catch {
+        try { mql.removeListener(update) } catch {}
+      }
+    }
+  }, [])
+
+  // Keep visible if touch devices indicate no hover
+  useEffect(() => {
+    if (alwaysShowControls) {
+      setControlsVisible(true)
+      if (hideTimerRef.current) window.clearTimeout(hideTimerRef.current)
+    }
+  }, [alwaysShowControls])
+
+  const clearHideTimer = () => {
+    if (hideTimerRef.current != null) {
+      window.clearTimeout(hideTimerRef.current)
+      hideTimerRef.current = null
+    }
+  }
+
+  const scheduleHide = (delay = 1000) => {
+    if (alwaysShowControls || isScrubbing || hasFocusWithin) return
+    clearHideTimer()
+    hideTimerRef.current = window.setTimeout(() => {
+      if (!alwaysShowControls && !isScrubbing && !hasFocusWithin) {
+        setControlsVisible(false)
+      }
+    }, delay) as unknown as number
+  }
+
+  const handleMouseMove = () => {
+    if (alwaysShowControls) return
+    setControlsVisible(true)
+    scheduleHide(1200)
+  }
+
+  const handleMouseEnter = () => {
+    if (alwaysShowControls) return
+    setControlsVisible(true)
+    scheduleHide(1200)
+  }
+
+  const handleMouseLeave = () => {
+    if (alwaysShowControls) return
+    scheduleHide(1000)
+  }
 
   // Spacebar toggles play/pause, mirroring routes/play.tsx
   useEffect(() => {
@@ -191,6 +255,17 @@ export default function EmbeddedPlayView_component({
     activeTimeouts.current.forEach((tid) => window.clearTimeout(tid))
     activeTimeouts.current.clear()
     clearAllKeys()
+    // Keep controls visible during scrubbing
+    setControlsVisible(true)
+    clearHideTimer()
+    // Ensure we stop scrubbing even if mouseup happens outside the slider
+    const onUp = () => {
+      handleSeekEnd()
+      window.removeEventListener('mouseup', onUp)
+      window.removeEventListener('touchend', onUp)
+    }
+    window.addEventListener('mouseup', onUp)
+    window.addEventListener('touchend', onUp)
   }
 
   const handleSeek = (value: number) => {
@@ -201,6 +276,8 @@ export default function EmbeddedPlayView_component({
 
   const handleSeekEnd = () => {
     setIsScrubbing(false)
+    // Hide shortly after scrubbing ends
+    scheduleHide(1200)
   }
 
   // Wrapper styles: let parent size control layout; Canvas fills 100%
@@ -213,6 +290,25 @@ export default function EmbeddedPlayView_component({
     MozOsxFontSmoothing: 'grayscale',
     ...style,
   }), [style])
+
+  const containerClassName = useMemo(() => {
+    const base = 'relative'
+    return className ? `${base} ${className}` : base
+  }, [className])
+
+  const controlsVisibilityClass = useMemo(() => {
+    const shouldShow = alwaysShowControls || isScrubbing || hasFocusWithin || controlsVisible
+    return shouldShow
+      ? 'opacity-100 pointer-events-auto transition-opacity duration-200 ease-out'
+      : 'opacity-0 pointer-events-none transition-opacity duration-200 ease-out'
+  }, [alwaysShowControls, isScrubbing, hasFocusWithin, controlsVisible])
+
+  // Cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      clearHideTimer()
+    }
+  }, [])
 
   // Apply slider max/value when duration becomes known
   useEffect(() => {
@@ -228,7 +324,30 @@ export default function EmbeddedPlayView_component({
   }, [timelineDurationMs])
 
   return (
-    <div className={className} style={wrapperStyle}>
+    <div
+      ref={containerRef}
+      className={containerClassName}
+      style={wrapperStyle}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onFocusCapture={() => {
+        setHasFocusWithin(true)
+        setControlsVisible(true)
+        clearHideTimer()
+      }}
+      onBlurCapture={() => {
+        // Defer to let focus settle
+        setTimeout(() => {
+          const el = containerRef.current
+          if (el && typeof document !== 'undefined') {
+            const stillInside = el.contains(document.activeElement)
+            setHasFocusWithin(stillInside)
+            if (!stillInside) scheduleHide(1200)
+          }
+        }, 0)
+      }}
+    >
       <Canvas
         style={{ background }}
         orthographic
@@ -257,9 +376,11 @@ export default function EmbeddedPlayView_component({
           />
         )}
       </Canvas>
-      {/* Controls + Timeline overlay */}
+      {/* Controls + Timeline overlay (shown on hover/focus; always on touch) */}
       {midiObject && timelineDurationMs > 0 && (
         <div
+          ref={controlsRef}
+          className={controlsVisibilityClass}
           style={{
             position: 'absolute',
             left: 0,
@@ -267,8 +388,34 @@ export default function EmbeddedPlayView_component({
             bottom: 0,
             padding: '8px 16px 4px 16px',
             zIndex: 1001,
-            pointerEvents: 'auto',
             background: 'transparent',
+          }}
+          onMouseDown={() => {
+            setControlsVisible(true)
+            clearHideTimer()
+          }}
+          onMouseUp={() => {
+            // Blur focused element to allow autohide after clicking play/settings
+            try {
+              const ae = document.activeElement as HTMLElement | null
+              if (ae && controlsRef.current && controlsRef.current.contains(ae)) {
+                ae.blur()
+              }
+            } catch {}
+            scheduleHide(1200)
+          }}
+          onTouchStart={() => {
+            setControlsVisible(true)
+            clearHideTimer()
+          }}
+          onTouchEnd={() => {
+            try {
+              const ae = document.activeElement as HTMLElement | null
+              if (ae && controlsRef.current && controlsRef.current.contains(ae)) {
+                ae.blur()
+              }
+            } catch {}
+            scheduleHide(1200)
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
