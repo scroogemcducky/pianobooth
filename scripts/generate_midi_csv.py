@@ -138,7 +138,7 @@ def ai_refine_metadata(
     guessed_artist: str,
     track_names: List[str],
     api_key: Optional[str],
-    model: str = "gpt-4o-mini",
+    model: str = "gpt-5",
     timeout: int = 30,
 ) -> Tuple[Optional[str], Optional[str]]:
     """Ask ChatGPT to normalize/correct artist/title.
@@ -216,7 +216,7 @@ def main():
     ap.add_argument("--album", default=None, help="Album value to use for all rows")
     ap.add_argument("--file", action="store_true", help="Use the immediate parent folder name as Album")
     ap.add_argument("--openai-api-key", default=os.environ.get("OPENAI_API_KEY"), help="OpenAI API key (env OPENAI_API_KEY)")
-    ap.add_argument("--model", default="gpt-4o-mini", help="OpenAI model (default: gpt-4o-mini)")
+    ap.add_argument("--model", default="gpt-5", help="OpenAI model (default: gpt-5)")
     ap.add_argument("--timeout", type=int, default=30, help="HTTP timeout seconds for OpenAI calls")
     args = ap.parse_args()
 
