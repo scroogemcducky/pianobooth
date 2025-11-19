@@ -21,6 +21,7 @@ type BuildOptions = {
   sitemapPath: string
   baseUrl: string
   noSitemap: boolean
+  externalMeta?: Map<string, ExternalMetadata>
 }
 
 const DEFAULTS: BuildOptions = {
@@ -101,51 +102,134 @@ type LicenseInfo = {
   url?: string
   text?: string
   attribution?: string
+  attributionUrl?: string
 }
 
 async function findLicenseSidecar(filePath: string): Promise<LicenseInfo | undefined> {
-  const dir = path.dirname(filePath)
   const base = path.basename(filePath, path.extname(filePath))
-  const candidates = [
-    path.join(dir, `${base}.license.json`),
-    path.join(dir, `${base}.license.txt`),
-    path.join(dir, `LICENSE`),
-    path.join(dir, `LICENSE.txt`),
-    path.join(dir, `LICENSE.md`),
-    path.join(dir, `COPYING`),
-    path.join(dir, `COPYRIGHT`),
+  const licenseNames = [
+    `${base}.license.json`,
+    `${base}.license.txt`,
+    'LICENSE',
+    'LICENSE.txt',
+    'LICENSE.md',
+    'COPYING',
+    'COPYRIGHT',
+    'piano-midi-de-license.json',
+    'piano-midi-de-license.txt',
   ]
 
-  for (const p of candidates) {
-    try {
-      const stat = await fs.stat(p)
-      if (!stat.isFile()) continue
-      if (p.endsWith('.json')) {
-        try {
-          const raw = await fs.readFile(p, 'utf-8')
-          const obj = JSON.parse(raw)
-          const lic: LicenseInfo = {}
-          if (typeof obj.name === 'string') lic.name = obj.name
-          if (typeof obj.url === 'string') lic.url = obj.url
-          if (typeof obj.text === 'string') lic.text = obj.text
-          if (typeof obj.attribution === 'string') lic.attribution = obj.attribution
-          if (Object.keys(lic).length) return lic
-        } catch {}
-      } else {
-        const text = await fs.readFile(p, 'utf-8')
-        const trimmed = text.trim()
-        if (trimmed) {
-          // Limit text to a sane length to avoid huge JSON
-          const maxLen = 8000
-          return { text: trimmed.length > maxLen ? trimmed.slice(0, maxLen) + '\n...\n' : trimmed }
+  let currentDir = path.dirname(filePath)
+  while (true) {
+    for (const name of licenseNames) {
+      const candidate = path.join(currentDir, name)
+      try {
+        const stat = await fs.stat(candidate)
+        if (!stat.isFile()) continue
+        if (candidate.endsWith('.json')) {
+          try {
+            const raw = await fs.readFile(candidate, 'utf-8')
+            const obj = JSON.parse(raw)
+            const lic: LicenseInfo = {}
+            if (typeof obj.name === 'string') lic.name = obj.name
+            if (typeof obj.url === 'string') lic.url = obj.url
+            if (typeof obj.text === 'string') lic.text = obj.text
+            if (typeof obj.attribution === 'string') lic.attribution = obj.attribution
+            if (typeof obj.attribution_name === 'string' && !lic.attribution) lic.attribution = obj.attribution_name
+            if (typeof obj.attribution_url === 'string') lic.attributionUrl = obj.attribution_url
+            if (typeof obj.attributionUrl === 'string' && !lic.attributionUrl) lic.attributionUrl = obj.attributionUrl
+            if (Object.keys(lic).length) return lic
+          } catch {}
+        } else {
+          const text = await fs.readFile(candidate, 'utf-8')
+          const trimmed = text.trim()
+          if (trimmed) {
+            const maxLen = 8000
+            return { text: trimmed.length > maxLen ? trimmed.slice(0, maxLen) + '\n...\n' : trimmed }
+          }
         }
-      }
-    } catch {}
+      } catch {}
+    }
+
+    const parent = path.dirname(currentDir)
+    if (parent === currentDir) break
+    currentDir = parent
   }
+
   return undefined
 }
 
-async function extractTitleArtistFromFile(filePath: string): Promise<{ title: string; artist: string; trackNames: string[]; headerName: string }> {
+type ExternalMetadata = {
+  title?: string
+  artist?: string
+  composer?: string
+  license?: LicenseInfo
+}
+
+function mergeLicense(primary?: LicenseInfo, secondary?: LicenseInfo): LicenseInfo | undefined {
+  if (!primary && !secondary) return undefined
+  const out: LicenseInfo = {}
+  const keys: Array<keyof LicenseInfo> = ['name', 'url', 'text', 'attribution', 'attributionUrl']
+  for (const key of keys) {
+    if (primary && primary[key]) out[key] = primary[key]
+    else if (secondary && secondary[key]) out[key] = secondary[key]
+  }
+  return Object.keys(out).length ? out : undefined
+}
+
+async function loadExternalMetadata(srcDir: string): Promise<Map<string, ExternalMetadata>> {
+  const map = new Map<string, ExternalMetadata>()
+  const candidates = [
+    path.join(srcDir, 'piano-midi-de.index.json'),
+  ]
+
+  for (const candidate of candidates) {
+    let raw: string
+    try {
+      raw = await fs.readFile(candidate, 'utf-8')
+    } catch {
+      continue
+    }
+    let parsed: any
+    try {
+      parsed = JSON.parse(raw)
+    } catch {
+      continue
+    }
+    if (!Array.isArray(parsed)) continue
+    for (const entry of parsed) {
+      if (!entry || typeof entry !== 'object') continue
+      const targetPath = typeof entry.public_path === 'string'
+        ? entry.public_path
+        : typeof entry.path === 'string'
+          ? entry.path
+          : undefined
+      if (!targetPath) continue
+      const abs = path.resolve(targetPath)
+      const existing = map.get(abs) || {}
+      const meta: ExternalMetadata = { ...existing }
+      if (typeof entry.composer === 'string') meta.composer = entry.composer
+      if (typeof entry.artist === 'string') meta.artist = entry.artist
+      if (typeof entry.title === 'string') meta.title = entry.title
+      if (entry.license && typeof entry.license === 'object') {
+        const lic: LicenseInfo = {}
+        if (typeof entry.license.name === 'string') lic.name = entry.license.name
+        if (typeof entry.license.url === 'string') lic.url = entry.license.url
+        if (typeof entry.license.text === 'string') lic.text = entry.license.text
+        if (typeof entry.license.attribution === 'string') lic.attribution = entry.license.attribution
+        if (typeof entry.license.attribution_name === 'string' && !lic.attribution) lic.attribution = entry.license.attribution_name
+        if (typeof entry.license.attribution_url === 'string') lic.attributionUrl = entry.license.attribution_url
+        if (typeof entry.license.attributionUrl === 'string' && !lic.attributionUrl) lic.attributionUrl = entry.license.attributionUrl
+        meta.license = mergeLicense(meta.license, lic)
+      }
+      map.set(abs, meta)
+    }
+  }
+
+  return map
+}
+
+async function extractTitleArtistFromFile(filePath: string, external?: ExternalMetadata): Promise<{ title: string; artist: string; trackNames: string[]; headerName: string }> {
   // Use @tonejs/midi to inspect header and track names
   const buf = await fs.readFile(filePath)
   const { Midi } = await import('@tonejs/midi')
@@ -157,6 +241,9 @@ async function extractTitleArtistFromFile(filePath: string): Promise<{ title: st
   let title = headerName || ''
   if (!title && trackNames.length) {
     title = trackNames.reduce((a: string, b: string) => (b.length > a.length ? b : a), trackNames[0])
+  }
+  if (!title && external?.title) {
+    title = external.title
   }
 
   let artist = ''
@@ -191,6 +278,16 @@ async function extractTitleArtistFromFile(filePath: string): Promise<{ title: st
     }
   }
 
+  if (!artist && external?.artist) {
+    artist = external.artist
+  }
+  if (!artist && external?.composer) {
+    artist = external.composer
+  }
+  if (!artist) {
+    const parentDir = path.basename(path.dirname(filePath))
+    if (parentDir) artist = parentDir
+  }
   artist = canonicalizeCommonArtistName(artist || 'Piano')
   if (!title) title = 'Untitled'
   return { title, artist, trackNames, headerName }
@@ -380,7 +477,9 @@ async function buildOne(filePath: string, opts: BuildOptions) {
   const midiSha256 = await computeSha256(filePath)
   const midiObject = await parseMidiFilePath(filePath)
   const durationMs = computeDurationMs(midiObject)
-  const { title: guessedTitle, artist: guessedArtist, trackNames, headerName } = await extractTitleArtistFromFile(filePath)
+  const absPath = path.resolve(filePath)
+  const externalMeta = opts.externalMeta?.get(absPath)
+  const { title: guessedTitle, artist: guessedArtist, trackNames, headerName } = await extractTitleArtistFromFile(filePath, externalMeta)
 
   // Optionally refine via LLM
   let title = guessedTitle
@@ -410,7 +509,8 @@ async function buildOne(filePath: string, opts: BuildOptions) {
   const titleForSlug = simplifyTitle(slugTitleHint || title)
   const { artistSlug, songSlug } = makeSlugs(artistForSlug, titleForSlug)
 
-  const license = await findLicenseSidecar(filePath)
+  const sidecarLicense = await findLicenseSidecar(filePath)
+  const license = mergeLicense(sidecarLicense, externalMeta?.license)
 
   const outJson = {
     title,
@@ -467,6 +567,11 @@ async function main() {
   if (files.length === 0) {
     console.log(`No MIDI files found under ${opts.srcDir}`)
     return
+  }
+
+  const externalMeta = await loadExternalMetadata(opts.srcDir)
+  if (externalMeta.size) {
+    opts.externalMeta = externalMeta
   }
 
   console.log(`Found ${files.length} MIDI file(s). Building public JSON…`)

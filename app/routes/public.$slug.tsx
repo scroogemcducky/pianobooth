@@ -60,6 +60,7 @@ export default function PublicPieceRoute() {
   const playing = usePlayStore((s) => s.playing)
   const [overlayVisible, setOverlayVisible] = useState(true)
   const [overlayFading, setOverlayFading] = useState(false)
+  const [licenseOpen, setLicenseOpen] = useState(false)
 
   // Fade out overlay on first play, then unmount
   useEffect(() => {
@@ -99,21 +100,32 @@ export default function PublicPieceRoute() {
       <section className="px-[5%] sm:px-[6%] md:px-[8%] lg:px-[10%] py-6 flex justify-center">
         <div className="w-full max-w-6xl">
           {data.license && (
-            <div className="mt-6 p-4 border border-gray-200 rounded-lg bg-white/70 text-gray-900">
-              <div className="text-sm uppercase tracking-wide text-gray-600 mb-2">License</div>
-              {data.license.name && (
-                <div className="font-medium">{data.license.name}</div>
-              )}
-              {data.license.attribution && (
-                <div className="mt-1 text-sm">{data.license.attribution}</div>
-              )}
-              {data.license.url && (
-                <div className="mt-1 text-sm">
-                  <a className="text-blue-700 underline" href={data.license.url} target="_blank" rel="noreferrer">{data.license.url}</a>
+            <div className="mt-6 border border-gray-200 rounded-lg bg-white/70 text-gray-900">
+              <button
+                type="button"
+                className="w-full flex items-center px-4 py-3 text-left text-sm uppercase tracking-wide text-gray-600 gap-2"
+                onClick={() => setLicenseOpen((open) => !open)}
+              >
+                <span>License</span>
+                <span className="text-base font-semibold">{licenseOpen ? '-' : '+'}</span>
+              </button>
+              {licenseOpen && (
+                <div className="px-4 pb-4">
+                  {data.license.name && (
+                    <div className="font-medium">{data.license.name}</div>
+                  )}
+                  {data.license.attribution && (
+                    <div className="mt-1 text-sm">{data.license.attribution}</div>
+                  )}
+                  {data.license.url && (
+                    <div className="mt-1 text-sm">
+                      <a className="text-blue-700 underline" href={data.license.url} target="_blank" rel="noreferrer">{data.license.url}</a>
+                    </div>
+                  )}
+                  {data.license.text && (
+                    <pre className="mt-3 whitespace-pre-wrap break-words text-sm leading-snug max-h-80 overflow-auto">{data.license.text}</pre>
+                  )}
                 </div>
-              )}
-              {data.license.text && (
-                <pre className="mt-3 whitespace-pre-wrap break-words text-sm leading-snug max-h-80 overflow-auto">{data.license.text}</pre>
               )}
             </div>
           )}

@@ -116,7 +116,11 @@ const App = () => {
   };
 
   return (
-    <main className="min-h-screen bg-white text-gray-900">
+    <main
+      className="min-h-screen bg-white text-gray-900"
+      onDrop={handleDrop}
+      onDragOver={handleDragOver}
+    >
       <section className="container mx-auto flex flex-col justify-start gap-8 px-6 md:px-8 lg:px-10 py-8 text-left">
         {/* <div className="flex flex-col gap-6 md:pl-[15.5rem]">
           <h1 className="font-garamond text-4xl font-semibold leading-tight text-stone-900">
@@ -128,35 +132,13 @@ const App = () => {
           </p>
         </div> */}
 
-        <div
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          className="group self-center flex w-full max-w-2xl flex-col items-center gap-4 rounded-2xl bg-white/80 p-10 shadow-lg transition duration-250 hover:shadow-none focus-within:shadow-none"
-        >
+        <div className="self-center flex w-full max-w-2xl flex-col items-center gap-4 text-center py-10">
           <input type="file" ref={MidiFileRef} onChange={handleFileInput} className="hidden" />
-          <p className="font-garamond text-2xl text-stone-800">
-            <span className="relative inline-block">
-              <span
-                aria-hidden="true"
-                className="pointer-events-none absolute left-0 top-0 -translate-x-[4px] translate-y-[4px] text-stone-900/20 opacity-0 transition duration-250 group-hover:opacity-100 group-focus-within:opacity-100"
-              >
-                Drop a MIDI file here.
-              </span>
-              <span className="relative z-10">Drop a MIDI file here.</span>
-            </span>
-          </p>
+          <p className="font-garamond text-2xl text-stone-800">Drop a MIDI file here.</p>
           <p className="text-base text-stone-500">
-            <span className="relative inline-block italic">
-              <span
-                aria-hidden="true"
-                className="pointer-events-none absolute left-0 top-0 -translate-x-[4px] translate-y-[4px] text-stone-900/25 opacity-0 transition duration-250 group-hover:opacity-100 group-focus-within:opacity-100"
-              >
-                Or browse.
-              </span>
-              <Link to="/browse" className="relative z-10 text-stone-700">
-                Or browse.
-              </Link>
-            </span>
+            <Link to="/browse" className="italic text-stone-700 underline">
+              Or browse.
+            </Link>
           </p>
         </div>
       </section>
@@ -196,27 +178,6 @@ const App = () => {
         </div>
       </section>
 
-      {/* Copyright Section from Browse */}
-      <footer className="mt-16 pt-8 border-t border-black">
-        <div className="text-center text-sm font-garamond text-gray-700 leading-relaxed px-4">
-          <p className="mb-2">
-            The MIDI files of Bernd Krueger are licensed under the cc-by-sa Germany License.
-          </p>
-          <p className="mb-2">
-            This means, that you can use and adapt the files, as long as you attribute to the copyright holder
-          </p>
-          <p className="mb-2">
-            <strong>Name:</strong> Bernd Krueger<br />
-            <strong>Source:</strong> <a href="http://www.piano-midi.de" className="text-blue-600 hover:underline">http://www.piano-midi.de</a>
-          </p>
-          <p className="mb-2">
-            The distribution or public playback of the files is only allowed under identical license conditions.
-          </p>
-          <p>
-            The scores are open source.
-          </p>
-        </div>
-      </footer>
     </main>
   );
 }

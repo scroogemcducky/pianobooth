@@ -2,6 +2,7 @@ import { LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
 import { useLoaderData, Link } from "@remix-run/react";
 import { createClient } from "~/utils/supabase.server";
 import useMidiStore from '../store/midiStore';
+import { slugify } from "~/utils/slugify";
 // import process from 'process'
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
@@ -17,8 +18,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   
   try {
     const { data: todos } = await supabase.from('Midi').select();
-    console.log("todos: ", todos)
-
     return { todos };
   } catch (error) {
     console.error('Error fetching todos:', error);
@@ -99,7 +98,11 @@ export default function Index() {
         <div className="mb-16"></div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 h-full">
-          {regularComposers.map(([composer, pieces]) => (
+          {regularComposers.map(([composer, pieces]) => {
+            const previewPieces = pieces.slice(0, 4);
+            const composerSlug = slugify(composer);
+            const composerDisplay = composer === 'Pirate' ? 'Jack Sparrow' : composer;
+            return (
             <div key={composer} className="mb-24">
               {/* Composer Header */}
               <div className="flex flex-col md:flex-row mb-6">
@@ -111,11 +114,11 @@ export default function Index() {
                   />
                 )}
                 <div className="ml-4 md:ml-0">
-                  <h2 className="text-2xl font-bold font-garamond text-gray-800 mb-4 underline">{composer === 'Pirate' ? 'Jack Sparrow' : composer}</h2>
+                  <h2 className="text-2xl font-bold font-garamond text-gray-800 mb-4 underline">{composerDisplay}</h2>
                   
                   {/* Pieces List */}
                   <div>
-                    {pieces.map((piece) => (
+                    {previewPieces.map((piece) => (
                       <Link 
                         key={piece.id}
                         to="/play" 
@@ -125,11 +128,17 @@ export default function Index() {
                         {composer === 'Pirate' ? 'Arrr' : (piece.Album ? `${piece.Album} - ${piece.Song}` : piece.Song)}
                       </Link>
                     ))}
+                    <Link
+                      to={`/browse/${composerSlug}`}
+                      className="mt-4 inline-flex text-base font-garamond text-blue-700 underline hover:text-blue-500"
+                    >
+                      more…
+                    </Link>
                   </div>
                 </div>
               </div>
             </div>
-          ))}
+          )})}
         </div>
       </div>
       
