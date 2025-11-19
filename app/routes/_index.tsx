@@ -117,8 +117,8 @@ const App = () => {
 
   return (
     <main className="min-h-screen bg-white text-gray-900">
-      <section className="mx-auto flex max-w-4xl flex-col items-center justify-start gap-8 px-6 py-8 text-center">
-        <div className="flex flex-col gap-6">
+      <section className="container mx-auto flex flex-col justify-start gap-8 px-6 md:px-8 lg:px-10 py-8 text-left">
+        {/* <div className="flex flex-col gap-6 md:pl-[15.5rem]">
           <h1 className="font-garamond text-4xl font-semibold leading-tight text-stone-900">
             Midi piano learning software designed to guide every practice session.
           </h1>
@@ -126,17 +126,37 @@ const App = () => {
             Upload any MIDI arrangement, slow the tempo when technique needs attention, and loop the spots that demand repetition.
             Browse a curated mix of classical repertoire and modern grooves, then follow an interactive keyboard that highlights each note you play.
           </p>
-        </div>
+        </div> */}
 
         <div
           onDrop={handleDrop}
           onDragOver={handleDragOver}
-          className="flex w-full max-w-2xl flex-col items-center gap-4 rounded-2xl border-2 border-dashed border-stone-300 bg-white/80 p-10 shadow-sm transition hover:border-stone-500 focus-within:border-stone-500"
+          className="group self-center flex w-full max-w-2xl flex-col items-center gap-4 rounded-2xl bg-white/80 p-10 shadow-lg transition duration-250 hover:shadow-none focus-within:shadow-none"
         >
           <input type="file" ref={MidiFileRef} onChange={handleFileInput} className="hidden" />
-          <p className="font-garamond text-2xl text-stone-800">Drop a MIDI file to launch the session.</p>
+          <p className="font-garamond text-2xl text-stone-800">
+            <span className="relative inline-block">
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute left-0 top-0 -translate-x-[4px] translate-y-[4px] text-stone-900/20 opacity-0 transition duration-250 group-hover:opacity-100 group-focus-within:opacity-100"
+              >
+                Drop a MIDI file here.
+              </span>
+              <span className="relative z-10">Drop a MIDI file here.</span>
+            </span>
+          </p>
           <p className="text-base text-stone-500">
-            Testing the waters? <Link to="/browse" className="italic text-stone-700 underline">Start with the library.</Link>
+            <span className="relative inline-block italic">
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute left-0 top-0 -translate-x-[4px] translate-y-[4px] text-stone-900/25 opacity-0 transition duration-250 group-hover:opacity-100 group-focus-within:opacity-100"
+              >
+                Or browse.
+              </span>
+              <Link to="/browse" className="relative z-10 text-stone-700">
+                Or browse.
+              </Link>
+            </span>
           </p>
         </div>
       </section>
