@@ -47,6 +47,8 @@ export default function EmbeddedPlayView_component({
   const [instrument, setInstrument] = useState<any>(null)
   const [timelineDurationMs, setTimelineDurationMs] = useState<number>(0)
   const [isScrubbing, setIsScrubbing] = useState<boolean>(false)
+  const [isPointerOver, setIsPointerOver] = useState<boolean>(false)
+  const [initialControlsVisible, setInitialControlsVisible] = useState<boolean>(true)
   const visualizerRef = useRef<VisualizerHandle>(null)
   const sliderRef = useRef<HTMLInputElement>(null)
 
@@ -83,6 +85,12 @@ export default function EmbeddedPlayView_component({
     return () => {
       try { usePlayStore.getState().setPlaying(false) } catch {}
     }
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const tid = window.setTimeout(() => setInitialControlsVisible(false), 3000)
+    return () => window.clearTimeout(tid)
   }, [])
 
   // Spacebar toggles play/pause, mirroring routes/play.tsx
@@ -228,7 +236,12 @@ export default function EmbeddedPlayView_component({
   }, [timelineDurationMs])
 
   return (
-    <div className={className} style={wrapperStyle}>
+    <div
+      className={className}
+      style={wrapperStyle}
+      onPointerEnter={() => setIsPointerOver(true)}
+      onPointerLeave={() => setIsPointerOver(false)}
+    >
       <Canvas
         style={{ background }}
         orthographic
@@ -267,8 +280,10 @@ export default function EmbeddedPlayView_component({
             bottom: 0,
             padding: '8px 16px 4px 16px',
             zIndex: 1001,
-            pointerEvents: 'auto',
+            pointerEvents: (initialControlsVisible || isPointerOver || isScrubbing) ? 'auto' : 'none',
             background: 'transparent',
+            opacity: (initialControlsVisible || isPointerOver || isScrubbing) ? 1 : 0,
+            transition: 'opacity 200ms ease',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
