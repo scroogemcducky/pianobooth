@@ -6,12 +6,13 @@ import * as THREE from 'three'
 import midiParser from '../utils/MidiParser'
 import useKeyStore from '../store/keyPressStore'
 import usePlayStore from '../store/playStore'
-import Keys from './Keys'
+import EmbeddedKeys from './EmbeddedKeys'
 import ShaderBlocks_component from './ShaderBlocks_component'
 import type { VisualizerHandle } from './Instances_component'
 import PlayPauseButton from './PlayPauseButton'
 import EmbeddedSettingsButton from './EmbeddedSettingsButton'
 import soundFont from 'soundfont-player'
+import { computePianoLayout, DEFAULT_PIANO_LAYOUT, type PianoLayout } from '../utils/pianoLayout'
 
 type MidiNote = {
   NoteNumber: number
@@ -45,6 +46,7 @@ export default function EmbeddedPlayView_component({
   const [midiObject, setMidiObject] = useState<MidiNote[] | null>(null)
   const [ac, setAc] = useState<AudioContext | null>(null)
   const [instrument, setInstrument] = useState<any>(null)
+  const [pianoLayout, setPianoLayout] = useState<PianoLayout>(DEFAULT_PIANO_LAYOUT)
   const [timelineDurationMs, setTimelineDurationMs] = useState<number>(0)
   const [isScrubbing, setIsScrubbing] = useState<boolean>(false)
   const [isPointerOver, setIsPointerOver] = useState<boolean>(false)
@@ -114,6 +116,8 @@ export default function EmbeddedPlayView_component({
     const setFromParsed = (data: MidiNote[]) => {
       if (disposed) return
       setMidiObject(data)
+      const layout = computePianoLayout(data)
+      setPianoLayout(layout ?? DEFAULT_PIANO_LAYOUT)
       try { localStorage.setItem('processedMidiData', JSON.stringify(data)) } catch {}
       // reset slider to 0 on new data
       if (sliderRef.current) sliderRef.current.value = '0'
@@ -137,7 +141,7 @@ export default function EmbeddedPlayView_component({
         const stored = localStorage.getItem('processedMidiData')
         if (stored) {
           const parsed = JSON.parse(stored)
-          if (parsed && Array.isArray(parsed)) setMidiObject(parsed)
+          if (parsed && Array.isArray(parsed)) setFromParsed(parsed)
         }
       } catch (e) {
         console.error('Error loading from localStorage:', e)
@@ -252,10 +256,11 @@ export default function EmbeddedPlayView_component({
           <ambientLight intensity={7.5} />
           <directionalLight position={[11, -4, 90]} intensity={0.15} />
         </>
-        <Keys />
+        <EmbeddedKeys layout={pianoLayout} />
         {midiObject && (
           <ShaderBlocks_component
             midiObject={midiObject}
+            layout={pianoLayout}
             triggerVisibleNote={triggerVisibleNote}
             onPrepared={({ durationMs }) => {
               setTimelineDurationMs(durationMs)

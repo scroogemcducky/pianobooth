@@ -2,8 +2,15 @@ import { useEffect, useState } from 'react'
 import type { Ref } from 'react'
 import InstancedShaderRectangles, { VisualizerHandle } from './Instances_component'
 import { factor, black_width, white_width, white_color, black_color } from '../utils/constants'
-import { y_shader, calculateHeight, isBlack, groupByDelta, scalingFactor } from '../utils/functions.js'
+import { calculateHeight, isBlack, groupByDelta, scalingFactor } from '../utils/functions.js'
 import { useThree } from '@react-three/fiber'
+import {
+  type PianoLayout,
+  DEFAULT_PIANO_LAYOUT,
+  getKeyboardMetrics,
+  getKeyboardWidth,
+  getNoteXPosition,
+} from '../utils/pianoLayout'
 
 type MidiNote = {
   NoteNumber: number
@@ -14,12 +21,14 @@ type MidiNote = {
 
 export default function ShaderBlocks_component({
   midiObject,
+  layout,
   triggerVisibleNote,
   onPrepared,
   onTimeUpdate,
   visualizerRef,
 }: {
   midiObject: MidiNote[]
+  layout: PianoLayout
   triggerVisibleNote: (noteNumber: number, durationMs: number) => void
   onPrepared?: (info: { durationMs: number; firstNoteMs: number }) => void
   onTimeUpdate?: (ms: number) => void
@@ -30,30 +39,21 @@ export default function ShaderBlocks_component({
   const [groupedBlocks, setGroupedBlocks] = useState<any[]>([])
   const [notes, setNotes] = useState<number[]>([])
 
-  // Keyboard width scaling parity with Keys.jsx
-  const octaves = 6
-  const offset = 7 * 2.55
-  const totalKeyboardWidth = octaves * offset
+  const activeLayout = layout ?? DEFAULT_PIANO_LAYOUT
+  const totalKeyboardWidth = getKeyboardWidth(activeLayout)
   const scaleFactor = scalingFactor(viewport.width, totalKeyboardWidth)
+  const { distance } = getKeyboardMetrics(viewport.height, scaleFactor)
   const half_screen = viewport.height / 2
-
-  const whiteKeyHeight = 16
-  const renderedKeyHeight = whiteKeyHeight * scaleFactor
-  const bottomMargin = viewport.height * 0.05
-  const screenBottom = -viewport.height / 2
-  const safeBottom = screenBottom + bottomMargin
-  const maxKeyboardY = safeBottom + renderedKeyHeight
-  const minMovement = viewport.height * 0.05
-  const keyboardY = maxKeyboardY < -minMovement ? maxKeyboardY : 0
-  const distance = viewport.height / 2 + -keyboardY
-
   const firstNoteDelta = midiObject[0] ? parseInt(midiObject[0].Delta / 1000) + 1000 : 0
 
   useEffect(() => {
     if (!midiObject) return
     const newBlocks = midiObject.map((note, index) => {
       const height = calculateHeight(note.Duration, distance) / factor
-      const position = y_shader(note, height, distance, half_screen, firstNoteDelta)
+      const deltaMs = parseInt(note.Delta / 1000)
+      const xPosition = getNoteXPosition(note.NoteNumber, activeLayout)
+      const yPosition = height / 2 + half_screen + (distance * deltaMs) / (1000 * factor)
+      const position = [xPosition, yPosition, -0.05]
       const blockWidth = isBlack(note.NoteNumber) ? black_width : white_width - 0.1
       return {
         id: `${index}`,
@@ -80,7 +80,7 @@ export default function ShaderBlocks_component({
       onPrepared({ durationMs, firstNoteMs: preparedNotes[0] })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [midiObject, viewport.height, viewport.width])
+  }, [activeLayout, distance, firstNoteDelta, half_screen, midiObject, viewport.height, viewport.width])
 
   return (
     <>
