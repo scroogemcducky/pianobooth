@@ -181,6 +181,22 @@ export default function Video()  {
     
     activeTimeouts.current.set(noteName, timeoutId);
   }
+
+  const clearAllKeys = () => {
+    try {
+      for (let n = 20; n <= 127; n++) {
+        useKeyStore.getState().setKey(n, false);
+      }
+    } catch {}
+  }
+
+  useEffect(() => {
+    return () => {
+      activeTimeouts.current.forEach((timeoutId) => clearTimeout(timeoutId));
+      activeTimeouts.current.clear();
+      clearAllKeys();
+    }
+  }, [])
   
   return ( 
     <React.StrictMode >
