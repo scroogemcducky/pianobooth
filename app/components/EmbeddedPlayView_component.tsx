@@ -197,6 +197,11 @@ export default function EmbeddedPlayView_component({
     } catch {}
   }
 
+  useEffect(() => {
+    return () => clearAllKeys()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const handleSeekStart = () => {
     setIsScrubbing(true)
     // Stop any pending releases to avoid flicker while scrubbing
