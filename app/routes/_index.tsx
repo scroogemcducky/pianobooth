@@ -3,6 +3,7 @@ import { Link, useLoaderData, useNavigate } from "@remix-run/react";
 import  useMidiStore  from '../store/midiStore'
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
 import { createClient } from "~/utils/supabase.server";
+import { slugify } from "~/utils/slugify";
 
 export const meta: MetaFunction = () => {
   return [
@@ -24,7 +25,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   } catch (error) {
     console.error('Error loading MIDI catalog:', error);
     return { todos: [] };
-  }
+  };
 }
 
 const App = () => {
@@ -90,6 +91,32 @@ const App = () => {
     'Pirate': '/images/Sparrow3.jpg'
   };
 
+  const featuredStaticPieces: Record<string, { title: string; url: string }[]> = {
+    Bach: [
+      { title: 'Prelude & Fugue No. 1 in C major, BWV 846', url: '/bach/the-well-tempered-clavier-book-i-prelude-fugue-no-1-in-c-major-bwv-846' },
+      { title: 'Prelude & Fugue No. 2 in C minor, BWV 847', url: '/bach/i-praeludium-und-fuge-2-in-c-moll-bwv-847' },
+      { title: 'Prelude & Fugue in D major, BWV 850', url: '/bach/pr-ludium-und-fuge-in-d-dur-bwv-850' },
+    ],
+    Beethoven: [
+      { title: 'Piano Sonata No. 23 "Appassionata" I', url: '/beethoven/piano-sonata-no-23-op-57-in-f-minor-i' },
+      { title: 'Appassionata', url: '/beethoven/appassionata' },
+      { title: 'Hammerklavier Sonata – 1st movement', url: '/beethoven/hammerklaviersonate-1-satz' },
+      { title: 'Les Adieux Sonata – 1st movement', url: '/beethoven/sonate-les-adieux-1-satz' },
+    ],
+    Chopin: [
+      { title: 'Grand Valse Brillante, Op. 18', url: '/chopin/grand-valse-brillante-in-es-dur-opus-18' },
+      { title: 'Scherzo in B minor, Op. 31', url: '/chopin/scherzo-in-b-moll-opus-31' },
+      { title: 'Prelude No. 15 "Raindrop"', url: '/chopin/chopin-prelude-no-15-opus-28' },
+      { title: 'Prelude No. 16, Op. 28', url: '/chopin/chopin-prelude-no-16-opus-28' },
+    ],
+    Debussy: [
+      { title: 'Clair de Lune', url: '/debussy/clair-de-lune' },
+      { title: 'Doctor Gradus ad Parnassum', url: '/debussy/doctor-gradus-ad-parnassum' },
+      { title: "Jimbo's Lullaby", url: '/debussy/jimbo-s-lullaby' },
+      { title: 'Passepied', url: '/debussy/passepied' },
+    ],
+  }
+
   // Include all composers in regular layout, with Pirate (Sparrow) last
   const regularComposers = Object.entries(groupedByComposer).sort(([a], [b]) => {
     if (a === 'Pirate') return 1;
@@ -146,35 +173,65 @@ const App = () => {
       {/* Artists/Composers from Browse */}
       <section className="container mx-auto px-6 md:px-8 lg:px-10 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-          {regularComposers.map(([composer, pieces]) => (
-            <div key={composer} className="mb-8">
-              <div className="flex flex-col md:flex-row mb-6">
-                {composerImages[composer] && (
-                  <img
-                    src={composerImages[composer]}
-                    alt={composer}
-                    className="w-56 h-64 object-cover mb-4 md:mb-0 md:mr-6 flex-shrink-0 mx-auto md:mx-0"
-                  />
-                )}
-                <div className="ml-4 md:ml-0">
-                  <h2 className="text-2xl font-bold font-garamond text-gray-800 mb-4 underline">
-                    {composer === 'Pirate' ? 'Jack Sparrow' : composer}
-                  </h2>
-                  <div>
-                    {pieces.map((piece: any) => (
-                      <button
-                        key={piece.id}
-                        onClick={() => handleSongClick(piece.Data)}
-                        className="block text-left w-full mb-2 text-xl font-garamond text-gray-800 hover:text-blue-600 transition-colors"
+          {regularComposers.map(([composer, pieces]) => {
+            const previewPieces = pieces.slice(0, 4);
+            const composerSlug = slugify(composer);
+            const additionalStatic = featuredStaticPieces[composer] || [];
+            const dynamicLabels = previewPieces.map((piece: any) =>
+              composer === 'Pirate' ? 'Arrr' : (piece.Album ? `${piece.Album} - ${piece.Song}` : piece.Song)
+            );
+            const dynamicButtons = previewPieces.map((piece: any, idx: number) => (
+              <button
+                key={`dynamic-${piece.id}`}
+                onClick={() => handleSongClick(piece.Data)}
+                className="block text-left w-full mb-2 text-xl font-garamond text-gray-800 hover:text-blue-600 transition-colors"
+              >
+                {dynamicLabels[idx]}
+              </button>
+            ));
+            const neededExtras = Math.max(0, 4 - dynamicButtons.length);
+            const existingTitles = new Set(dynamicLabels.map((label) => label?.toLowerCase() ?? ''));
+            const staticLinks = additionalStatic
+              .filter((piece) => !existingTitles.has(piece.title.toLowerCase()))
+              .slice(0, neededExtras)
+              .map((piece, index) => (
+              <Link
+                key={`static-${composer}-${index}`}
+                to={piece.url}
+                className="block text-left w-full mb-2 text-xl font-garamond text-gray-800 hover:text-blue-600 transition-colors"
+              >
+                {piece.title}
+              </Link>
+            ));
+            return (
+              <div key={composer} className="mb-8">
+                <div className="flex flex-col md:flex-row mb-6">
+                  {composerImages[composer] && (
+                    <img
+                      src={composerImages[composer]}
+                      alt={composer}
+                      className="w-56 h-64 object-cover mb-4 md:mb-0 md:mr-6 flex-shrink-0 mx-auto md:mx-0"
+                    />
+                  )}
+                  <div className="ml-4 md:ml-0">
+                    <h2 className="text-2xl font-bold font-garamond text-gray-800 mb-4 underline">
+                      {composer === 'Pirate' ? 'Jack Sparrow' : composer}
+                    </h2>
+                    <div>
+                      {dynamicButtons}
+                      {staticLinks}
+                      <Link
+                        to={`/browse/${composerSlug}`}
+                        className="mt-4 inline-flex text-base font-garamond text-blue-700 underline hover:text-blue-500"
                       >
-                        {composer === 'Pirate' ? 'Arrr' : (piece.Album ? `${piece.Album} - ${piece.Song}` : piece.Song)}
-                      </button>
-                    ))}
+                        more…
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </section>
 

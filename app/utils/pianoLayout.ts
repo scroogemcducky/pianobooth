@@ -94,8 +94,11 @@ export function computePianoLayout(
   const paddedMin = clampNote(min - padding)
   const paddedMax = clampNote(max + padding)
 
-  let startOctave = clampOctave(toDisplayOctave(paddedMin))
-  let endOctave = clampOctave(toDisplayOctave(paddedMax))
+  const mainStartOctave = clampOctave(toDisplayOctave(min))
+  const mainEndOctave = clampOctave(toDisplayOctave(max))
+
+  let startOctave = clampOctave(Math.min(mainStartOctave, toDisplayOctave(paddedMin)))
+  let endOctave = clampOctave(Math.max(mainEndOctave, toDisplayOctave(paddedMax - 1)))
   let octaveCount = endOctave - startOctave + 1
 
   if (octaveCount < minOctaves) {

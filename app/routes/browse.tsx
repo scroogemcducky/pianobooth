@@ -128,12 +128,6 @@ export default function Index() {
                         {composer === 'Pirate' ? 'Arrr' : (piece.Album ? `${piece.Album} - ${piece.Song}` : piece.Song)}
                       </Link>
                     ))}
-                    <Link
-                      to={`/browse/${composerSlug}`}
-                      className="mt-4 inline-flex text-base font-garamond text-blue-700 underline hover:text-blue-500"
-                    >
-                      more…
-                    </Link>
                   </div>
                 </div>
               </div>
