@@ -53,3 +53,7 @@ CLAUDE.md
 PLAN.md
 error.md
 todos.md
+# Local Python tooling
+pyproject.toml
+uv.lock
+main.py
