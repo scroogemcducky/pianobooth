@@ -2,199 +2,230 @@
 // used to be /shader
 
 import React, { useState, useEffect, useRef } from 'react'
-import type { MetaFunction } from "@remix-run/node";
+import type { MetaFunction } from '@remix-run/node'
 
-import { Canvas, } from '@react-three/fiber'
+import { Canvas } from '@react-three/fiber'
 import midiParser from '../utils/MidiParser'
-import useKeyStore from '../store/keyPressStore'  
+import useKeyStore from '../store/keyPressStore'
 import useMidiStore from '../store/midiStore'
 import usePlayStore from '../store/playStore'
 import PlayPauseButton from '../components/PlayPauseButton'
 import SettingsButton from '../components/SettingsButton'
-import ShaderBlocks from '../components/ShaderBlocks'
-// import Lights from '../components/Lights'
-// import Camera from '../components/Camera'
+import EmbeddedKeys from '../components/EmbeddedKeys'
+import ShaderBlocks_component from '../components/ShaderBlocks_component'
 import soundFont from 'soundfont-player'
-import Keys from '../components/Keys'
 import * as THREE from 'three'
+import { computePianoLayout, DEFAULT_PIANO_LAYOUT, type PianoLayout } from '../utils/pianoLayout'
 
 export const meta: MetaFunction = () => {
   return [
-    { title: "Piano Practice | Interactive MIDI Piano Player" },
-    { name: "description", content: "Practice piano with interactive MIDI playback, visual feedback, and real-time note highlighting. Perfect for learning classical piano pieces." }
-  ];
-};
+    { title: 'Piano Practice | Interactive MIDI Piano Player' },
+    {
+      name: 'description',
+      content:
+        'Practice piano with interactive MIDI playback, visual feedback, and real-time note highlighting. Perfect for learning classical piano pieces.',
+    },
+  ]
+}
 
-export default function Video()  {  
-  const [midiObject, setMidiObject] = useState();
-  // const [lights, setLights] = useState(true)
-  const [ac, setAc] = useState(null)
-  const [instrument, setInstrument] = useState(null)
+type MidiNote = {
+  NoteNumber: number
+  Delta: number
+  Duration: number
+  SoundDuration?: number
+}
+
+export default function Video() {
+  const [midiObject, setMidiObject] = useState<MidiNote[] | null>(null)
+  const [ac, setAc] = useState<AudioContext | null>(null)
+  const [instrument, setInstrument] = useState<any>(null)
+  const [pianoLayout, setPianoLayout] = useState<PianoLayout>(DEFAULT_PIANO_LAYOUT)
 
   useEffect(() => {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    setAc(audioContext);
-  }, []);
-
-  useEffect(() => {
-    if (ac) {
-        soundFont.instrument(ac, 'acoustic_grand_piano').then(function (piano) {
-            setInstrument(piano);
-        });
+    if (typeof window === 'undefined') return
+    const AudioContextCtor: typeof AudioContext | undefined = (window as any).AudioContext || (window as any).webkitAudioContext
+    if (!AudioContextCtor) return
+    const audioContext = new AudioContextCtor()
+    setAc(audioContext as AudioContext)
+    return () => {
+      try {
+        audioContext.close()
+      } catch {}
     }
-  }, [ac]);
+  }, [])
+
+  useEffect(() => {
+    if (!ac) return
+    let cancelled = false
+    soundFont.instrument(ac as any, 'acoustic_grand_piano').then((piano) => {
+      if (!cancelled) setInstrument(piano)
+    }).catch((error) => {
+      console.error('Error loading instrument', error)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [ac])
 
   useEffect(() => {
     return () => {
       // Reset playing state when leaving the page
-      usePlayStore.getState().setPlaying(false);
-    };
-  }, []);
+      usePlayStore.getState().setPlaying(false)
+    }
+  }, [])
 
   useEffect(() => {
-    const handleKeyDown = (event) => {
+    const handleKeyDown = (event: KeyboardEvent) => {
       if (event.code === 'Space') {
-        event.preventDefault();
-        const currentPlaying = usePlayStore.getState().playing;
-        usePlayStore.getState().setPlaying(!currentPlaying);
+        event.preventDefault()
+        const currentPlaying = usePlayStore.getState().playing
+        usePlayStore.getState().setPlaying(!currentPlaying)
       }
-    };
+    }
 
-    window.addEventListener('keydown', handleKeyDown);
-    
+    window.addEventListener('keydown', handleKeyDown)
+
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, []);
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [])
 
-  const midiFile = useMidiStore((state) => state.midiFile);
+  const midiFile = useMidiStore((state) => state.midiFile)
+
+  const updateMidiState = (data: MidiNote[]) => {
+    if (!data || !Array.isArray(data) || data.length === 0) return
+    setMidiObject(data)
+    const layout = computePianoLayout(data)
+    setPianoLayout(layout ?? DEFAULT_PIANO_LAYOUT)
+  }
 
   useEffect(() => {
-    const getFileAndSetPlayer = async (file) => {
-      console.log('Processing file:', file);
+    const getFileAndSetPlayer = async (file: File) => {
+      console.log('Processing file:', file)
       try {
         const result = await midiParser(file)
-        console.log('Parser result:', result);
-        if(result) {
-            setMidiObject(result)
-            // Store processed MIDI data for persistence
-            localStorage.setItem('processedMidiData', JSON.stringify(result));
-            // Best-effort: extract and persist basic metadata for embed route fallback
-            try {
-              const buf = await file.arrayBuffer();
-              const { Midi } = await import('@tonejs/midi');
-              const midi = new Midi(buf);
-              const headerName = midi?.header?.name?.trim?.();
-              const trackNames = midi.tracks.map((t) => (t.name || '').trim()).filter(Boolean);
-              let title = headerName || '';
-              if (!title && trackNames.length) {
-                title = trackNames.reduce((a, b) => (b.length > a.length ? b : a), trackNames[0]);
+        console.log('Parser result:', result)
+        if (result) {
+          updateMidiState(result)
+          // Store processed MIDI data for persistence
+          localStorage.setItem('processedMidiData', JSON.stringify(result))
+          // Best-effort: extract and persist basic metadata for embed route fallback
+          try {
+            const buf = await file.arrayBuffer()
+            const { Midi } = await import('@tonejs/midi')
+            const midi = new Midi(buf)
+            const headerName = midi?.header?.name?.trim?.()
+            const trackNames = midi.tracks.map((t) => (t.name || '').trim()).filter(Boolean)
+            let title = headerName || ''
+            if (!title && trackNames.length) {
+              title = trackNames.reduce((a, b) => (b.length > a.length ? b : a), trackNames[0])
+            }
+            // Prefer composer-only artist label
+            let artist = ''
+            const composerRegex = /(bach|beethoven|chopin|debussy|mozart|liszt|schubert|schumann|rachmaninoff|handel|haydn|tchaikovsky|gershwin)/i
+            const artistCandidate = trackNames.find((n) => composerRegex.test(n))
+            if (artistCandidate) {
+              const m = artistCandidate.match(composerRegex)
+              if (m && m[1]) {
+                const name = m[1]
+                artist = name.charAt(0).toUpperCase() + name.slice(1).toLowerCase()
               }
-              // Prefer composer-only artist label
-              let artist = '';
-              const composerRegex = /(bach|beethoven|chopin|debussy|mozart|liszt|schubert|schumann|rachmaninoff|handel|haydn|tchaikovsky|gershwin)/i;
-              const artistCandidate = trackNames.find((n) => composerRegex.test(n));
-              if (artistCandidate) {
-                const m = artistCandidate.match(composerRegex);
-                if (m && m[1]) {
-                  const name = m[1];
-                  artist = name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
-                }
-              } else if (trackNames.length) {
-                const hyphen = trackNames.find((n) => n.includes('-'));
-                if (hyphen) {
-                  const parts = hyphen.split('-').map((s) => s.trim());
-                  if (parts.length >= 2) {
-                    const [a, b] = parts;
-                    if (a.length <= b.length) artist = a;
-                    if (!title) title = b;
-                  }
-                }
-              }
-              // If the title contains the composer prefix like "Beethoven - Für Elise", strip it
-              if (title) {
-                const m = title.match(/^(.*?)[-:\u2013]\s*(.+)$/); // hyphen, colon, en-dash
-                if (m) {
-                  const maybeComposer = m[1].trim();
-                  const rest = m[2].trim();
-                  if (composerRegex.test(maybeComposer)) {
-                    title = rest;
-                  }
+            } else if (trackNames.length) {
+              const hyphen = trackNames.find((n) => n.includes('-'))
+              if (hyphen) {
+                const parts = hyphen.split('-').map((s) => s.trim())
+                if (parts.length >= 2) {
+                  const [a, b] = parts
+                  if (a.length <= b.length) artist = a
+                  if (!title) title = b
                 }
               }
-              localStorage.setItem('midiMeta', JSON.stringify({ title: title || 'Untitled', artist: artist || 'Piano' }));
-            } catch {}
+            }
+            // If the title contains the composer prefix like "Beethoven - Für Elise", strip it
+            if (title) {
+              const m = title.match(/^(.*?)[-:\u2013]\s*(.+)$/) // hyphen, colon, en-dash
+              if (m) {
+                const maybeComposer = m[1].trim()
+                const rest = m[2].trim()
+                if (composerRegex.test(maybeComposer)) {
+                  title = rest
+                }
+              }
+            }
+            localStorage.setItem('midiMeta', JSON.stringify({ title: title || 'Untitled', artist: artist || 'Piano' }))
+          } catch {}
         }
       } catch (error) {
-        console.error('MIDI parsing error:', error);
+        console.error('MIDI parsing error:', error)
       }
     }
 
     const loadFromLocalStorage = () => {
-      const storedData = localStorage.getItem('processedMidiData');
+      const storedData = localStorage.getItem('processedMidiData')
       if (storedData) {
         try {
-          const parsedData = JSON.parse(storedData);
-          console.log('Loaded from localStorage:', parsedData);
-          setMidiObject(parsedData);
+          const parsedData = JSON.parse(storedData)
+          console.log('Loaded from localStorage:', parsedData)
+          updateMidiState(parsedData)
         } catch (error) {
-          console.error('Error loading from localStorage:', error);
-          localStorage.removeItem('processedMidiData');
+          console.error('Error loading from localStorage:', error)
+          localStorage.removeItem('processedMidiData')
         }
       }
     }
 
     if (midiFile) {
-        console.log('MIDI file received:', midiFile);
-        getFileAndSetPlayer(midiFile)
-        return
+      console.log('MIDI file received:', midiFile)
+      getFileAndSetPlayer(midiFile)
+      return
     } else {
-        // Try to load from localStorage if no file in store
-        loadFromLocalStorage()
+      // Try to load from localStorage if no file in store
+      loadFromLocalStorage()
     }
-  }, [midiFile]);
+  }, [midiFile])
 
   // TODO pass note parameters to playNote
-  const playNote = (noteName, duration=4) => {
-    if (instrument) {
-      instrument.play(noteName, ac.currentTime, {gain: 1, duration: duration, release: 2.5, sustain: 2, delay: 2});
+  const playNote = (noteName: number, duration = 4) => {
+    if (instrument && ac) {
+      instrument.play(noteName, ac.currentTime, { gain: 1, duration: duration, release: 2.5, sustain: 2, delay: 2 })
     }
   }
 
-  const activeTimeouts = useRef(new Map());
+  const activeTimeouts = useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map())
 
-  const triggerVisibleNote = (noteName, duration) => {
+  const triggerVisibleNote = (noteName: number, duration: number) => {
     // Clear any existing timeout for this note
-    if (activeTimeouts.current.has(noteName)) {
-      clearTimeout(activeTimeouts.current.get(noteName));
+    const existing = activeTimeouts.current.get(noteName)
+    if (existing) {
+      clearTimeout(existing)
     }
-    
+
     // Always turn key on immediately
-    useKeyStore.getState().setKey(noteName, true);
-    playNote(noteName);
-    
+    useKeyStore.getState().setKey(noteName, true)
+    playNote(noteName)
+
     // Set new timeout and store it
-    const timeoutId = setTimeout(() => {
-      useKeyStore.getState().setKey(noteName, false);
-      activeTimeouts.current.delete(noteName);
-    }, duration);
-    
-    activeTimeouts.current.set(noteName, timeoutId);
+    const timeoutId = window.setTimeout(() => {
+      useKeyStore.getState().setKey(noteName, false)
+      activeTimeouts.current.delete(noteName)
+    }, duration)
+
+    activeTimeouts.current.set(noteName, timeoutId)
   }
 
   const clearAllKeys = () => {
     try {
       for (let n = 20; n <= 127; n++) {
-        useKeyStore.getState().setKey(n, false);
+        useKeyStore.getState().setKey(n, false)
       }
     } catch {}
   }
 
   useEffect(() => {
     return () => {
-      activeTimeouts.current.forEach((timeoutId) => clearTimeout(timeoutId));
-      activeTimeouts.current.clear();
-      clearAllKeys();
+      activeTimeouts.current.forEach((timeoutId) => clearTimeout(timeoutId))
+      activeTimeouts.current.clear()
+      clearAllKeys()
     }
   }, [])
   
@@ -228,9 +259,10 @@ export default function Video()  {
         {/* } */}
       
           {/* <Camera />  */}
-          <Keys />  
-          {midiObject && <ShaderBlocks 
+          <EmbeddedKeys layout={pianoLayout} />  
+          {midiObject && <ShaderBlocks_component
             midiObject={midiObject} 
+            layout={pianoLayout}
             triggerVisibleNote={triggerVisibleNote} />} 
       </Canvas>
       <PlayPauseButton />

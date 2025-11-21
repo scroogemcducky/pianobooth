@@ -7,11 +7,12 @@ import midiParser from '../utils/MidiParser'
 import useKeyStore from '../store/keyPressStore'  
 import useMidiStore from '../store/midiStore'
 import FrameBasedShaderBlocks from '../components/FrameBasedShaderBlocks'
-import Keys from '../components/Keys'
+import EmbeddedKeys from '../components/EmbeddedKeys'
 import * as THREE from 'three'
 import { ActionFunctionArgs, json } from '@remix-run/cloudflare'
 import { useFetcher } from '@remix-run/react'
 import soundFont, { Player } from 'soundfont-player'
+import { computePianoLayout, DEFAULT_PIANO_LAYOUT, type PianoLayout } from '../utils/pianoLayout'
 
 interface MidiNote {
   Delta: number;
@@ -296,6 +297,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
 export default function Record() {
   const [midiObject, setMidiObject] = useState<MidiNote[] | null>(null)
+  const [pianoLayout, setPianoLayout] = useState<PianoLayout>(DEFAULT_PIANO_LAYOUT)
   const [isRecording, setIsRecording] = useState(false)
   const [currentFrame, setCurrentFrame] = useState(0)
   const [capturedFrames, setCapturedFrames] = useState<string[]>([])
@@ -321,6 +323,13 @@ export default function Record() {
     }
   }, [ac]);
 
+  const updateMidiState = (data: MidiNote[]) => {
+    if (!data || !Array.isArray(data) || data.length === 0) return
+    setMidiObject(data)
+    const layout = computePianoLayout(data)
+    setPianoLayout(layout ?? DEFAULT_PIANO_LAYOUT)
+  }
+
   // Load MIDI file
   useEffect(() => {
     const getFileAndSetPlayer = async (file: unknown) => {
@@ -328,10 +337,10 @@ export default function Record() {
       try {
         const result = await midiParser(file)
         console.log('Parser result:', result);
-        if(result) {
-            setMidiObject(result)
-            // Store processed MIDI data for persistence
-            localStorage.setItem('processedMidiData', JSON.stringify(result));
+        if (result) {
+          updateMidiState(result as MidiNote[])
+          // Store processed MIDI data for persistence
+          localStorage.setItem('processedMidiData', JSON.stringify(result));
         }
       } catch (error) {
         console.error('MIDI parsing error:', error);
@@ -344,7 +353,7 @@ export default function Record() {
         try {
           const parsedData = JSON.parse(storedData);
           console.log('Loaded from localStorage:', parsedData);
-          setMidiObject(parsedData);
+          updateMidiState(parsedData as MidiNote[]);
         } catch (error) {
           console.error('Error loading from localStorage:', error);
           localStorage.removeItem('processedMidiData');
@@ -689,11 +698,12 @@ export default function Record() {
           intensity={0.15}
         />
         
-        <Keys />  
+        <EmbeddedKeys layout={pianoLayout} />  
         {midiObject && (
           <FrameBasedShaderBlocks 
             midiObject={midiObject} 
             currentFrame={currentFrame}
+            layout={pianoLayout}
           />
         )}
         
@@ -708,5 +718,3 @@ export default function Record() {
     </div>
   )
 }
-
-

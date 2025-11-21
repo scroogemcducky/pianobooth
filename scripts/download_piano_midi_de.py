@@ -12,7 +12,9 @@ from __future__ import annotations
 import json
 import os
 import re
+import shutil
 import sys
+import unicodedata
 from dataclasses import dataclass
 from html import unescape
 from pathlib import Path
@@ -26,6 +28,7 @@ BASE_URL = "http://piano-midi.de/"
 MIDI_INDEX_URL = urljoin(BASE_URL, "midi_files.htm")
 COPYRIGHT_URL = urljoin(BASE_URL, "copy.htm")
 DEST_ROOT = Path("midi/public")
+QUEUE_ROOT = Path("midi/video_queue")
 LICENSE_FILE = DEST_ROOT / "piano-midi-de-license.txt"
 INDEX_FILE = DEST_ROOT / "piano-midi-de.index.json"
 
@@ -131,6 +134,43 @@ def sanitize_relative_path(href: str) -> Path:
 def ensure_destination(p: Path) -> None:
     p.parent.mkdir(parents=True, exist_ok=True)
 
+def strip_diacritics(value: str) -> str:
+    normalized = unicodedata.normalize("NFKD", value)
+    return "".join(ch for ch in normalized if not unicodedata.combining(ch))
+
+
+def sanitize_filename_component(text: str) -> str:
+    text = unescape(text or "")
+    text = strip_diacritics(text)
+    text = WHITESPACE_RE.sub(" ", text).strip()
+    text = re.sub(r"[^A-Za-z0-9 _\-\.,]", "_", text)
+    return text.strip(" _-.")
+
+def enqueue_for_render(src: Path, composer: str, title: str, rel_path: Path) -> None:
+    """Copy the MIDI into midi/video_queue/ with a deterministic, human-friendly name."""
+    QUEUE_ROOT.mkdir(parents=True, exist_ok=True)
+    base_parts = [sanitize_filename_component(composer), sanitize_filename_component(title)]
+    base = " - ".join([p for p in base_parts if p])
+    if not base:
+        base = sanitize_filename_component(rel_path.stem)
+    if not base:
+        base = rel_path.stem or "midi"
+    base = base[:190]
+    suffix = src.suffix.lower() or ".mid"
+    candidate = QUEUE_ROOT / f"{base}{suffix}"
+    dedupe = 1
+    while candidate.exists():
+        # Skip copying if an identically named file already exists
+        try:
+            if candidate.stat().st_size == src.stat().st_size:
+                return
+        except FileNotFoundError:
+            pass
+        candidate = QUEUE_ROOT / f"{base}_{dedupe}{suffix}"
+        dedupe += 1
+    shutil.copy2(src, candidate)
+    print(f"Queued for rendering: {candidate}")
+
 
 def build_license_blob(license_text: str) -> dict:
     return {
@@ -149,6 +189,7 @@ def main() -> int:
 
     candidate_pages = collect_candidate_pages(index_html)
     DEST_ROOT.mkdir(parents=True, exist_ok=True)
+    QUEUE_ROOT.mkdir(parents=True, exist_ok=True)
 
     entries: List[MidiEntry] = []
     seen_files = set()
@@ -194,6 +235,7 @@ def main() -> int:
                 )
             )
             print(f"Downloaded {absolute_url} -> {dest_path}")
+            enqueue_for_render(dest_path, composer_name, title, rel_path)
 
     license_blob = build_license_blob(license_text)
 

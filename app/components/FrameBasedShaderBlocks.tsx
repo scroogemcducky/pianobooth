@@ -1,8 +1,15 @@
-import { useEffect, useState, useMemo, useRef } from 'react';
-import * as THREE from 'three';
-import { extend, useThree } from '@react-three/fiber';
-import { factor, speed, black_width, white_width, BLACK_KEY_COLOR, WHITE_KEY_COLOR } from '../utils/constants';
-import { y_shader, calculateHeight, isBlack, scalingFactor } from '../utils/functions.js';
+import { useEffect, useState, useMemo, useRef } from 'react'
+import * as THREE from 'three'
+import { extend, useThree } from '@react-three/fiber'
+import { factor, speed, black_width, white_width, BLACK_KEY_COLOR, WHITE_KEY_COLOR } from '../utils/constants'
+import { calculateHeight, isBlack, scalingFactor } from '../utils/functions.js'
+import {
+  type PianoLayout,
+  DEFAULT_PIANO_LAYOUT,
+  getKeyboardMetrics,
+  getKeyboardWidth,
+  getNoteXPosition,
+} from '../utils/pianoLayout'
 
 interface MidiNote {
   Delta: number;
@@ -81,9 +88,9 @@ extend({ CustomShaderMaterial });
 
 interface FrameBasedInstancesProps {
   blocks: Block[];
-  scaleFactor: number;
-  currentTimeMs: number;
-  distance: number;
+  scaleFactor: number
+  currentTimeMs: number
+  distance: number
 }
 
 function FrameBasedInstances({ blocks, scaleFactor, currentTimeMs, distance }: FrameBasedInstancesProps) {
@@ -169,58 +176,46 @@ function FrameBasedInstances({ blocks, scaleFactor, currentTimeMs, distance }: F
 }
 
 interface FrameBasedShaderBlocksProps {
-  midiObject: MidiNote[];
-  currentFrame: number;
+  midiObject: MidiNote[]
+  currentFrame: number
+  layout?: PianoLayout
 }
 
-function FrameBasedShaderBlocks({ midiObject, currentFrame }: FrameBasedShaderBlocksProps) {
-  const { viewport } = useThree();
-  const [blocks, setBlocks] = useState<Block[]>([]);
-  
-  const offset = 7 * 2.55;
-  const totalKeyboardWidth = 6 * offset;
-  const scaleFactor = scalingFactor(viewport.width, totalKeyboardWidth);
-  
-  const half_screen = viewport.height / 2;
-  
-  // Calculate keyboard position using same logic as Keys.jsx and ShaderBlocks
-  const whiteKeyHeight = 16;
-  const renderedKeyHeight = whiteKeyHeight * scaleFactor;
-  const bottomMargin = viewport.height * 0.05;
-  const screenBottom = -viewport.height / 2;
-  const safeBottom = screenBottom + bottomMargin;
-  const maxKeyboardY = safeBottom + renderedKeyHeight;
-  const minMovement = viewport.height * 0.05;
-  const keyboardY = maxKeyboardY < -minMovement ? maxKeyboardY : 0;
-  
-  const distance = viewport.height / 2 + (-keyboardY);
-  const firstNoteDelta = midiObject[0] ? parseInt(midiObject[0].Delta.toString()) + 1000 : 0;
+function FrameBasedShaderBlocks({ midiObject, currentFrame, layout }: FrameBasedShaderBlocksProps) {
+  const { viewport } = useThree()
+  const [blocks, setBlocks] = useState<Block[]>([])
+  const activeLayout = layout ?? DEFAULT_PIANO_LAYOUT
+
+  const totalKeyboardWidth = getKeyboardWidth(activeLayout)
+  const scaleFactor = scalingFactor(viewport.width, totalKeyboardWidth)
+  const { distance } = getKeyboardMetrics(viewport.height, scaleFactor)
+  const half_screen = viewport.height / 2
 
   useEffect(() => {
     if (midiObject) {
-      const newBlocks = midiObject.map((note, index) => {
-        const height = calculateHeight(note.Duration, distance) / factor;
-        const position = y_shader(note, height, distance, half_screen, firstNoteDelta) as [number, number, number];
-        
-        const blockWidth = isBlack(note.NoteNumber) ? black_width : (white_width - 0.1);
-        
+      const newBlocks = midiObject.map((note) => {
+        const height = calculateHeight(note.Duration, distance) / factor
+        const deltaMs = Math.floor(note.Delta / 1000)
+        const xPosition = getNoteXPosition(note.NoteNumber, activeLayout)
+        const yPosition = height / 2 + half_screen + (distance * deltaMs) / (1000 * factor)
+        const blockWidth = isBlack(note.NoteNumber) ? black_width : white_width - 0.1
         return {
           noteNumber: note.NoteNumber,
           soundDuration: note.SoundDuration,
-          delta: parseInt(note.Delta.toString()) + firstNoteDelta + (factor - 1) * 1000,
+          delta: deltaMs,
           duration: note.Duration / 1000000,
-          height: height,
+          height,
           width: blockWidth,
-          position: position,
+          position: [xPosition, yPosition, -0.05] as [number, number, number],
           isBlack: isBlack(note.NoteNumber),
-        };
-      });
+        }
+      })
 
-      setBlocks(newBlocks);
+      setBlocks(newBlocks)
     }
-  }, [midiObject, viewport.height, viewport.width, half_screen, distance, firstNoteDelta, scaleFactor]);
+  }, [activeLayout, midiObject, viewport.height, viewport.width, half_screen, distance, scaleFactor])
 
-  const currentTimeMs = currentFrame * (1000 / 60); // 60 FPS
+  const currentTimeMs = currentFrame * (1000 / 60) // 60 FPS
 
   return (
     <>
@@ -233,7 +228,7 @@ function FrameBasedShaderBlocks({ midiObject, currentFrame }: FrameBasedShaderBl
         />
       )}
     </>
-  );
+  )
 }
 
-export default FrameBasedShaderBlocks; 
+export default FrameBasedShaderBlocks
