@@ -27,6 +27,10 @@ export const MAX_MIDI_NOTE = 107
 const MIN_OCTAVE_INDEX = Math.floor((MIN_MIDI_NOTE - BASE_NOTE_NUMBER) / 12)
 const MAX_OCTAVE_INDEX = Math.floor((MAX_MIDI_NOTE - BASE_NOTE_NUMBER) / 12)
 
+const clampNote = (note: number) => Math.min(MAX_MIDI_NOTE, Math.max(MIN_MIDI_NOTE, note))
+const clampOctave = (octave: number) => Math.min(MAX_OCTAVE_INDEX, Math.max(MIN_OCTAVE_INDEX, octave))
+const toDisplayOctave = (note: number) => Math.floor((note - BASE_NOTE_NUMBER) / 12)
+
 export type PianoLayout = {
   minNote: number
   maxNote: number
@@ -52,9 +56,19 @@ const getBaseNotePosition = (noteNumber: number) => {
   return relativeOctaveOffset + baseOffset
 }
 
-const DEFAULT_MIN_X = getBaseNotePosition(24)
-const DEFAULT_MAX_X = getBaseNotePosition(95)
-const DEFAULT_CENTER_X = (DEFAULT_MIN_X + DEFAULT_MAX_X) / 2
+function getDisplayedKeyboardBounds(startOctave: number, endOctave: number) {
+  const firstDisplayedNote = clampNote(BASE_NOTE_NUMBER + startOctave * 12)
+  const lastDisplayedNote = clampNote(BASE_NOTE_NUMBER + endOctave * 12 + 11)
+  const minCenter = getBaseNotePosition(firstDisplayedNote)
+  const maxCenter = getBaseNotePosition(lastDisplayedNote)
+  const halfWhiteKey = WHITE_KEY_WIDTH / 2
+  const minX = minCenter - halfWhiteKey
+  const maxX = maxCenter + halfWhiteKey
+  const centerX = (minX + maxX) / 2
+  return { minX, maxX, centerX }
+}
+
+const { minX: DEFAULT_MIN_X, maxX: DEFAULT_MAX_X, centerX: DEFAULT_CENTER_X } = getDisplayedKeyboardBounds(0, 5)
 
 export const DEFAULT_PIANO_LAYOUT: PianoLayout = {
   minNote: 24,
@@ -69,10 +83,6 @@ export const DEFAULT_PIANO_LAYOUT: PianoLayout = {
   maxX: DEFAULT_MAX_X,
   centerX: DEFAULT_CENTER_X,
 }
-
-const clampNote = (note: number) => Math.min(MAX_MIDI_NOTE, Math.max(MIN_MIDI_NOTE, note))
-const clampOctave = (octave: number) => Math.min(MAX_OCTAVE_INDEX, Math.max(MIN_OCTAVE_INDEX, octave))
-const toDisplayOctave = (note: number) => Math.floor((note - BASE_NOTE_NUMBER) / 12)
 
 export function computePianoLayout(
   notes: { NoteNumber: number }[],
@@ -109,9 +119,7 @@ export function computePianoLayout(
   }
 
   const centerOctave = startOctave + (octaveCount - 1) / 2
-  const minX = getBaseNotePosition(paddedMin)
-  const maxX = getBaseNotePosition(paddedMax)
-  const centerX = (minX + maxX) / 2
+  const { minX, maxX, centerX } = getDisplayedKeyboardBounds(startOctave, endOctave)
 
   return {
     minNote: min,
