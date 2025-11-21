@@ -65,6 +65,9 @@ function canonicalizeCommonArtistName(artist: string): string {
 function slugify(s: string): string {
   return (s || '')
     .normalize('NFKD')
+    .replace(/['’]/g, '')
+    .replace(/[#♯]/g, '-sharp')
+    .replace(/[♭]/g, '-flat')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')

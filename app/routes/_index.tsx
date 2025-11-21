@@ -28,6 +28,31 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   };
 }
 
+const composerSlugOverrides: Record<string, string> = {
+  Pirate: 'klaus-badelt',
+};
+
+const normalizeKey = (value: string) => (
+  (value || '')
+    .toLowerCase()
+    .replace(/['’]/g, '')
+    .replace(/[#♯]/g, '-sharp')
+    .replace(/[♭]/g, '-flat')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+)
+
+const composerSongSlugOverrides: Record<string, Record<string, string>> = {
+  beethoven: {
+    'sonata-no-5-c-minor-1-movement': 'sonata-no-5-c-minor-1-movement',
+    'sonata-no-14-c-sharp-minor-1-movement': 'sonata-no-14-c-sharp-minor-1-movement',
+  },
+  'klaus-badelt': {
+    'hes-a-pirate': 'hes-a-pirate',
+    'he-s-a-pirate': 'hes-a-pirate',
+  },
+}
+
 const App = () => {
   const { todos } = useLoaderData<typeof loader>() as { todos: any[] };
   const [isClient, setIsClient] = useState(false);
@@ -93,8 +118,8 @@ const App = () => {
 
   const featuredStaticPieces: Record<string, { title: string; url: string }[]> = {
     Bach: [
-      { title: 'Prelude & Fugue No. 1 in C major, BWV 846', url: '/bach/the-well-tempered-clavier-book-i-prelude-fugue-no-1-in-c-major-bwv-846' },
-      { title: 'Prelude & Fugue No. 2 in C minor, BWV 847', url: '/bach/i-praeludium-und-fuge-2-in-c-moll-bwv-847' },
+      { title: 'Prelude & Fugue No. 1 in C major, BWV 846', url: '/bach/prelude-and-fugue-in-c-major-bwv-846' },
+      { title: 'Prelude & Fugue No. 2 in C minor, BWV 847', url: '/bach/prelude-and-fugue-in-c-minor-bwv-847' },
       { title: 'Prelude & Fugue in D major, BWV 850', url: '/bach/pr-ludium-und-fuge-in-d-dur-bwv-850' },
     ],
     Beethoven: [
@@ -115,6 +140,9 @@ const App = () => {
       { title: "Jimbo's Lullaby", url: '/debussy/jimbo-s-lullaby' },
       { title: 'Passepied', url: '/debussy/passepied' },
     ],
+    Pirate: [
+      { title: "He's a Pirate", url: '/klaus-badelt/hes-a-pirate' },
+    ],
   }
 
   // Include all composers in regular layout, with Pirate (Sparrow) last
@@ -124,22 +152,24 @@ const App = () => {
     return a.localeCompare(b);
   });
 
-  const handleSongClick = (midiData: string) => {
-    try {
-      localStorage.removeItem('processedMidiData');
-      const base64Data = midiData.split(',')[1];
-      if (!base64Data) throw new Error('Invalid data URL format');
-      const binaryString = atob(base64Data);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
-      const blob = new Blob([bytes], { type: 'audio/midi' });
-      const file = new File([blob], 'catalog-song.mid', { type: 'audio/midi' });
-      setMidiStore(file);
-      navigate('/play');
-    } catch (error) {
-      console.error('Error processing catalog MIDI data:', error);
-      alert('Error loading the selected song. Please try again.');
+  const getStaticUrlForPiece = (composer: string, song?: string, album?: string) => {
+    const artistSlug = composerSlugOverrides[composer] ?? slugify(composer || 'composer');
+    const composerKey = normalizeKey(artistSlug);
+    const normalizedSong = normalizeKey(song || '');
+    const normalizedAlbum = normalizeKey(album || '');
+    const normalizedCombined = normalizeKey([album, song].filter(Boolean).join(' ').trim());
+    const overrideCandidates = [normalizedCombined, normalizedSong, normalizedAlbum].filter(Boolean);
+    let overrideSlug: string | undefined;
+    for (const key of overrideCandidates) {
+      const candidate = composerSongSlugOverrides[composerKey]?.[key];
+      if (candidate) {
+        overrideSlug = candidate;
+        break;
+      }
     }
+    const slugInput = song || album || 'untitled';
+    const songSlug = overrideSlug ?? slugify(slugInput);
+    return `/${artistSlug}/${songSlug}`;
   };
 
   return (
@@ -177,26 +207,31 @@ const App = () => {
             const previewPieces = pieces.slice(0, 4);
             const composerSlug = slugify(composer);
             const additionalStatic = featuredStaticPieces[composer] || [];
-            const dynamicLabels = previewPieces.map((piece: any) =>
-              composer === 'Pirate' ? 'Arrr' : (piece.Album ? `${piece.Album} - ${piece.Song}` : piece.Song)
+            const normalizeTitle = (str: string) => normalizeKey(str)
+            const dynamicLabels = composer === 'Pirate'
+              ? []
+              : previewPieces.map((piece: any) => (piece.Album ? `${piece.Album} - ${piece.Song}` : piece.Song));
+            const dynamicLinks = composer === 'Pirate'
+              ? []
+              : previewPieces.map((piece: any, idx: number) => (
+                <Link
+                  key={`dynamic-${piece.id}`}
+                  to={getStaticUrlForPiece(composer, piece.Song, piece.Album)}
+                  className="block text-left w-full mb-2 text-xl font-garamond text-gray-800 hover:text-blue-600 transition-colors"
+                >
+                  {dynamicLabels[idx]}
+                </Link>
+              ));
+            const neededExtras = Math.max(0, 4 - dynamicLinks.length);
+            const existingTitles = new Set(
+              (composer === 'Pirate' ? [] : previewPieces).map((piece: any) => normalizeTitle(piece.Song || piece.Album || ''))
             );
-            const dynamicButtons = previewPieces.map((piece: any, idx: number) => (
-              <button
-                key={`dynamic-${piece.id}`}
-                onClick={() => handleSongClick(piece.Data)}
-                className="block text-left w-full mb-2 text-xl font-garamond text-gray-800 hover:text-blue-600 transition-colors"
-              >
-                {dynamicLabels[idx]}
-              </button>
-            ));
-            const neededExtras = Math.max(0, 4 - dynamicButtons.length);
-            const existingTitles = new Set(dynamicLabels.map((label) => label?.toLowerCase() ?? ''));
             const staticLinks = additionalStatic
-              .filter((piece) => !existingTitles.has(piece.title.toLowerCase()))
+              .filter((piece) => !existingTitles.has(normalizeTitle(piece.title)))
               .slice(0, neededExtras)
               .map((piece, index) => (
-              <Link
-                key={`static-${composer}-${index}`}
+                <Link
+                  key={`static-${composer}-${index}`}
                 to={piece.url}
                 className="block text-left w-full mb-2 text-xl font-garamond text-gray-800 hover:text-blue-600 transition-colors"
               >
@@ -218,7 +253,7 @@ const App = () => {
                       {composer === 'Pirate' ? 'Jack Sparrow' : composer}
                     </h2>
                     <div>
-                      {dynamicButtons}
+                      {dynamicLinks}
                       {staticLinks}
                       <Link
                         to={`/browse/${composerSlug}`}

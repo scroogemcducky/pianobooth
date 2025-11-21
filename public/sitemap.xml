@@ -24,14 +24,20 @@
   <url>
     <loc>https://pianobooth.com/bach/prelude-and-fugue-no-1-in-c-major-bwv-846</loc>
   </url>
-  <url>
-    <loc>https://pianobooth.com/bach/i-praeludium-und-fuge-2-in-c-moll-bwv-847</loc>
+    <url>
+    <loc>https://pianobooth.com/bach/prelude-fugue-in-c-major-bwv-846</loc>
+  </url>
+<url>
+    <loc>https://pianobooth.com/bach/prelude-and-fugue-in-c-minor-bwv-847</loc>
   </url>
   <url>
     <loc>https://pianobooth.com/bach/pr-ludium-und-fuge-in-d-dur-bwv-850</loc>
   </url>
   <url>
     <loc>https://pianobooth.com/beethoven/piano-sonata-no-23-op-57-in-f-minor-i</loc>
+  </url>
+  <url>
+    <loc>https://pianobooth.com/beethoven/sonata-no-5-c-minor-1-movement</loc>
   </url>
   <url>
     <loc>https://pianobooth.com/beethoven/appassionata</loc>
@@ -74,6 +80,9 @@
   </url>
   <url>
     <loc>https://pianobooth.com/beethoven/grande-sonata-opus-22-3-movement</loc>
+  </url>
+  <url>
+    <loc>https://pianobooth.com/beethoven/sonata-no-14-c-sharp-minor-1-movement</loc>
   </url>
   <url>
     <loc>https://pianobooth.com/beethoven/grande-sonate-opus-22-4-movement</loc>
@@ -137,6 +146,9 @@
   </url>
   <url>
     <loc>https://pianobooth.com/chopin/chopin-prelude-no-15-opus-28</loc>
+  </url>
+  <url>
+    <loc>https://pianobooth.com/chopin/prelude-no-15-raindrop</loc>
   </url>
   <url>
     <loc>https://pianobooth.com/chopin/chopin-prelude-no-16-opus-28</loc>
@@ -251,6 +263,9 @@
   </url>
   <url>
     <loc>https://pianobooth.com/chopin/chopin-mazurka-opus-7-no-1</loc>
+  </url>
+  <url>
+    <loc>https://pianobooth.com/chopin/mazurka-no-1</loc>
   </url>
   <url>
     <loc>https://pianobooth.com/chopin/chopin-mazurka-opus-7-no-2</loc>
@@ -773,6 +788,9 @@
   </url>
   <url>
     <loc>https://pianobooth.com/chopin/etude-opus-10-no-5</loc>
+  </url>
+  <url>
+    <loc>https://pianobooth.com/chopin/etude-no-5-black-key</loc>
   </url>
   <url>
     <loc>https://pianobooth.com/chopin/schwarze-tasten-etude</loc>
