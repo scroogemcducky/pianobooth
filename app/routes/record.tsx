@@ -308,7 +308,7 @@ export default function Record() {
   const [ac, setAc] = useState<AudioContext | null>(null)
   const [instrument, setInstrument] = useState<Player | null>(null)
   const [ambientIntensity, setAmbientIntensity] = useState(7.5)
-  const [directionalIntensity, setDirectionalIntensity] = useState(1.0)
+  const [directionalIntensity, setDirectionalIntensity] = useState(0.75)
   const [directionalX, setDirectionalX] = useState(9)
   const [directionalY, setDirectionalY] = useState(-6)
   const [directionalZ, setDirectionalZ] = useState(123)
