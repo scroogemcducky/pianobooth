@@ -179,15 +179,29 @@ interface FrameBasedShaderBlocksProps {
   midiObject: MidiNote[]
   currentFrame: number
   layout?: PianoLayout
+  scaleMultiplier?: number
+  scaleFillRatio?: number
+  scaleMax?: number
 }
 
-function FrameBasedShaderBlocks({ midiObject, currentFrame, layout }: FrameBasedShaderBlocksProps) {
+function FrameBasedShaderBlocks({
+  midiObject,
+  currentFrame,
+  layout,
+  scaleMultiplier = 1,
+  scaleFillRatio,
+  scaleMax,
+}: FrameBasedShaderBlocksProps) {
   const { viewport } = useThree()
   const [blocks, setBlocks] = useState<Block[]>([])
   const activeLayout = layout ?? DEFAULT_PIANO_LAYOUT
 
   const totalKeyboardWidth = getKeyboardWidth(activeLayout)
-  const scaleFactor = scalingFactor(viewport.width, totalKeyboardWidth)
+  const scaleFactor = scalingFactor(viewport.width, totalKeyboardWidth, {
+    multiplier: scaleMultiplier,
+    fillRatio: scaleFillRatio,
+    maxScale: scaleMax,
+  })
   const { distance } = getKeyboardMetrics(viewport.height, scaleFactor)
   const half_screen = viewport.height / 2
 

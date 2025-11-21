@@ -40,6 +40,22 @@ MIDI_LINK_RE = re.compile(
 ANCHOR_RE = re.compile(r'href="([^"]+?\.htm)"', re.IGNORECASE)
 TAG_RE = re.compile(r"<[^>]+>")
 WHITESPACE_RE = re.compile(r"\s+")
+FORMAT_SUFFIX_RE = re.compile(r"_format\d+$", re.IGNORECASE)
+
+TCHAIKOVSKY_SEASONS = {
+    "ty_januar": "January (By the Fireside)",
+    "ty_februar": "February (Carnival)",
+    "ty_marz": "March (Song of the Lark)",
+    "ty_april": "April (Snowdrop)",
+    "ty_mai": "May (Starlit Nights)",
+    "ty_juni": "June (Barcarolle)",
+    "ty_juli": "July (Song of the Reaper)",
+    "ty_august": "August (Harvest Song)",
+    "ty_september": "September (The Hunt)",
+    "ty_oktober": "October (Autumn Song)",
+    "ty_november": "November (Troika)",
+    "ty_dezember": "December (Christmas)",
+}
 
 
 @dataclass
@@ -142,20 +158,39 @@ def strip_diacritics(value: str) -> str:
 def sanitize_filename_component(text: str) -> str:
     text = unescape(text or "")
     text = strip_diacritics(text)
+    text = text.replace("_", " ")
     text = WHITESPACE_RE.sub(" ", text).strip()
     text = re.sub(r"[^A-Za-z0-9 _\-\.,]", "_", text)
     return text.strip(" _-.")
 
+def build_queue_basename(composer: str, title: str, rel_path: Path) -> str:
+    composer_clean = sanitize_filename_component(composer)
+    title_clean = sanitize_filename_component(title)
+    if not title_clean:
+        title_clean = sanitize_filename_component(rel_path.stem.replace("_", " "))
+    parts = [part for part in (composer_clean, title_clean) if part]
+    base = " - ".join(parts)
+    if not base:
+        base = sanitize_filename_component(rel_path.stem) or rel_path.stem
+    return base[:190]
+
+def refine_title(composer: str, title: str, rel_path: Path) -> str:
+    composer_lower = composer.lower()
+    raw = title.strip() if title else ""
+    if not raw:
+        raw = rel_path.stem
+    raw = raw.replace("_", " ").strip()
+    slug = FORMAT_SUFFIX_RE.sub("", rel_path.stem.lower())
+    if "tchaikovsky" in composer_lower or "tschaikowsky" in composer_lower:
+        mapped = TCHAIKOVSKY_SEASONS.get(slug)
+        if mapped:
+            return mapped
+    return raw or rel_path.stem
+
 def enqueue_for_render(src: Path, composer: str, title: str, rel_path: Path) -> None:
     """Copy the MIDI into midi/video_queue/ with a deterministic, human-friendly name."""
     QUEUE_ROOT.mkdir(parents=True, exist_ok=True)
-    base_parts = [sanitize_filename_component(composer), sanitize_filename_component(title)]
-    base = " - ".join([p for p in base_parts if p])
-    if not base:
-        base = sanitize_filename_component(rel_path.stem)
-    if not base:
-        base = rel_path.stem or "midi"
-    base = base[:190]
+    base = build_queue_basename(composer, title, rel_path)
     suffix = src.suffix.lower() or ".mid"
     candidate = QUEUE_ROOT / f"{base}{suffix}"
     dedupe = 1
@@ -225,17 +260,18 @@ def main() -> int:
                     fh.write(data)
                 print(f"Downloaded {absolute_url} -> {dest_path}")
 
+            refined_title = refine_title(composer_name, title, rel_path)
             entries.append(
                 MidiEntry(
                     composer=composer_name,
                     composer_page=page_url,
-                    title=title,
+                    title=refined_title,
                     source_url=absolute_url,
                     relative_path=public_rel.replace(os.sep, "/"),
                 )
             )
             print(f"Downloaded {absolute_url} -> {dest_path}")
-            enqueue_for_render(dest_path, composer_name, title, rel_path)
+            enqueue_for_render(dest_path, composer_name, refined_title, rel_path)
 
     license_blob = build_license_blob(license_text)
 

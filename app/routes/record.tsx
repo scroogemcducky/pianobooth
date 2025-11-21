@@ -7,7 +7,7 @@ import midiParser from '../utils/MidiParser'
 import useKeyStore from '../store/keyPressStore'  
 import useMidiStore from '../store/midiStore'
 import FrameBasedShaderBlocks from '../components/FrameBasedShaderBlocks'
-import EmbeddedKeys from '../components/EmbeddedKeys'
+import RecordKeys from '../components/RecordKeys'
 import * as THREE from 'three'
 import { ActionFunctionArgs, json } from '@remix-run/cloudflare'
 import { useFetcher } from '@remix-run/react'
@@ -307,6 +307,11 @@ export default function Record() {
   const [audioFile, setAudioFile] = useState<File | null>(null)
   const [ac, setAc] = useState<AudioContext | null>(null)
   const [instrument, setInstrument] = useState<Player | null>(null)
+  const [ambientIntensity, setAmbientIntensity] = useState(7.5)
+  const [directionalIntensity, setDirectionalIntensity] = useState(1.0)
+  const [directionalX, setDirectionalX] = useState(9)
+  const [directionalY, setDirectionalY] = useState(-6)
+  const [directionalZ, setDirectionalZ] = useState(123)
   const fetcher = useFetcher<FetcherData>()
 
   // Initialize audio context and instrument
@@ -375,6 +380,11 @@ export default function Record() {
   useFrameBasedMidi(midiObject, currentFrame)
 
   const totalFrames = midiObject ? calculateTotalFrames(midiObject) : 0
+  const keyboardScaleOptions = {
+    multiplier: 1.2,
+    fillRatio: 0.95,
+    max: 1.5,
+  }
 
   // Generate audio from MIDI using soundfont
   const generateAudioFromMIDI = async (): Promise<Blob | null> => {
@@ -605,31 +615,66 @@ export default function Record() {
         borderRadius: '10px',
         color: 'white'
       }}>
-        <div style={{ marginBottom: '15px' }}>
-          <label htmlFor="audio-file-input" style={{ display: 'block', marginBottom: '5px', fontSize: '12px' }}>
-            Optional audio file (leave empty to use soundfont piano):
+        <div style={{ marginBottom: '16px' }}>
+          <div style={{ fontSize: '12px', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Lighting</div>
+          <label style={{ display: 'block', fontSize: '11px', marginBottom: '4px' }}>
+            Ambient Intensity: {ambientIntensity.toFixed(2)}
           </label>
           <input
-            id="audio-file-input"
-            type="file"
-            accept="audio/*"
-            onChange={(e) => setAudioFile(e.target.files?.[0] || null)}
-            style={{
-              padding: '5px',
-              background: '#333',
-              color: 'white',
-              border: '1px solid #666',
-              borderRadius: '3px',
-              width: '100%'
-            }}
+            type="range"
+            min={0}
+            max={12}
+            step={0.1}
+            value={ambientIntensity}
+            onChange={(e) => setAmbientIntensity(parseFloat(e.target.value))}
+            style={{ width: '200px' }}
           />
-          {!audioFile && midiObject && instrument && (
-            <p style={{ fontSize: '10px', color: '#aaa', marginTop: '5px' }}>
-              Soundfont piano audio will be automatically generated
-            </p>
-          )}
+          <label style={{ display: 'block', fontSize: '11px', margin: '10px 0 4px' }}>
+            Directional Intensity: {directionalIntensity.toFixed(2)}
+          </label>
+          <input
+            type="range"
+            min={0}
+            max={1}
+            step={0.01}
+            value={directionalIntensity}
+            onChange={(e) => setDirectionalIntensity(parseFloat(e.target.value))}
+            style={{ width: '200px' }}
+          />
+          <div style={{ display: 'flex', gap: '6px', marginTop: '10px' }}>
+            <label style={{ fontSize: '11px' }}>
+              X
+              <input
+                type="number"
+                value={directionalX}
+                step={0.5}
+                onChange={(e) => setDirectionalX(parseFloat(e.target.value))}
+                style={{ width: '60px', marginLeft: '4px', background: '#333', color: 'white', border: '1px solid #666', borderRadius: '3px' }}
+              />
+            </label>
+            <label style={{ fontSize: '11px' }}>
+              Y
+              <input
+                type="number"
+                value={directionalY}
+                step={0.5}
+                onChange={(e) => setDirectionalY(parseFloat(e.target.value))}
+                style={{ width: '60px', marginLeft: '4px', background: '#333', color: 'white', border: '1px solid #666', borderRadius: '3px' }}
+              />
+            </label>
+            <label style={{ fontSize: '11px' }}>
+              Z
+              <input
+                type="number"
+                value={directionalZ}
+                step={0.5}
+                onChange={(e) => setDirectionalZ(parseFloat(e.target.value))}
+                style={{ width: '60px', marginLeft: '4px', background: '#333', color: 'white', border: '1px solid #666', borderRadius: '3px' }}
+              />
+            </label>
+          </div>
         </div>
-        
+
         <div>
           <button 
             id="record-button"
@@ -691,19 +736,27 @@ export default function Record() {
         dpr={1} // Force pixel ratio to 1 for consistent output
       >
         {/* @ts-ignore */}
-        <ambientLight intensity={7.5} /> 
+        <ambientLight intensity={ambientIntensity} /> 
         {/* @ts-ignore */}
         <directionalLight 
-          position={[11, -4, 90]} 
-          intensity={0.15}
+          position={[directionalX, directionalY, directionalZ]} 
+          intensity={directionalIntensity}
         />
         
-        <EmbeddedKeys layout={pianoLayout} />  
+        <RecordKeys
+          layout={pianoLayout}
+          scaleMultiplier={keyboardScaleOptions.multiplier}
+          scaleFillRatio={keyboardScaleOptions.fillRatio}
+          scaleMax={keyboardScaleOptions.max}
+        />  
         {midiObject && (
           <FrameBasedShaderBlocks 
             midiObject={midiObject} 
             currentFrame={currentFrame}
             layout={pianoLayout}
+            scaleMultiplier={keyboardScaleOptions.multiplier}
+            scaleFillRatio={keyboardScaleOptions.fillRatio}
+            scaleMax={keyboardScaleOptions.max}
           />
         )}
         

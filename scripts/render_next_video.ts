@@ -82,6 +82,16 @@ function canonicalizeCommonArtistName(artist: string): string {
   return (artist || '').trim()
 }
 
+function inferArtistFromFilename(filePath: string): string | null {
+  const base = path.basename(filePath, path.extname(filePath))
+  const normalized = base.replace(/[_]+/g, ' ')
+  const parts = normalized.split('-').map((p) => p.trim()).filter(Boolean)
+  if (!parts.length) return null
+  const candidate = parts[0]
+  if (!candidate || candidate.length < 2) return null
+  return canonicalizeCommonArtistName(candidate)
+}
+
 async function extractTitleArtist(filePath: string): Promise<{ title: string; artist: string; trackNames: string[] }> {
   const buf = await fs.readFile(filePath)
   const { Midi } = await import('@tonejs/midi')
@@ -277,7 +287,11 @@ async function main() {
   const refined = await aiRefineMetadata({ filename: path.basename(midiPath), guessedTitle, guessedArtist, trackNames, model: opts.llmModel })
   if (refined?.title) title = refined.title
   if (refined?.artist) artist = refined.artist
-  artist = canonicalizeCommonArtistName(artist)
+  if (!artist || /^piano$/i.test(artist)) {
+    const inferred = inferArtistFromFilename(midiPath)
+    if (inferred) artist = inferred
+  }
+  artist = canonicalizeCommonArtistName(artist || 'Piano')
 
   const fileTitle = refined?.title_short ? refined.title_short : simplifyTitle(title)
   const displayName = sanitizeFileName(`${artist} - ${fileTitle}`)

@@ -22,12 +22,19 @@ const redMaterialWhite = new THREE.MeshBasicMaterial({
   color: new THREE.Color(...WHITE_KEY_COLOR),
 })
 
-type EmbeddedKeysProps = {
+type RecordKeysProps = {
   layout?: PianoLayout | null
   scaleMultiplier?: number
+  scaleFillRatio?: number
+  scaleMax?: number
 }
 
-const EmbeddedKeys: React.FC<EmbeddedKeysProps> = ({ layout, scaleMultiplier = 1 }) => {
+const RecordKeys: React.FC<RecordKeysProps> = ({
+  layout,
+  scaleMultiplier = 1.5,
+  scaleFillRatio = 1,
+  scaleMax = 2,
+}) => {
   const { viewport } = useThree()
   const activeLayout = layout ?? DEFAULT_PIANO_LAYOUT
   const octaveIndices = useMemo(
@@ -36,8 +43,11 @@ const EmbeddedKeys: React.FC<EmbeddedKeysProps> = ({ layout, scaleMultiplier = 1
   )
 
   const totalKeyboardWidth = getKeyboardWidth(activeLayout)
-  const baseScaleFactor = scalingFactor(viewport.width, totalKeyboardWidth)
-  const scaleFactor = Math.min(1.1, baseScaleFactor * scaleMultiplier)
+  const scaleFactor = scalingFactor(viewport.width, totalKeyboardWidth, {
+    multiplier: scaleMultiplier,
+    fillRatio: scaleFillRatio,
+    maxScale: scaleMax,
+  })
   const { keyboardY, screenBottom } = getKeyboardMetrics(viewport.height, scaleFactor)
 
   return (
@@ -239,4 +249,4 @@ useGLTF.preload([
   '/b.glb',
 ])
 
-export default EmbeddedKeys
+export default RecordKeys
