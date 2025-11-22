@@ -8,11 +8,83 @@ import useKeyStore from '../store/keyPressStore'
 import useMidiStore from '../store/midiStore'
 import FrameBasedShaderBlocks from '../components/FrameBasedShaderBlocks'
 import RecordKeys from '../components/RecordKeys'
+import RecordTitle, { RECORD_TITLE_FADE_SECONDS } from '../components/RecordTitle'
 import * as THREE from 'three'
 import { ActionFunctionArgs, json } from '@remix-run/cloudflare'
 import { useFetcher } from '@remix-run/react'
 import soundFont, { Player } from 'soundfont-player'
 import { computePianoLayout, DEFAULT_PIANO_LAYOUT, type PianoLayout } from '../utils/pianoLayout'
+
+const KNOWN_COMPOSERS = /(bach|beethoven|chopin|debussy|mozart|liszt|schubert|schumann|rachmaninoff|handel|haydn|tchaikovsky|gershwin|albeniz)/i
+
+type MidiMeta = { title: string; artist: string }
+
+const stripDiacritics = (value: string) => value.normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
+
+const normalizeMeta = (meta: MidiMeta): MidiMeta => {
+  const clean = (input: string) => stripDiacritics(input || '').replace(/\s+/g, ' ').trim()
+  const title = clean(meta.title) || 'Untitled'
+  const artist = clean(meta.artist) || 'Piano'
+  return { title, artist }
+}
+
+const inferMetaFromFilename = (name?: string | null): MidiMeta | null => {
+  if (!name) return null
+  const base = name.replace(/\.[^.]+$/, '').replace(/_/g, ' ').trim()
+  if (!base) return null
+  const parts = base.split('-').map((p) => p.trim()).filter(Boolean)
+  if (parts.length >= 2) {
+    const [maybeArtist, ...rest] = parts
+    return normalizeMeta({
+      artist: maybeArtist || 'Piano',
+      title: rest.join(' - ').trim() || 'Untitled',
+    })
+  }
+  return normalizeMeta({ artist: 'Piano', title: base })
+}
+
+async function extractMidiMetadata(file: File): Promise<MidiMeta> {
+  try {
+    const buf = await file.arrayBuffer()
+    const { Midi } = await import('@tonejs/midi')
+    const midi = new Midi(buf)
+    const headerName = midi?.header?.name?.trim?.() || ''
+    const trackNames = midi.tracks.map((t: any) => (t.name || '').trim()).filter(Boolean)
+    let title = headerName || ''
+    if (!title && trackNames.length) {
+      title = trackNames.reduce((a: string, b: string) => (b.length > a.length ? b : a), trackNames[0])
+    }
+    let artist = ''
+    const artistCandidate = trackNames.find((n: string) => KNOWN_COMPOSERS.test(n)) || (headerName && KNOWN_COMPOSERS.test(headerName) ? headerName : '')
+    if (artistCandidate) {
+      const match = artistCandidate.match(KNOWN_COMPOSERS)
+      if (match && match[1]) {
+        const name = match[1]
+        artist = name.charAt(0).toUpperCase() + name.slice(1).toLowerCase()
+      }
+    } else if (trackNames.length) {
+      const hyphen = trackNames.find((n: string) => n.includes('-'))
+      if (hyphen) {
+        const parts = hyphen.split('-').map((s) => s.trim())
+        if (parts.length >= 2) {
+          const [a, b] = parts
+          if (a.length <= b.length) artist = a
+          if (!title) title = b
+        }
+      }
+    }
+    if (title) {
+      const composerPrefix = title.match(/^(.*?)[-:\u2013]\s*(.+)$/)
+      if (composerPrefix && KNOWN_COMPOSERS.test(composerPrefix[1] || '')) {
+        title = composerPrefix[2].trim()
+      }
+    }
+    return normalizeMeta({ title: title || 'Untitled', artist: artist || 'Piano' })
+  } catch (error) {
+    console.error('extractMidiMetadata error', error)
+    return normalizeMeta({ title: 'Untitled', artist: 'Piano' })
+  }
+}
 
 interface MidiNote {
   Delta: number;
@@ -31,6 +103,10 @@ interface FetcherData {
 
 // Frame recording configuration
 const FPS = 60
+const NOTE_START_DELAY_SECONDS = RECORD_TITLE_FADE_SECONDS
+const ADDITIONAL_AUDIO_DELAY_SECONDS = 1
+const AUDIO_PLAYBACK_DELAY_SECONDS = NOTE_START_DELAY_SECONDS + ADDITIONAL_AUDIO_DELAY_SECONDS
+const NOTE_START_DELAY_FRAMES = Math.round(NOTE_START_DELAY_SECONDS * FPS)
 const FRAME_DURATION_MS = 1000 / FPS
 const CANVAS_WIDTH = 1920
 const CANVAS_HEIGHT = 1080
@@ -307,6 +383,8 @@ export default function Record() {
   const [audioFile, setAudioFile] = useState<File | null>(null)
   const [ac, setAc] = useState<AudioContext | null>(null)
   const [instrument, setInstrument] = useState<Player | null>(null)
+  const [title, setTitle] = useState('Untitled')
+  const [artist, setArtist] = useState('Piano')
   const [ambientIntensity, setAmbientIntensity] = useState(7.5)
   const [directionalIntensity, setDirectionalIntensity] = useState(0.75)
   const [directionalX, setDirectionalX] = useState(9)
@@ -328,11 +406,18 @@ export default function Record() {
     }
   }, [ac]);
 
-  const updateMidiState = (data: MidiNote[]) => {
+  const updateMidiState = (data: MidiNote[], meta?: Partial<MidiMeta>) => {
     if (!data || !Array.isArray(data) || data.length === 0) return
     setMidiObject(data)
     const layout = computePianoLayout(data)
     setPianoLayout(layout ?? DEFAULT_PIANO_LAYOUT)
+    if (meta?.title || meta?.artist) {
+      setTitle(meta.title ?? 'Untitled')
+      setArtist(meta.artist ?? 'Piano')
+    } else {
+      setTitle('Untitled')
+      setArtist('Piano')
+    }
   }
 
   // Load MIDI file
@@ -343,7 +428,19 @@ export default function Record() {
         const result = await midiParser(file)
         console.log('Parser result:', result);
         if (result) {
-          updateMidiState(result as MidiNote[])
+          let meta: MidiMeta | undefined
+          if (file instanceof File) {
+            const inferred = inferMetaFromFilename(file.name)
+            const extracted = await extractMidiMetadata(file)
+            meta = normalizeMeta({
+              title: extracted.title || inferred?.title || 'Untitled',
+              artist: extracted.artist || inferred?.artist || 'Piano',
+            })
+            setTitle(meta.title)
+            setArtist(meta.artist)
+            localStorage.setItem('midiMeta', JSON.stringify(meta))
+          }
+          updateMidiState(result as MidiNote[], meta)
           // Store processed MIDI data for persistence
           localStorage.setItem('processedMidiData', JSON.stringify(result));
         }
@@ -358,7 +455,19 @@ export default function Record() {
         try {
           const parsedData = JSON.parse(storedData);
           console.log('Loaded from localStorage:', parsedData);
-          updateMidiState(parsedData as MidiNote[]);
+          const storedMeta = localStorage.getItem('midiMeta')
+          if (storedMeta) {
+            try {
+              const parsedMeta = normalizeMeta(JSON.parse(storedMeta) as MidiMeta)
+              setTitle(parsedMeta.title || '')
+              setArtist(parsedMeta.artist || '')
+              updateMidiState(parsedData as MidiNote[], parsedMeta)
+            } catch {
+              updateMidiState(parsedData as MidiNote[])
+            }
+          } else {
+            updateMidiState(parsedData as MidiNote[])
+          }
         } catch (error) {
           console.error('Error loading from localStorage:', error);
           localStorage.removeItem('processedMidiData');
@@ -376,10 +485,13 @@ export default function Record() {
     }
   }, [midiFile])
 
-  // Frame-based MIDI processing
-  useFrameBasedMidi(midiObject, currentFrame)
+  const playbackFrame = Math.max(0, currentFrame - NOTE_START_DELAY_FRAMES)
 
-  const totalFrames = midiObject ? calculateTotalFrames(midiObject) : 0
+  // Frame-based MIDI processing
+  useFrameBasedMidi(midiObject, playbackFrame)
+
+  const midiFrameCount = midiObject ? calculateTotalFrames(midiObject) : 0
+  const totalFrames = midiFrameCount + NOTE_START_DELAY_FRAMES
   const keyboardScaleOptions = {
     multiplier: 1.2,
     fillRatio: 0.95,
@@ -395,11 +507,10 @@ export default function Record() {
 
     console.log(`Generating audio from MIDI using soundfont for ${midiObject.length} notes...`);
     
-    // Calculate total duration with 1 second delay
-    const VISUAL_DELAY_MS = 1000;
+    // Calculate total duration, accounting for the intro delay and tail padding
     const totalDurationMs = Math.max(...midiObject.map(note => 
       Math.floor(note.Delta / 1000) + (note.Duration / 1000000 * 1000)
-    )) + VISUAL_DELAY_MS + 2000;
+    )) + AUDIO_PLAYBACK_DELAY_SECONDS * 1000 + 2000;
     
     const totalDurationSec = totalDurationMs / 1000;
     console.log(`Total audio duration: ${totalDurationSec.toFixed(2)} seconds`);
@@ -419,7 +530,7 @@ export default function Record() {
     // Schedule all notes
     let scheduledNotes = 0;
     midiObject.forEach((note, index) => {
-      const startTime = (Math.floor(note.Delta / 1000) + VISUAL_DELAY_MS) / 1000;
+      const startTime = AUDIO_PLAYBACK_DELAY_SECONDS + Math.floor(note.Delta / 1000) / 1000;
       const duration = note.Duration / 1000000;
       const velocity = note.Velocity / 127;
       
@@ -728,6 +839,7 @@ export default function Record() {
         orthographic 
         camera={{ zoom: 9 }}
         gl={{ 
+          alpha: false,
           toneMapping: THREE.NoToneMapping,
           outputColorSpace: THREE.LinearSRGBColorSpace,
           preserveDrawingBuffer: true, // Important for frame capture
@@ -735,12 +847,22 @@ export default function Record() {
         }}
         dpr={1} // Force pixel ratio to 1 for consistent output
       >
+        {/* Force an opaque canvas background so fades persist in captured frames */}
+        {/* @ts-ignore */}
+        <color attach="background" args={['#000000']} />
         {/* @ts-ignore */}
         <ambientLight intensity={ambientIntensity} /> 
         {/* @ts-ignore */}
         <directionalLight 
           position={[directionalX, directionalY, directionalZ]} 
           intensity={directionalIntensity}
+        />
+        <RecordTitle
+          title={title}
+          artist={artist}
+          currentFrame={currentFrame}
+          isRecording={isRecording}
+          fps={FPS}
         />
         
         <RecordKeys
@@ -752,7 +874,7 @@ export default function Record() {
         {midiObject && (
           <FrameBasedShaderBlocks 
             midiObject={midiObject} 
-            currentFrame={currentFrame}
+            currentFrame={playbackFrame}
             layout={pianoLayout}
             scaleMultiplier={keyboardScaleOptions.multiplier}
             scaleFillRatio={keyboardScaleOptions.fillRatio}

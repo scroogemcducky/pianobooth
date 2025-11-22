@@ -304,9 +304,13 @@ async function main() {
   const browser = await chromium.launch({ headless: opts.headless, slowMo: opts.slowMo, devtools: opts.devtools })
   const context = await browser.newContext({ viewport: { width: 1920, height: 1080 } })
   // Preload localStorage with processed MIDI
-  await context.addInitScript((data) => {
-    try { window.localStorage.setItem('processedMidiData', data as string) } catch {}
-  }, JSON.stringify(midiObject))
+  await context.addInitScript((payload) => {
+    try { window.localStorage.setItem('processedMidiData', payload.data as string) } catch {}
+    try { window.localStorage.setItem('midiMeta', payload.meta as string) } catch {}
+  }, {
+    data: JSON.stringify(midiObject),
+    meta: JSON.stringify({ title, artist }),
+  })
   const page = await context.newPage()
 
   const beforeFiles = await listMp4(opts.publicDir)
