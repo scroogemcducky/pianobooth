@@ -1,7 +1,7 @@
 // Shader implementation of PlayStandardSound
 // used to be /shader
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import type { MetaFunction } from '@remix-run/node'
 
 import { Canvas } from '@react-three/fiber'
@@ -12,10 +12,13 @@ import usePlayStore from '../store/playStore'
 import PlayPauseButton from '../components/PlayPauseButton'
 import SettingsButton from '../components/SettingsButton'
 import EmbeddedKeys from '../components/EmbeddedKeys'
+import KeyParticles, { type ActiveKeyParticle } from '../components/KeyParticles'
 import ShaderBlocks_component from '../components/ShaderBlocks_component'
 import soundFont from 'soundfont-player'
 import * as THREE from 'three'
 import { computePianoLayout, DEFAULT_PIANO_LAYOUT, type PianoLayout } from '../utils/pianoLayout'
+import { isBlack } from '../utils/functions'
+import { BLACK_KEY_COLOR, WHITE_KEY_COLOR } from '../utils/constants'
 
 export const meta: MetaFunction = () => {
   return [
@@ -27,6 +30,9 @@ export const meta: MetaFunction = () => {
     },
   ]
 }
+
+const DEBUG_FORCE_MIDDLE_C = true
+const DEBUG_NOTES = [60, 61]
 
 type MidiNote = {
   NoteNumber: number
@@ -40,6 +46,62 @@ export default function Video() {
   const [ac, setAc] = useState<AudioContext | null>(null)
   const [instrument, setInstrument] = useState<any>(null)
   const [pianoLayout, setPianoLayout] = useState<PianoLayout>(DEFAULT_PIANO_LAYOUT)
+  const [activeParticleNotes, setActiveParticleNotes] = useState<Record<number, ActiveKeyParticle>>({})
+  const particlesEnabled = usePlayStore((state) => state.particlesEnabled)
+  const particlesEnabledRef = useRef(particlesEnabled)
+
+  useEffect(() => {
+    particlesEnabledRef.current = particlesEnabled
+    if (!particlesEnabled) {
+      setActiveParticleNotes({})
+    }
+  }, [particlesEnabled])
+
+  const registerParticleNote = useCallback((noteNumber: number, durationMs: number) => {
+    if (!particlesEnabledRef.current) return
+    const keyIsBlack = isBlack(noteNumber)
+    const keyColor = (keyIsBlack ? BLACK_KEY_COLOR : WHITE_KEY_COLOR) as [number, number, number]
+    const timestamp = typeof performance !== 'undefined' ? performance.now() : Date.now()
+    setActiveParticleNotes((prev) => ({
+      ...prev,
+      [noteNumber]: {
+        noteNumber,
+        startedAt: timestamp,
+        durationMs,
+        color: keyColor,
+        isBlack: keyIsBlack,
+      },
+    }))
+  }, [])
+
+  const unregisterParticleNote = useCallback((noteNumber: number) => {
+    setActiveParticleNotes((prev) => {
+      if (!prev[noteNumber]) return prev
+      const next = { ...prev }
+      delete next[noteNumber]
+      return next
+    })
+  }, [])
+
+  const activeParticleList = useMemo(() => Object.values(activeParticleNotes), [activeParticleNotes])
+  const debugParticles = useMemo<ActiveKeyParticle[]>(() => {
+    if (!DEBUG_FORCE_MIDDLE_C) return []
+    return DEBUG_NOTES.map((noteNumber) => {
+      const keyIsBlack = isBlack(noteNumber)
+      const keyColor = (keyIsBlack ? BLACK_KEY_COLOR : WHITE_KEY_COLOR) as [number, number, number]
+      return {
+        noteNumber,
+        startedAt: 0,
+        durationMs: Number.POSITIVE_INFINITY,
+        color: keyColor,
+        isBlack: keyIsBlack,
+      }
+    })
+  }, [])
+  const particlesToRender = useMemo(() => {
+    const base = particlesEnabled ? activeParticleList : []
+    return DEBUG_FORCE_MIDDLE_C ? [...debugParticles, ...base] : base
+  }, [activeParticleList, debugParticles, particlesEnabled])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -191,23 +253,25 @@ export default function Video() {
     }
   }
 
-  const activeTimeouts = useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map())
+  const activeTimeouts = useRef<Map<number, number>>(new Map())
 
   const triggerVisibleNote = (noteName: number, duration: number) => {
     // Clear any existing timeout for this note
     const existing = activeTimeouts.current.get(noteName)
     if (existing) {
-      clearTimeout(existing)
+      window.clearTimeout(existing)
     }
 
     // Always turn key on immediately
     useKeyStore.getState().setKey(noteName, true)
     playNote(noteName)
+    registerParticleNote(noteName, duration)
 
     // Set new timeout and store it
     const timeoutId = window.setTimeout(() => {
       useKeyStore.getState().setKey(noteName, false)
       activeTimeouts.current.delete(noteName)
+      unregisterParticleNote(noteName)
     }, duration)
 
     activeTimeouts.current.set(noteName, timeoutId)
@@ -219,11 +283,12 @@ export default function Video() {
         useKeyStore.getState().setKey(n, false)
       }
     } catch {}
+    setActiveParticleNotes({})
   }
 
   useEffect(() => {
     return () => {
-      activeTimeouts.current.forEach((timeoutId) => clearTimeout(timeoutId))
+      activeTimeouts.current.forEach((timeoutId) => window.clearTimeout(timeoutId))
       activeTimeouts.current.clear()
       clearAllKeys()
     }
@@ -260,6 +325,7 @@ export default function Video() {
       
           {/* <Camera />  */}
           <EmbeddedKeys layout={pianoLayout} />  
+          <KeyParticles layout={pianoLayout} notes={particlesToRender} />
           {midiObject && <ShaderBlocks_component
             midiObject={midiObject} 
             layout={pianoLayout}

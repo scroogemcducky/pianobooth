@@ -5,6 +5,8 @@ const useStore = create(set => ({
   setPlaying: (value) => set({ playing: value }),
   speed: 1.0,
   setSpeed: (speed) => set({ speed }),
+  particlesEnabled: true,
+  setParticlesEnabled: (value) => set({ particlesEnabled: value }),
 
 }))
 
