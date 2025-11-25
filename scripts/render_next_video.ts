@@ -23,6 +23,7 @@ type Options = {
   headless: boolean
   slowMo: number
   devtools: boolean
+  devMidiPath: string | null
 }
 
 const DEFAULTS: Options = {
@@ -37,6 +38,7 @@ const DEFAULTS: Options = {
   headless: false,
   slowMo: 0,
   devtools: false,
+  devMidiPath: null,
 }
 
 const KNOWN_COMPOSERS = /(bach|beethoven|chopin|debussy|mozart|liszt|schubert|schumann|rachmaninoff|handel|haydn|tchaikovsky|gershwin)/i
@@ -208,7 +210,7 @@ async function listMp4(dir: string): Promise<{ name: string; path: string; mtime
 
 async function waitForNewVideo(publicDir: string, sinceMs: number, timeoutMs: number): Promise<string> {
   const start = Date.now()
-  let lastSeen: Record<string, number> = {}
+  const lastSeen: Record<string, number> = {}
   while (Date.now() - start < timeoutMs) {
     const files = await listMp4(publicDir)
     const candidates = files.filter(f => f.mtimeMs >= sinceMs)
@@ -262,6 +264,10 @@ async function main() {
     else if (a === '--headful' || a === '--no-headless') opts.headless = false
     else if (a === '--slowmo' && args[i + 1]) opts.slowMo = parseInt(args[++i]!, 10)
     else if (a === '--devtools') opts.devtools = true
+    else if (a === '--dev') {
+      opts.devMidiPath = path.join('midi', 'test_videos', 'test.mid')
+      opts.keepMidi = true
+    }
   }
 
   if (opts.requireLLM && !process.env.OPENAI_API_KEY) {
@@ -269,8 +275,23 @@ async function main() {
     process.exit(2)
   }
 
-  // Pick next MIDI
-  const midiPath = await pickNextMidi(opts.queueDir)
+  // Pick next MIDI (support dev override)
+  let midiPath: string | null = null
+  if (opts.devMidiPath) {
+    const candidate = path.isAbsolute(opts.devMidiPath)
+      ? opts.devMidiPath
+      : path.resolve(opts.devMidiPath)
+    try {
+      await fs.access(candidate)
+      midiPath = candidate
+      console.log(`Dev mode enabled: rendering ${candidate}`)
+    } catch {
+      console.error(`Dev MIDI not found at ${candidate}. Place test.mid in midi/test_videos/ and try again.`)
+      return
+    }
+  } else {
+    midiPath = await pickNextMidi(opts.queueDir)
+  }
   if (!midiPath) {
     console.log('No MIDI files found in queue.')
     return
@@ -313,7 +334,7 @@ async function main() {
   })
   const page = await context.newPage()
 
-  const beforeFiles = await listMp4(opts.publicDir)
+  // const beforeFiles = await listMp4(opts.publicDir)
   const since = Date.now()
 
   console.log(`Opening ${opts.baseUrl}/record ...`)
