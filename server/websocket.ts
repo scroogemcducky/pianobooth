@@ -1,6 +1,7 @@
 import WebSocket, { WebSocketServer } from 'ws'
 import fs from 'fs/promises'
 import path from 'path'
+import { spawn } from 'child_process'
 
 // Store active recording sessions
 const activeSessions = new Map<string, {
@@ -9,14 +10,113 @@ const activeSessions = new Map<string, {
   fps: number
   frameCount: number
   expectedFrames: number
+  title: string
+  artist: string
+  audioPath?: string
   ws: WebSocket
 }>()
 
+// Sanitize filename to remove invalid characters
+function sanitizeFileName(s: string): string {
+  return s.replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, ' ').trim()
+}
+
+// Generate video from saved frames
+async function generateVideo(session: {
+  sessionId: string
+  sessionDir: string
+  fps: number
+  frameCount: number
+  title: string
+  artist: string
+  audioPath?: string
+}) {
+  const displayName = sanitizeFileName(`${session.artist} - ${session.title}`)
+  const videoFileName = `${displayName}.mp4`
+  const outputPath = path.join(process.cwd(), 'public', videoFileName)
+
+  console.log(`🎬 Starting video generation for session ${session.sessionId}...`)
+  console.log(`   Frames: ${session.frameCount}`)
+  console.log(`   FPS: ${session.fps}`)
+  console.log(`   Output: ${outputPath}`)
+
+  return new Promise<string>((resolve, reject) => {
+    const ffmpegArgs = [
+      '-framerate', session.fps.toString(),
+      '-i', path.join(session.sessionDir, 'frame_%06d.png')
+    ]
+
+    // Add audio input if provided
+    if (session.audioPath) {
+      console.log(`🎵 Adding audio: ${session.audioPath}`)
+      ffmpegArgs.push('-i', session.audioPath)
+      ffmpegArgs.push('-c:a', 'aac')
+      ffmpegArgs.push('-b:a', '192k')
+    }
+
+    // Video encoding settings
+    ffmpegArgs.push(
+      '-c:v', 'libx264',
+      '-pix_fmt', 'yuv420p',
+      '-preset', 'fast',
+      '-crf', '18'
+    )
+
+    // If audio is provided, ensure video and audio are same length
+    if (session.audioPath) {
+      ffmpegArgs.push('-shortest')
+    }
+
+    ffmpegArgs.push(outputPath)
+
+    console.log(`🎬 FFmpeg command: ffmpeg ${ffmpegArgs.join(' ')}`)
+    const ffmpeg = spawn('ffmpeg', ffmpegArgs)
+
+    ffmpeg.stderr.on('data', (data) => {
+      console.log(`ffmpeg: ${data.toString().trim()}`)
+    })
+
+    ffmpeg.on('close', async (code) => {
+      // Clean up temporary files
+      try {
+        console.log(`🧹 Cleaning up temp files in ${session.sessionDir}`)
+        const files = await fs.readdir(session.sessionDir)
+        await Promise.all(files.map(file => fs.unlink(path.join(session.sessionDir, file))))
+        await fs.rmdir(session.sessionDir)
+        console.log(`✅ Cleanup complete`)
+      } catch (error) {
+        console.error('⚠️ Cleanup error:', error)
+      }
+
+      if (code === 0) {
+        const videoFileName = path.basename(outputPath)
+        console.log(`✅ Video generated successfully: ${videoFileName}`)
+        resolve(videoFileName)
+      } else {
+        reject(new Error(`FFmpeg exited with code ${code}`))
+      }
+    })
+
+    ffmpeg.on('error', (error) => {
+      reject(error)
+    })
+  })
+}
+
 export function setupWebSocketServer(server: any) {
-  // Create WebSocket server on same HTTP server
-  const wss = new WebSocketServer({
-    server,
-    path: '/ws/frames' // WebSocket endpoint
+  // Create WebSocket server without automatic server attachment
+  const wss = new WebSocketServer({ noServer: true })
+
+  // Manually handle upgrade requests only for our path
+  server.on('upgrade', (request: any, socket: any, head: any) => {
+    const { pathname } = new URL(request.url, `http://${request.headers.host}`)
+
+    if (pathname === '/ws/frames') {
+      wss.handleUpgrade(request, socket, head, (ws: WebSocket) => {
+        wss.emit('connection', ws, request)
+      })
+    }
+    // Let other upgrade requests (like Vite HMR) pass through
   })
 
   console.log('✅ WebSocket server ready at ws://localhost:PORT/ws/frames')
@@ -51,6 +151,8 @@ export function setupWebSocketServer(server: any) {
               fps: message.fps || 60,
               frameCount: 0,
               expectedFrames: message.expectedFrames || 0,
+              title: message.title || 'Untitled',
+              artist: message.artist || 'Piano',
               ws
             })
 
@@ -79,14 +181,47 @@ export function setupWebSocketServer(server: any) {
           else if (message.type === 'finalize') {
             const session = activeSessions.get(message.sessionId)
             if (session) {
-              ws.send(JSON.stringify({
-                type: 'finalize-ack',
-                sessionId: message.sessionId,
-                frameCount: session.frameCount
-              }))
-
-              // Don't delete session yet - will be cleaned up after video generation
               console.log(`✅ Session finalized: ${message.sessionId} (${session.frameCount} frames)`)
+
+              // Generate video
+              try {
+                const videoFileName = await generateVideo(session)
+
+                ws.send(JSON.stringify({
+                  type: 'video-ready',
+                  sessionId: message.sessionId,
+                  videoUrl: `/${videoFileName}`,
+                  frameCount: session.frameCount
+                }))
+
+                // Clean up session
+                activeSessions.delete(message.sessionId)
+              } catch (error) {
+                console.error(`❌ Video generation failed:`, error)
+                ws.send(JSON.stringify({
+                  type: 'error',
+                  error: error instanceof Error ? error.message : 'Video generation failed'
+                }))
+              }
+            }
+          }
+
+          // Handle audio data
+          else if (message.type === 'audio') {
+            const session = activeSessions.get(message.sessionId)
+            if (session) {
+              // Save audio file
+              const audioPath = path.join(session.sessionDir, 'audio.wav')
+              const audioBuffer = Buffer.from(message.audioData, 'base64')
+              await fs.writeFile(audioPath, audioBuffer)
+              session.audioPath = audioPath
+
+              console.log(`🎵 Audio saved for session ${message.sessionId}`)
+
+              ws.send(JSON.stringify({
+                type: 'audio-ack',
+                sessionId: message.sessionId
+              }))
             }
           }
         }
@@ -134,11 +269,22 @@ export function setupWebSocketServer(server: any) {
     })
 
     // Handle disconnection
-    ws.on('close', () => {
+    ws.on('close', async () => {
       console.log('🔌 Client disconnected')
       if (currentSessionId) {
-        // Keep session data for video generation
-        console.log(`📦 Session ${currentSessionId} ready for video generation`)
+        const session = activeSessions.get(currentSessionId)
+        if (session && session.frameCount > 0) {
+          console.log(`📦 Session ${currentSessionId} starting video generation`)
+
+          // Generate video automatically on disconnect
+          try {
+            const videoFileName = await generateVideo(session)
+            console.log(`✅ Video generated on disconnect: ${videoFileName}`)
+            activeSessions.delete(currentSessionId)
+          } catch (error) {
+            console.error(`❌ Video generation failed on disconnect:`, error)
+          }
+        }
       }
     })
 

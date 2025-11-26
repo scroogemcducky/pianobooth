@@ -8,7 +8,7 @@ import useKeyStore from '../store/keyPressStore'
 import useMidiStore from '../store/midiStore'
 import FrameBasedShaderBlocks from '../components/FrameBasedShaderBlocks'
 import RecordKeys from '../components/RecordKeys'
-import RecordTitle, { RECORD_TITLE_FADE_SECONDS } from '../components/RecordTitle'
+import RecordTitle from '../components/RecordTitle'
 import * as THREE from 'three'
 import { ActionFunctionArgs, json } from '@remix-run/cloudflare'
 import { useFetcher } from '@remix-run/react'
@@ -103,34 +103,19 @@ interface FetcherData {
 
 // Frame recording configuration
 const FPS = 60
-const NOTE_START_DELAY_SECONDS = RECORD_TITLE_FADE_SECONDS
-const ADDITIONAL_AUDIO_DELAY_SECONDS = 1
+// Keep the recorded audio/visuals two seconds behind the original MIDI timing
+const NOTE_START_DELAY_SECONDS = 2
+const ADDITIONAL_AUDIO_DELAY_SECONDS = 0
 const AUDIO_PLAYBACK_DELAY_SECONDS = NOTE_START_DELAY_SECONDS + ADDITIONAL_AUDIO_DELAY_SECONDS
 const NOTE_START_DELAY_FRAMES = Math.round(NOTE_START_DELAY_SECONDS * FPS)
 const FRAME_DURATION_MS = 1000 / FPS
 const CANVAS_WIDTH = 1920
 const CANVAS_HEIGHT = 1080
+const VIDEO_POLL_INTERVAL_MS = 3000
+const VIDEO_POLL_MAX_ATTEMPTS = 100
 
-// Offline renderer component that controls frame-by-frame progression
-function OfflineRenderer({ onFrameRendered, totalFrames, currentFrame }: {
-  onFrameRendered: (frame: number) => void,
-  totalFrames: number,
-  currentFrame: number
-}) {
-  const { gl, scene, camera } = useThree()
-  
-  useFrame(() => {
-    if (currentFrame < totalFrames) {
-      // Render the current frame
-      gl.render(scene, camera)
-      
-      // Capture frame
-      onFrameRendered(currentFrame)
-    }
-  })
-  
-  return null
-}
+// Mirror server-side file name sanitization
+const sanitizeFileName = (s: string): string => s.replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, ' ').trim()
 
 // Calculate total duration and frames needed
 function calculateTotalFrames(midiObject: MidiNote[]): number {
@@ -185,53 +170,146 @@ function audioBufferToWav(buffer: AudioBuffer): Blob {
   return new Blob([arrayBuffer], { type: 'audio/wav' });
 }
 
-// Frame-based note triggering system
-function useFrameBasedMidi(midiObject: MidiNote[] | null, currentFrame: number) {
-  const currentTimeMs = currentFrame * FRAME_DURATION_MS
-  const activeNotes = useRef<Set<number>>(new Set())
-  const KEY_PRESS_DELAY_MS = -1000 // 1 second delay for key presses
-  
-  useEffect(() => {
-    if (!midiObject) return
-    
-    // Find notes that should be active at current time
+// Component that updates key states based on frame number (runs in R3F render loop)
+function KeyStateController({
+  frameNumberRef,
+  midiObject,
+  isRecording
+}: {
+  frameNumberRef: React.MutableRefObject<number>
+  midiObject: MidiNote[] | null
+  isRecording: boolean
+}) {
+  const activeNotesRef = useRef<Set<number>>(new Set())
+  const KEY_PRESS_DELAY_MS = -1000
+
+  useFrame(() => {
+    if (!isRecording || !midiObject) return
+
+    // Read current frame from ref (no React state!)
+    const currentFrame = frameNumberRef.current
+    // Apply a global note-start offset so keys (and thus frames) begin 2s after the MIDI timeline
+    const currentTimeMs = currentFrame * FRAME_DURATION_MS - NOTE_START_DELAY_SECONDS * 1000
+
+    // Calculate which notes should be active
     const newActiveNotes = new Set<number>()
-    
+
     midiObject.forEach((note: MidiNote) => {
       const noteStartMs = Math.floor(note.Delta / 1000)
       const noteDurationMs = note.Duration / 1000000 * 1000
       const noteEndMs = noteStartMs + noteDurationMs
-      
-      // Add delay so keys light up 1 second before the note plays
+
       const keyPressStartMs = noteStartMs - KEY_PRESS_DELAY_MS
       const keyPressEndMs = noteEndMs - KEY_PRESS_DELAY_MS
-      
+
       if (currentTimeMs >= keyPressStartMs && currentTimeMs <= keyPressEndMs) {
         newActiveNotes.add(note.NoteNumber)
       }
     })
-    
-    // Update key states based on changes
+
+    // Update key states (only what changed)
     const keyStore = useKeyStore.getState()
-    
-    // Turn off keys that are no longer active
-    activeNotes.current.forEach(noteNumber => {
+
+    activeNotesRef.current.forEach(noteNumber => {
       if (!newActiveNotes.has(noteNumber)) {
         // @ts-expect-error - keyStore accepts numbers despite type error
         keyStore.setKey(noteNumber, false)
       }
     })
-    
-    // Turn on keys that are newly active
+
     newActiveNotes.forEach(noteNumber => {
-      if (!activeNotes.current.has(noteNumber)) {
+      if (!activeNotesRef.current.has(noteNumber)) {
         // @ts-expect-error - keyStore accepts numbers despite type error
         keyStore.setKey(noteNumber, true)
       }
     })
-    
-    activeNotes.current = newActiveNotes
-  }, [currentFrame, midiObject])
+
+    activeNotesRef.current = newActiveNotes
+  })
+
+  return null // This component doesn't render anything
+}
+
+// Component that captures frames in sync with R3F render loop
+function CaptureController({
+  frameNumberRef,
+  totalFrames,
+  isRecording,
+  canvasRef,
+  ws,
+  sessionId,
+  setUiFrameCount,
+  setIsRecording,
+  onComplete
+}: {
+  frameNumberRef: React.MutableRefObject<number>
+  totalFrames: number
+  isRecording: boolean
+  canvasRef: React.RefObject<HTMLCanvasElement>
+  ws: WebSocket | null
+  sessionId: string | null
+  setUiFrameCount: (count: number) => void
+  setIsRecording: (recording: boolean) => void
+  onComplete: () => void
+}) {
+  const capturedFrameRef = useRef(-1) // Track last captured frame to avoid duplicates
+
+  useFrame(() => {
+    if (!isRecording || !ws || !sessionId || !canvasRef.current) return
+
+    const currentFrame = frameNumberRef.current
+
+    // Check if we've already captured this frame
+    if (currentFrame === capturedFrameRef.current) return
+    if (currentFrame >= totalFrames) return
+
+    const canvas = canvasRef.current
+
+    // Capture frame (async, but we don't wait)
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        console.error(`Failed to create blob for frame ${currentFrame}`)
+        return
+      }
+
+      blob.arrayBuffer().then(arrayBuffer => {
+        // Create binary message: [4 bytes frame number][PNG data]
+        const frameNumberBuffer = new ArrayBuffer(4)
+        const view = new DataView(frameNumberBuffer)
+        view.setUint32(0, currentFrame, false)
+
+        const combinedBuffer = new Uint8Array(frameNumberBuffer.byteLength + arrayBuffer.byteLength)
+        combinedBuffer.set(new Uint8Array(frameNumberBuffer), 0)
+        combinedBuffer.set(new Uint8Array(arrayBuffer), frameNumberBuffer.byteLength)
+
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(combinedBuffer)
+          console.log(`→ Frame ${currentFrame} sent (${(blob.size / 1024).toFixed(1)} KB)`)
+        }
+      })
+    }, 'image/png')
+
+    // Mark this frame as captured
+    capturedFrameRef.current = currentFrame
+
+    // Update UI every 10 frames
+    if (currentFrame % 10 === 0) {
+      setUiFrameCount(currentFrame)
+    }
+
+    // Increment for next frame
+    frameNumberRef.current = currentFrame + 1
+
+    // Check if we're done
+    if (currentFrame >= totalFrames - 1) {
+      setUiFrameCount(totalFrames - 1)
+      setIsRecording(false)
+      console.log('Recording complete! Finalizing...')
+      setTimeout(() => onComplete(), 2000)
+    }
+  })
+
+  return null
 }
 
 // Server action to process frames and generate video with optional audio
@@ -375,12 +453,18 @@ export default function Record() {
   const [midiObject, setMidiObject] = useState<MidiNote[] | null>(null)
   const [pianoLayout, setPianoLayout] = useState<PianoLayout>(DEFAULT_PIANO_LAYOUT)
   const [isRecording, setIsRecording] = useState(false)
-  const [currentFrame, setCurrentFrame] = useState(0)
-  const [capturedFrames, setCapturedFrames] = useState<string[]>([])
+  const frameNumberRef = useRef(0)
+  const [uiFrameCount, setUiFrameCount] = useState(0) // For UI display only
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const midiFile = useMidiStore((state) => state.midiFile)
   const [isProcessingVideo, setIsProcessingVideo] = useState(false)
   const [audioFile, setAudioFile] = useState<File | null>(null)
+
+  // WebSocket streaming state
+  const [ws, setWs] = useState<WebSocket | null>(null)
+  const [wsConnected, setWsConnected] = useState(false)
+  const [recordingSessionId, setRecordingSessionId] = useState<string | null>(null)
+  const [uploadedFrameCount, setUploadedFrameCount] = useState(0)
   const [ac, setAc] = useState<AudioContext | null>(null)
   const [instrument, setInstrument] = useState<Player | null>(null)
   const [title, setTitle] = useState('Untitled')
@@ -391,6 +475,91 @@ export default function Record() {
   const [directionalY, setDirectionalY] = useState(-6)
   const [directionalZ, setDirectionalZ] = useState(123)
   const fetcher = useFetcher<FetcherData>()
+  const wsRef = useRef<WebSocket | null>(null)
+  const connectWebSocketRef = useRef<() => void>(() => {})
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const recordingSessionIdRef = useRef<string | null>(null)
+  const uploadedFrameCountRef = useRef(0)
+  const videoPollingRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  useEffect(() => {
+    recordingSessionIdRef.current = recordingSessionId
+  }, [recordingSessionId])
+
+  useEffect(() => {
+    uploadedFrameCountRef.current = uploadedFrameCount
+  }, [uploadedFrameCount])
+
+  const handleVideoReady = (videoUrl: string) => {
+    if (videoPollingRef.current) {
+      clearInterval(videoPollingRef.current)
+      videoPollingRef.current = null
+    }
+    setIsProcessingVideo(false)
+
+    // Auto-download the video
+    const link = document.createElement('a')
+    link.href = videoUrl
+    const videoName = videoUrl.split('/').pop()
+    if (videoName) {
+      link.download = videoName
+    }
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    console.log(`Video created successfully! ${videoName || videoUrl}`)
+  }
+
+  const startVideoPolling = () => {
+    // Avoid duplicate pollers
+    if (videoPollingRef.current) return
+
+    setIsProcessingVideo(true)
+    const videoFileName = `${sanitizeFileName(`${artist} - ${title}`)}.mp4`
+    console.log(`📡 Polling for video file: ${videoFileName}`)
+    let attempts = 0
+
+    const poll = async () => {
+      attempts++
+      try {
+        const res = await fetch(`/${videoFileName}`, { method: 'HEAD', cache: 'no-cache' })
+        if (res.ok) {
+          if (videoPollingRef.current) {
+            clearInterval(videoPollingRef.current)
+            videoPollingRef.current = null
+          }
+          const videoUrl = `/${videoFileName}`
+          console.log(`✅ Video ready (polled): ${videoUrl}`)
+          handleVideoReady(videoUrl)
+          return
+        }
+      } catch (error) {
+        console.warn('Video polling error:', error)
+      }
+
+      if (attempts >= VIDEO_POLL_MAX_ATTEMPTS) {
+        if (videoPollingRef.current) {
+          clearInterval(videoPollingRef.current)
+          videoPollingRef.current = null
+        }
+        console.error('Video polling timed out')
+        setIsProcessingVideo(false)
+      }
+    }
+
+    videoPollingRef.current = window.setInterval(poll, VIDEO_POLL_INTERVAL_MS)
+    // Kick off immediately instead of waiting for first interval tick
+    poll()
+  }
+
+  useEffect(() => {
+    return () => {
+      if (videoPollingRef.current) {
+        clearInterval(videoPollingRef.current)
+        videoPollingRef.current = null
+      }
+    }
+  }, [])
 
   // Initialize audio context and instrument
   useEffect(() => {
@@ -405,6 +574,105 @@ export default function Record() {
       });
     }
   }, [ac]);
+
+  // Trigger initial frame capture when recording starts
+  useEffect(() => {
+    if (!isRecording) return
+    if (!recordingSessionId) {
+      console.warn('Recording flagged as active but no sessionId yet; waiting for sessionId before capturing frames.')
+      return
+    }
+    // Start the capture sequence once both flags are ready
+    frameNumberRef.current = 0
+    captureFrame(0)
+  }, [isRecording, recordingSessionId])
+
+  // Initialize WebSocket connection with simple auto-reconnect
+  useEffect(() => {
+    let websocket: WebSocket | null = null
+
+    const connect = () => {
+      if (websocket && (websocket.readyState === WebSocket.OPEN || websocket.readyState === WebSocket.CONNECTING)) {
+        return
+      }
+
+      websocket = new WebSocket('ws://localhost:5173/ws/frames')
+      wsRef.current = websocket
+      setWs(websocket)
+
+      websocket.onopen = () => {
+        console.log('✅ WebSocket connected')
+        setWsConnected(true)
+      }
+
+      websocket.onmessage = (event) => {
+        try {
+          const message = JSON.parse(event.data)
+
+          if (message.type === 'init-ack') {
+            console.log(`✅ Session initialized: ${message.sessionId}`)
+          }
+
+          else if (message.type === 'frame-ack') {
+            setUploadedFrameCount(message.totalFrames)
+            console.log(`✓ Frame ${message.frameNumber} uploaded (${message.totalFrames} total)`)
+          }
+
+          else if (message.type === 'video-ready') {
+            console.log(`✅ Video ready: ${message.videoUrl}`)
+            handleVideoReady(message.videoUrl)
+          }
+
+          else if (message.type === 'error') {
+            console.error(`❌ Server error: ${message.error}`)
+            setIsProcessingVideo(false)
+          }
+
+          else if (message.type === 'audio-ack') {
+            console.log(`✅ Audio uploaded`)
+          }
+        } catch (error) {
+          console.error('Failed to parse WebSocket message:', error)
+        }
+      }
+
+      websocket.onerror = (error) => {
+        console.error('❌ WebSocket error:', error)
+        setWsConnected(false)
+      }
+
+      websocket.onclose = () => {
+        console.log('🔌 WebSocket disconnected')
+        setWsConnected(false)
+        setWs(null)
+        wsRef.current = null
+        if (recordingSessionIdRef.current && uploadedFrameCountRef.current > 0) {
+          startVideoPolling()
+        }
+        if (!reconnectTimeoutRef.current) {
+          reconnectTimeoutRef.current = window.setTimeout(() => {
+            reconnectTimeoutRef.current = null
+            connect()
+          }, 750)
+        }
+      }
+    }
+
+    connectWebSocketRef.current = connect
+    connect()
+
+    // Cleanup on unmount
+    return () => {
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current)
+        reconnectTimeoutRef.current = null
+      }
+      if (websocket && websocket.readyState === WebSocket.OPEN) {
+        websocket.close()
+      }
+      wsRef.current = null
+    }
+  }, [])
 
   const updateMidiState = (data: MidiNote[], meta?: Partial<MidiMeta>) => {
     if (!data || !Array.isArray(data) || data.length === 0) return
@@ -485,10 +753,8 @@ export default function Record() {
     }
   }, [midiFile])
 
-  const playbackFrame = Math.max(0, currentFrame - NOTE_START_DELAY_FRAMES)
-
-  // Frame-based MIDI processing
-  useFrameBasedMidi(midiObject, playbackFrame)
+  // Calculate playback frame from ref
+  const playbackFrame = Math.max(0, frameNumberRef.current - NOTE_START_DELAY_FRAMES)
 
   const midiFrameCount = midiObject ? calculateTotalFrames(midiObject) : 0
   const totalFrames = midiFrameCount + NOTE_START_DELAY_FRAMES
@@ -581,33 +847,137 @@ export default function Record() {
   // Frame capture function
   const captureFrame = (frameNumber: number) => {
     const canvas = canvasRef.current
-    if (!canvas) return
-    
+    // If prerequisites aren't ready yet (e.g. canvas not mounted immediately after page load),
+    // reschedule this frame instead of silently giving up.
+    if (!canvas || !ws || !recordingSessionId) {
+      requestAnimationFrame(() => captureFrame(frameNumber))
+      return
+    }
+
     try {
-      const dataURL = canvas.toDataURL('image/png')
-      setCapturedFrames(prev => {
-        const newFrames = [...prev]
-        newFrames[frameNumber] = dataURL
-        return newFrames
-      })
-      
-      console.log(`Captured frame ${frameNumber + 1}/${totalFrames}`)
-      
-      // Auto-advance to next frame
+      // Convert canvas to Blob (binary, not base64)
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          console.error(`Failed to create blob for frame ${frameNumber}`)
+          return
+        }
+
+        // Create binary message: [4 bytes frame number][PNG data]
+        blob.arrayBuffer().then(arrayBuffer => {
+          // Create buffer with 4-byte header for frame number
+          const frameNumberBuffer = new ArrayBuffer(4)
+          const view = new DataView(frameNumberBuffer)
+          view.setUint32(0, frameNumber, false) // Big-endian
+
+          // Combine frame number + PNG data
+          const combinedBuffer = new Uint8Array(frameNumberBuffer.byteLength + arrayBuffer.byteLength)
+          combinedBuffer.set(new Uint8Array(frameNumberBuffer), 0)
+          combinedBuffer.set(new Uint8Array(arrayBuffer), frameNumberBuffer.byteLength)
+
+          // Send binary data via WebSocket
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.send(combinedBuffer)
+            console.log(`→ Frame ${frameNumber} sent (${(blob.size / 1024).toFixed(1)} KB)`)
+          } else {
+            console.error(`WebSocket not open, cannot send frame ${frameNumber}`)
+          }
+        })
+      }, 'image/png')
+
+      // Update frame ref (KeyStateController reads this in R3F render loop)
+      frameNumberRef.current = frameNumber
+
+      // Update UI counter every 10 frames (reduce re-renders)
+      if (frameNumber % 10 === 0) {
+        setUiFrameCount(frameNumber)
+      }
+
+      // Auto-advance to next frame after canvas renders
       if (frameNumber < totalFrames - 1) {
-        setTimeout(() => setCurrentFrame(frameNumber + 1), 50)
+        // Wait for R3F to render the updated frame
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => captureFrame(frameNumber + 1))
+        })
       } else {
         // Recording complete
+        setUiFrameCount(frameNumber) // Final update
         setIsRecording(false)
-        console.log('Recording complete! Processing video...')
-        processVideo()
+        console.log('Recording complete! Finalizing...')
+
+        // Wait a moment for final frames to upload, then finalize
+        setTimeout(() => finalizeRecording(), 2000)
       }
     } catch (error) {
       console.error('Error capturing frame:', error)
     }
   }
 
-  // Process frames into video using server action
+  // Finalize recording and send audio
+  const finalizeRecording = async () => {
+    if (!ws || !recordingSessionId) {
+      console.warn('Finalize requested but missing WebSocket or session id; starting video polling fallback.')
+      startVideoPolling()
+      return
+    }
+
+    if (ws.readyState !== WebSocket.OPEN) {
+      console.warn('WebSocket not open during finalize; starting video polling fallback.')
+      startVideoPolling()
+      return
+    }
+
+    setIsProcessingVideo(true)
+    console.log('📤 Finalizing recording...')
+
+    const blobToBase64 = (blob: Blob): Promise<string> => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onloadend = () => {
+          const base64String = (reader.result as string).split(',')[1]
+          resolve(base64String)
+        }
+        reader.onerror = reject
+        reader.readAsDataURL(blob)
+      })
+    }
+
+    // Send audio if available
+    try {
+      if (audioFile) {
+        console.log(`📎 Sending uploaded audio file: ${audioFile.size} bytes`)
+        const audioBase64 = await blobToBase64(audioFile)
+        ws.send(JSON.stringify({
+          type: 'audio',
+          sessionId: recordingSessionId,
+          audioData: audioBase64
+        }))
+      } else if (midiObject && ac && instrument) {
+        console.log('🎵 Generating and sending MIDI audio...')
+        const audioBlob = await generateAudioFromMIDI()
+        if (audioBlob) {
+          const audioBase64 = await blobToBase64(audioBlob)
+          ws.send(JSON.stringify({
+            type: 'audio',
+            sessionId: recordingSessionId,
+            audioData: audioBase64
+          }))
+          console.log('✅ Audio sent')
+        }
+      }
+    } catch (error) {
+      console.error('❌ Failed to send audio:', error)
+    }
+
+    // Send finalize message
+    ws.send(JSON.stringify({
+      type: 'finalize',
+      sessionId: recordingSessionId
+    }))
+
+    console.log('✅ Finalize message sent, waiting for video generation...')
+  }
+
+  // OLD: Process frames into video using server action (DEPRECATED)
   const processVideo = async () => {
     setIsProcessingVideo(true)
     
@@ -667,12 +1037,12 @@ export default function Record() {
     fetcher.submit(formData, { method: 'POST' })
   }
 
-  // Handle server response
+  // Handle server response (DEPRECATED - using WebSocket streaming now)
   useEffect(() => {
     if (fetcher.data) {
       setIsProcessingVideo(false)
       if (fetcher.data.success && fetcher.data.videoUrl) {
-        alert(`Video created successfully! Download: ${fetcher.data.videoUrl}`)
+        console.log(`Video created successfully! Download: ${fetcher.data.videoUrl}`)
         // Auto-download the video
         const link = document.createElement('a')
         link.href = fetcher.data.videoUrl
@@ -682,35 +1052,56 @@ export default function Record() {
         }
         link.click()
       } else if (fetcher.data.error) {
-        alert(`Error: ${fetcher.data.error}`)
+        console.error(`Error: ${fetcher.data.error}`)
       }
-      setCapturedFrames([]) // Clear frames from memory
     }
   }, [fetcher.data])
 
   // Start recording
   const startRecording = () => {
     if (!midiObject) {
-      alert('Please load a MIDI file first')
+      console.warn('Please load a MIDI file first')
       return
     }
-    
+
+    const socket = wsRef.current
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
+      console.warn('WebSocket not connected. Attempting to reconnect...')
+      connectWebSocketRef.current?.()
+      return
+    }
+
+    // Generate unique session ID
+    const sessionId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    setRecordingSessionId(sessionId)
+    setUploadedFrameCount(0)
+
+    // Send init message to server
+    socket.send(JSON.stringify({
+      type: 'init',
+      sessionId,
+      fps: FPS,
+      title,
+      artist,
+      expectedFrames: totalFrames
+    }))
+
     setIsRecording(true)
-    setCurrentFrame(0)
-    setCapturedFrames([])
+    frameNumberRef.current = 0
+    setUiFrameCount(0)
     console.log(`Starting recording: ${totalFrames} frames at ${FPS} FPS`)
+    console.log(`Session ID: ${sessionId}`)
   }
 
-  // Stop recording and process video if frames were captured
+  // Stop recording and finalize
   const stopRecording = () => {
     setIsRecording(false)
-    setCurrentFrame(0)
-    
-    // If we have captured frames, process them into a video
-    if (capturedFrames.length > 0) {
-      console.log(`Recording stopped early with ${capturedFrames.length} frames. Processing video...`)
-      processVideo()
-    }
+    frameNumberRef.current = 0
+    setUiFrameCount(0)
+
+    console.log(`Recording stopped manually. Finalizing...`)
+    // Wait for any pending frames to upload
+    setTimeout(() => finalizeRecording(), 2000)
   }
 
   return (
@@ -825,8 +1216,14 @@ export default function Record() {
           </button>
         </div>
         
-        {isRecording && <p style={{ marginTop: '10px', fontSize: '12px' }}>Recording... {((currentFrame / totalFrames) * 100).toFixed(1)}%</p>}
-        {isProcessingVideo && <p style={{ marginTop: '10px', fontSize: '12px' }}>Processing video...</p>}
+        {isRecording && (
+          <div style={{ marginTop: '10px', fontSize: '12px' }}>
+            <p>Recording... {((uiFrameCount / totalFrames) * 100).toFixed(1)}%</p>
+            <p>Uploaded: {uploadedFrameCount}/{totalFrames} frames</p>
+          </div>
+        )}
+        {isProcessingVideo && <p style={{ marginTop: '10px', fontSize: '12px' }}>Generating video...</p>}
+        {!wsConnected && <p style={{ marginTop: '10px', fontSize: '12px', color: '#ff4757' }}>⚠️ WebSocket disconnected</p>}
       </div>
 
       <Canvas 
@@ -860,7 +1257,7 @@ export default function Record() {
         <RecordTitle
           title={title}
           artist={artist}
-          currentFrame={currentFrame}
+          currentFrame={uiFrameCount}
           isRecording={isRecording}
           fps={FPS}
         />
@@ -870,7 +1267,15 @@ export default function Record() {
           scaleMultiplier={keyboardScaleOptions.multiplier}
           scaleFillRatio={keyboardScaleOptions.fillRatio}
           scaleMax={keyboardScaleOptions.max}
-        />  
+        />
+
+        {/* Key state controller - updates key lighting based on frame ref */}
+        <KeyStateController
+          frameNumberRef={frameNumberRef}
+          midiObject={midiObject}
+          isRecording={isRecording}
+        />
+
         {midiObject && (
           <FrameBasedShaderBlocks 
             midiObject={midiObject} 
@@ -879,14 +1284,6 @@ export default function Record() {
             scaleMultiplier={keyboardScaleOptions.multiplier}
             scaleFillRatio={keyboardScaleOptions.fillRatio}
             scaleMax={keyboardScaleOptions.max}
-          />
-        )}
-        
-        {isRecording && (
-          <OfflineRenderer 
-            onFrameRendered={captureFrame}
-            totalFrames={totalFrames}
-            currentFrame={currentFrame}
           />
         )}
       </Canvas>

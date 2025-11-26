@@ -9,6 +9,7 @@
     "dev": "remix vite:dev",
     "build:public": "bun scripts/build_public_pages.ts --require-llm --base-url https://pianobooth.com",
     "render:next": "bun scripts/render_next_video.ts",
+    "test:stream": "bun scripts/test_websocket_stream.ts",
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
     "start": "wrangler pages dev ./build/client",
     "typecheck": "tsc",

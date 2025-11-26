@@ -4,6 +4,7 @@ import {
 } from "@remix-run/dev";
 import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
+import { setupWebSocketServer } from "./server/websocket";
 
 declare module "@remix-run/cloudflare" {
   interface Future {
@@ -24,5 +25,16 @@ export default defineConfig({
       },
     }),
     tsconfigPaths(),
+    // WebSocket server plugin
+    {
+      name: 'websocket-server',
+      configureServer(server) {
+        // Wait for server to be listening before setting up WebSocket
+        server.httpServer?.on('listening', () => {
+          setupWebSocketServer(server.httpServer!);
+          console.log('✅ WebSocket server integrated with Vite dev server');
+        });
+      },
+    },
   ],
 });
