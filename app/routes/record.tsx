@@ -105,8 +105,9 @@ interface FetcherData {
 const FPS = 60
 // Keep the recorded audio/visuals two seconds behind the original MIDI timing
 const NOTE_START_DELAY_SECONDS = 2
-const ADDITIONAL_AUDIO_DELAY_SECONDS = 0
-const AUDIO_PLAYBACK_DELAY_SECONDS = NOTE_START_DELAY_SECONDS + ADDITIONAL_AUDIO_DELAY_SECONDS
+// Keys light up 1 second after the note's Delta time (KEY_PRESS_DELAY_MS = -1000 in FrameBasedKeyController)
+const KEY_PRESS_DELAY_SECONDS = 1
+const AUDIO_PLAYBACK_DELAY_SECONDS = NOTE_START_DELAY_SECONDS + KEY_PRESS_DELAY_SECONDS  // 3 seconds total
 const NOTE_START_DELAY_FRAMES = Math.round(NOTE_START_DELAY_SECONDS * FPS)
 const FRAME_DURATION_MS = 1000 / FPS
 const CANVAS_WIDTH = 1920
@@ -709,82 +710,106 @@ export default function Record() {
 
   // Generate audio from MIDI using soundfont
   const generateAudioFromMIDI = async (): Promise<Blob | null> => {
-    if (!midiObject || !ac || !instrument) {
-      console.log('Cannot generate audio: missing dependencies', { midiObject: !!midiObject, ac: !!ac, instrument: !!instrument });
-      return null;
+    if (!midiObject) {
+      console.error('❌ Cannot generate audio: no MIDI data')
+      return null
     }
 
-    console.log(`Generating audio from MIDI using soundfont for ${midiObject.length} notes...`);
-    
-    // Calculate total duration, accounting for the intro delay and tail padding
-    const totalDurationMs = Math.max(...midiObject.map(note => 
+    console.log(`🎵 Generating audio from MIDI for ${midiObject.length} notes...`)
+
+    // Calculate total duration:
+    // - 3 second intro delay (2s visual delay + 1s key press delay to sync with key activation)
+    // - MIDI duration
+    // - 2 second tail padding
+    const introDelayMs = AUDIO_PLAYBACK_DELAY_SECONDS * 1000  // 3000ms (matches when keys light up)
+    const lastNoteEndMs = Math.max(...midiObject.map(note =>
       Math.floor(note.Delta / 1000) + (note.Duration / 1000000 * 1000)
-    )) + AUDIO_PLAYBACK_DELAY_SECONDS * 1000 + 2000;
-    
-    const totalDurationSec = totalDurationMs / 1000;
-    console.log(`Total audio duration: ${totalDurationSec.toFixed(2)} seconds`);
+    ))
+    const tailPaddingMs = 2000
+    const totalDurationMs = introDelayMs + lastNoteEndMs + tailPaddingMs
+    const totalDurationSec = totalDurationMs / 1000
 
-    // Create offline audio context for rendering (use lower sample rate to reduce file size)
-    const sampleRate = 22050; // Half the normal rate to reduce file size by ~50%
-    const totalSamples = Math.floor(totalDurationSec * sampleRate);
-    console.log(`Creating OfflineAudioContext: ${totalSamples} samples at ${sampleRate}Hz`);
-    
-    const offlineContext = new OfflineAudioContext(1, totalSamples, sampleRate);
-    
-    // Load instrument for offline context
-    console.log('Loading soundfont instrument for offline context...');
-    const offlineInstrument = await soundFont.instrument(offlineContext, 'acoustic_grand_piano');
-    console.log('Offline instrument loaded');
-    
-    // Schedule all notes
-    let scheduledNotes = 0;
-    midiObject.forEach((note, index) => {
-      const startTime = AUDIO_PLAYBACK_DELAY_SECONDS + Math.floor(note.Delta / 1000) / 1000;
-      const duration = note.Duration / 1000000;
-      const velocity = note.Velocity / 127;
-      
-      if (startTime < totalDurationSec) {
-        console.log(`Scheduling note ${index}: MIDI ${note.NoteNumber} at ${startTime.toFixed(3)}s, duration ${duration.toFixed(3)}s, velocity ${velocity.toFixed(3)}`);
-        offlineInstrument.play(note.NoteNumber, startTime, {
-          gain: velocity,
-          duration: duration,
-          release: 2.5,
-          sustain: 2,
-          delay: 0
-        });
-        scheduledNotes++;
+    console.log(`   Intro delay: ${introDelayMs}ms`)
+    console.log(`   MIDI duration: ${lastNoteEndMs}ms (last note ends at ${(lastNoteEndMs/1000).toFixed(2)}s)`)
+    console.log(`   Tail padding: ${tailPaddingMs}ms`)
+    console.log(`   Total audio duration: ${totalDurationSec.toFixed(2)}s`)
+
+    // Create offline audio context for rendering
+    const sampleRate = 44100  // Standard CD quality
+    const totalSamples = Math.floor(totalDurationSec * sampleRate)
+    console.log(`   Creating OfflineAudioContext: ${totalSamples} samples at ${sampleRate}Hz`)
+
+    try {
+      const offlineContext = new OfflineAudioContext(1, totalSamples, sampleRate)
+
+      // Load instrument for offline context
+      console.log('   Loading soundfont instrument for offline context...')
+      // @ts-expect-error - soundfont-player accepts OfflineAudioContext despite type definition
+      const offlineInstrument = await soundFont.instrument(offlineContext, 'acoustic_grand_piano')
+      console.log('   ✅ Offline instrument loaded')
+
+      // Schedule all notes with 3-second delay to match when keys light up
+      // (2s visual intro + 1s KEY_PRESS_DELAY_MS offset in FrameBasedKeyController)
+      let scheduledNotes = 0
+      const delaySeconds = AUDIO_PLAYBACK_DELAY_SECONDS  // 3 seconds to sync with key activation
+
+      for (const note of midiObject) {
+        const noteTimeSeconds = Math.floor(note.Delta / 1000) / 1000
+        const startTime = delaySeconds + noteTimeSeconds
+        const duration = note.Duration / 1000000
+        const velocity = note.Velocity / 127
+
+        if (startTime < totalDurationSec && startTime >= 0) {
+          // Log first few notes to verify timing
+          if (scheduledNotes < 3) {
+            console.log(`   Note ${scheduledNotes}: MIDI ${note.NoteNumber} at ${startTime.toFixed(3)}s (delay ${delaySeconds}s + noteTime ${noteTimeSeconds.toFixed(3)}s)`)
+          }
+
+          offlineInstrument.play(note.NoteNumber, startTime, {
+            gain: velocity,
+            duration: duration,
+            release: 2.5,
+            sustain: 2,
+            delay: 0
+          })
+          scheduledNotes++
+        }
       }
-    });
-    
-    console.log(`Scheduled ${scheduledNotes} notes. Starting rendering...`);
 
-    // Render audio
-    const audioBuffer = await offlineContext.startRendering();
-    console.log(`Audio rendering complete. Buffer length: ${audioBuffer.length} samples, duration: ${audioBuffer.duration.toFixed(2)}s`);
+      console.log(`   Scheduled ${scheduledNotes}/${midiObject.length} notes (first note at ${delaySeconds}s)`)
 
-    // Check if audio was actually generated (avoid stack overflow with large buffers)
-    const channelData = audioBuffer.getChannelData(0);
-    let maxAmplitude = 0;
-    let minAmplitude = 0;
-    
-    // Sample check instead of checking all values
-    const sampleStep = Math.max(1, Math.floor(channelData.length / 1000));
-    for (let i = 0; i < channelData.length; i += sampleStep) {
-      const sample = channelData[i];
-      if (sample > maxAmplitude) maxAmplitude = sample;
-      if (sample < minAmplitude) minAmplitude = sample;
+      // Render audio
+      console.log('   Rendering audio...')
+      const audioBuffer = await offlineContext.startRendering()
+      console.log(`   ✅ Rendering complete: ${audioBuffer.duration.toFixed(2)}s`)
+
+      // Check if audio was actually generated
+      const channelData = audioBuffer.getChannelData(0)
+      let maxAmplitude = 0
+      let minAmplitude = 0
+
+      const sampleStep = Math.max(1, Math.floor(channelData.length / 1000))
+      for (let i = 0; i < channelData.length; i += sampleStep) {
+        const sample = channelData[i]
+        if (sample > maxAmplitude) maxAmplitude = sample
+        if (sample < minAmplitude) minAmplitude = sample
+      }
+
+      console.log(`   Amplitude range: ${minAmplitude.toFixed(4)} to ${maxAmplitude.toFixed(4)}`)
+
+      if (maxAmplitude === 0 && minAmplitude === 0) {
+        console.error('❌ Generated audio buffer is silent!')
+        return null
+      }
+
+      // Convert to WAV blob
+      const wavBlob = audioBufferToWav(audioBuffer)
+      console.log(`   ✅ WAV blob created: ${(wavBlob.size / 1024).toFixed(1)} KB`)
+      return wavBlob
+    } catch (error) {
+      console.error('❌ Audio generation failed:', error)
+      return null
     }
-    
-    console.log(`Audio amplitude range: ${minAmplitude.toFixed(6)} to ${maxAmplitude.toFixed(6)}`);
-    
-    if (maxAmplitude === 0 && minAmplitude === 0) {
-      console.warn('⚠️ Generated audio buffer is silent!');
-    }
-
-    // Convert to WAV blob
-    const wavBlob = audioBufferToWav(audioBuffer);
-    console.log(`WAV blob created: ${wavBlob.size} bytes`);
-    return wavBlob;
   }
 
   // Finalize recording and send audio
@@ -816,7 +841,34 @@ export default function Record() {
       })
     }
 
-    // Send audio if available
+    // Wait for audio acknowledgment before finalizing
+    const waitForAudioAck = (): Promise<void> => {
+      return new Promise((resolve) => {
+        const handleMessage = (event: MessageEvent) => {
+          try {
+            const message = JSON.parse(event.data)
+            if (message.type === 'audio-ack' && message.sessionId === recordingSessionId) {
+              console.log('✅ Audio acknowledged by server')
+              ws.removeEventListener('message', handleMessage)
+              resolve()
+            }
+          } catch {
+            // Ignore non-JSON messages
+          }
+        }
+        ws.addEventListener('message', handleMessage)
+
+        // Timeout after 30 seconds
+        setTimeout(() => {
+          ws.removeEventListener('message', handleMessage)
+          console.warn('⚠️ Audio ack timeout, proceeding anyway')
+          resolve()
+        }, 30000)
+      })
+    }
+
+    // Send audio if available and wait for acknowledgment
+    let audioSent = false
     try {
       if (audioFile) {
         console.log(`📎 Sending uploaded audio file: ${audioFile.size} bytes`)
@@ -826,21 +878,33 @@ export default function Record() {
           sessionId: recordingSessionId,
           audioData: audioBase64
         }))
-      } else if (midiObject && ac && instrument) {
-        console.log('🎵 Generating and sending MIDI audio...')
+        audioSent = true
+      } else if (midiObject) {
+        console.log('🎵 Generating MIDI audio...')
         const audioBlob = await generateAudioFromMIDI()
         if (audioBlob) {
+          console.log(`📤 Sending audio: ${(audioBlob.size / 1024).toFixed(1)} KB`)
           const audioBase64 = await blobToBase64(audioBlob)
           ws.send(JSON.stringify({
             type: 'audio',
             sessionId: recordingSessionId,
             audioData: audioBase64
           }))
-          console.log('✅ Audio sent')
+          console.log('✅ Audio sent, waiting for server acknowledgment...')
+          audioSent = true
+        } else {
+          console.warn('⚠️ Audio generation returned null')
         }
+      } else {
+        console.warn('⚠️ No MIDI data available for audio generation')
       }
     } catch (error) {
-      console.error('❌ Failed to send audio:', error)
+      console.error('❌ Failed to generate/send audio:', error)
+    }
+
+    // Wait for audio to be processed before finalizing
+    if (audioSent) {
+      await waitForAudioAck()
     }
 
     // Send finalize message
