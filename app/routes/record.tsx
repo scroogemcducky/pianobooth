@@ -8,6 +8,7 @@ import useMidiStore from '../store/midiStore'
 import FrameBasedShaderBlocks, { type FrameBasedShaderBlocksHandle } from '../components/FrameBasedShaderBlocks'
 import FrameBasedTitle, { type FrameBasedTitleHandle } from '../components/FrameBasedTitle'
 import FrameBasedKeyController, { type FrameBasedKeyControllerHandle } from '../components/FrameBasedKeyController'
+import FrameBasedParticles, { type FrameBasedParticlesHandle } from '../components/FrameBasedParticles'
 import RecordKeys from '../components/FrameBasedKeys'
 import * as THREE from 'three'
 import { ActionFunctionArgs, json } from '@remix-run/cloudflare'
@@ -184,6 +185,7 @@ function DeterministicRecorder({
   blocksRef,
   titleRef,
   keysRef,
+  particlesRef,
 }: {
   isRecording: boolean
   totalFrames: number
@@ -195,6 +197,7 @@ function DeterministicRecorder({
   blocksRef: React.RefObject<FrameBasedShaderBlocksHandle | null>
   titleRef: React.RefObject<FrameBasedTitleHandle | null>
   keysRef: React.RefObject<FrameBasedKeyControllerHandle | null>
+  particlesRef: React.RefObject<FrameBasedParticlesHandle | null>
 }) {
   const { gl, advance } = useThree()
   const isRecordingRef = useRef(false)
@@ -234,6 +237,7 @@ function DeterministicRecorder({
       blocksRef.current?.setFrame(adjustedFrame)
       titleRef.current?.setFrame(i)  // title uses raw frame for fade timing
       keysRef.current?.setFrame(adjustedFrame)
+      particlesRef.current?.setFrame(adjustedFrame)
 
       // Render the scene
       advance(i * FRAME_DURATION_MS)
@@ -415,6 +419,7 @@ export default function Record() {
   const blocksRef = useRef<FrameBasedShaderBlocksHandle>(null)
   const titleRef = useRef<FrameBasedTitleHandle>(null)
   const keysRef = useRef<FrameBasedKeyControllerHandle>(null)
+  const particlesRef = useRef<FrameBasedParticlesHandle>(null)
   const midiFile = useMidiStore((state) => state.midiFile)
   const [isProcessingVideo, setIsProcessingVideo] = useState(false)
   const [audioFile, setAudioFile] = useState<File | null>(null)
@@ -1208,6 +1213,17 @@ export default function Record() {
         />
 
         {midiObject && (
+          <FrameBasedParticles
+            ref={particlesRef}
+            midiObject={midiObject}
+            layout={pianoLayout}
+            scaleMultiplier={keyboardScaleOptions.multiplier}
+            scaleFillRatio={keyboardScaleOptions.fillRatio}
+            scaleMax={keyboardScaleOptions.max}
+          />
+        )}
+
+        {midiObject && (
           <FrameBasedShaderBlocks
             ref={blocksRef}
             midiObject={midiObject}
@@ -1228,6 +1244,7 @@ export default function Record() {
           blocksRef={blocksRef}
           titleRef={titleRef}
           keysRef={keysRef}
+          particlesRef={particlesRef}
         />
       </Canvas>
     </div>

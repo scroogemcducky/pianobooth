@@ -31,9 +31,6 @@ export const meta: MetaFunction = () => {
   ]
 }
 
-const DEBUG_FORCE_MIDDLE_C = true
-const DEBUG_NOTES = [60, 61]
-
 type MidiNote = {
   NoteNumber: number
   Delta: number
@@ -84,24 +81,9 @@ export default function Video() {
   }, [])
 
   const activeParticleList = useMemo(() => Object.values(activeParticleNotes), [activeParticleNotes])
-  const debugParticles = useMemo<ActiveKeyParticle[]>(() => {
-    if (!DEBUG_FORCE_MIDDLE_C) return []
-    return DEBUG_NOTES.map((noteNumber) => {
-      const keyIsBlack = isBlack(noteNumber)
-      const keyColor = (keyIsBlack ? BLACK_KEY_COLOR : WHITE_KEY_COLOR) as [number, number, number]
-      return {
-        noteNumber,
-        startedAt: 0,
-        durationMs: Number.POSITIVE_INFINITY,
-        color: keyColor,
-        isBlack: keyIsBlack,
-      }
-    })
-  }, [])
   const particlesToRender = useMemo(() => {
-    const base = particlesEnabled ? activeParticleList : []
-    return DEBUG_FORCE_MIDDLE_C ? [...debugParticles, ...base] : base
-  }, [activeParticleList, debugParticles, particlesEnabled])
+    return particlesEnabled ? activeParticleList : []
+  }, [activeParticleList, particlesEnabled])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
