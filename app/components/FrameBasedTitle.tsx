@@ -6,7 +6,7 @@ import { Color } from 'three'
 type Props = {
   title?: string | null
   artist?: string | null
-  currentFrame?: number
+  frameNumberRef?: React.MutableRefObject<number>
   fps?: number
   isRecording?: boolean
 }
@@ -29,7 +29,7 @@ const fadedHex = (baseHex: string, intensity: number) => {
 export default function RecordTitle({
   title,
   artist,
-  currentFrame = 0,
+  frameNumberRef,
   fps = DEFAULT_FPS,
   isRecording = false,
 }: Props) {
@@ -41,19 +41,25 @@ export default function RecordTitle({
   const fadeFrames = Math.max(1, Math.round(FADE_DURATION_SECONDS * fps))
   const fadeStartFrame = displayFrames
   const fadeEndFrame = fadeStartFrame + fadeFrames
+  const currentFrame = frameNumberRef?.current ?? 0
 
-  const opacity = useMemo(() => {
-    if (!hasTitle && !hasArtist) return 0
-    if (!isRecording) return 1
-    if (currentFrame <= fadeStartFrame) return 1
-    if (currentFrame >= fadeEndFrame) return 0
+  let opacity: number
+
+  if (!hasTitle && !hasArtist) { opacity = 0}
+  else if (!isRecording) { opacity = 1 }
+  else if (currentFrame <= fadeStartFrame) {opacity = 1}
+  else if (currentFrame >= fadeEndFrame) {opacity = 0} 
+  else {
+
     const framesIntoFade = currentFrame - fadeStartFrame
-    const progress = framesIntoFade / fadeFrames
-    return 1 - progress
-  }, [currentFrame, fadeFrames, fadeEndFrame, fadeStartFrame, hasArtist, hasTitle, isRecording])
-  const normalizedOpacity = clamp01(opacity)
-  const titleColor = useMemo(() => fadedHex('#ffffff', normalizedOpacity), [normalizedOpacity])
-  const artistColor = useMemo(() => fadedHex('#cccccc', normalizedOpacity), [normalizedOpacity])
+    opacity =1 - framesIntoFade / fadeFrames
+
+  }
+
+
+  opacity = clamp01(opacity)
+  const titleColor = fadedHex('#ffffff', opacity)
+  const artistColor = fadedHex('#cccccc', opacity)
 
   if (!hasTitle && !hasArtist) return null
 

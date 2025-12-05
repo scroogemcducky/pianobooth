@@ -231,83 +231,103 @@ function KeyStateController({
 }
 
 // Component that captures frames in sync with R3F render loop
-function CaptureController({
-  frameNumberRef,
-  totalFrames,
+// Deterministic recorder: manually advances R3F and captures each frame in order
+function DeterministicRecorder({
   isRecording,
-  canvasRef,
-  ws,
+  totalFrames,
+  onComplete,
+  wsRef,
   sessionId,
   setUiFrameCount,
   setIsRecording,
-  onComplete
+  frameNumberRef,
 }: {
-  frameNumberRef: React.MutableRefObject<number>
-  totalFrames: number
   isRecording: boolean
-  canvasRef: React.RefObject<HTMLCanvasElement>
-  ws: WebSocket | null
+  totalFrames: number
+  onComplete: () => void
+  wsRef: React.MutableRefObject<WebSocket | null>
   sessionId: string | null
   setUiFrameCount: (count: number) => void
   setIsRecording: (recording: boolean) => void
-  onComplete: () => void
+  frameNumberRef: React.MutableRefObject<number>
 }) {
-  const capturedFrameRef = useRef(-1) // Track last captured frame to avoid duplicates
+  const { gl, advance } = useThree()
+  const isRecordingRef = useRef(false)
+  const loopPromiseRef = useRef<Promise<void> | null>(null)
 
-  useFrame(() => {
-    if (!isRecording || !ws || !sessionId || !canvasRef.current) return
+  const captureFramePayload = async (frameNumber: number) => {
+    const canvas = gl?.domElement as HTMLCanvasElement | undefined
+    if (!canvas) return
 
-    const currentFrame = frameNumberRef.current
+    // gl.getContext().finish()
+    const blob: Blob | null = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.95))
+    if (!blob) return
 
-    // Check if we've already captured this frame
-    if (currentFrame === capturedFrameRef.current) return
-    if (currentFrame >= totalFrames) return
+    const buffer = await blob.arrayBuffer()
+    const header = new ArrayBuffer(4)
+    new DataView(header).setUint32(0, frameNumber, false)
+    const payload = new Uint8Array(header.byteLength + buffer.byteLength)
+    payload.set(new Uint8Array(header), 0)
+    payload.set(new Uint8Array(buffer), header.byteLength)
 
-    const canvas = canvasRef.current
-
-    // Capture frame (async, but we don't wait)
-    canvas.toBlob((blob) => {
-      if (!blob) {
-        console.error(`Failed to create blob for frame ${currentFrame}`)
-        return
+    const socket = wsRef.current
+    if (socket && socket.readyState === WebSocket.OPEN && sessionId) {
+      socket.send(payload)
+      if (frameNumber % 50 === 0) {
+        console.log(`→ Frame ${frameNumber} sent (${(blob.size / 1024).toFixed(1)} KB)`)
       }
+    }
+  }
 
-      blob.arrayBuffer().then(arrayBuffer => {
-        // Create binary message: [4 bytes frame number][PNG data]
-        const frameNumberBuffer = new ArrayBuffer(4)
-        const view = new DataView(frameNumberBuffer)
-        view.setUint32(0, currentFrame, false)
+  const processRecording = async () => {
+    for (let i = 0; i < totalFrames; i++) {
+      if (!isRecordingRef.current) break
 
-        const combinedBuffer = new Uint8Array(frameNumberBuffer.byteLength + arrayBuffer.byteLength)
-        combinedBuffer.set(new Uint8Array(frameNumberBuffer), 0)
-        combinedBuffer.set(new Uint8Array(arrayBuffer), frameNumberBuffer.byteLength)
+      // Set frame state for all useFrame subscribers (KeyStateController)
+      frameNumberRef.current = i
 
-        if (ws.readyState === WebSocket.OPEN) {
-          ws.send(combinedBuffer)
-          console.log(`→ Frame ${currentFrame} sent (${(blob.size / 1024).toFixed(1)} KB)`)
-        }
+      // Force a single render/update pass for this frame index
+      await new Promise<void>((resolve) => {
+        advance(FRAME_DURATION_MS)
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            gl.getContext().finish()
+            resolve()
+          })
+        })
       })
-    }, 'image/png')
 
-    // Mark this frame as captured
-    capturedFrameRef.current = currentFrame
+      // Capture and send
+      await captureFramePayload(i)
 
-    // Update UI every 10 frames
-    if (currentFrame % 10 === 0) {
-      setUiFrameCount(currentFrame)
+      // UI updates sparingly
+      // if (i % 10 === 0) {
+      //   setUiFrameCount(i)
+      // }
     }
 
-    // Increment for next frame
-    frameNumberRef.current = currentFrame + 1
-
-    // Check if we're done
-    if (currentFrame >= totalFrames - 1) {
-      setUiFrameCount(totalFrames - 1)
+    if (isRecordingRef.current) {
+      // setUiFrameCount(totalFrames - 1)
       setIsRecording(false)
       console.log('Recording complete! Finalizing...')
       setTimeout(() => onComplete(), 2000)
     }
-  })
+  }
+
+  useEffect(() => {
+    isRecordingRef.current = isRecording
+    if (isRecording && !loopPromiseRef.current) {
+      loopPromiseRef.current = processRecording().finally(() => {
+        loopPromiseRef.current = null
+      })
+    }
+  }, [isRecording, totalFrames])
+
+  useEffect(() => {
+    return () => {
+      isRecordingRef.current = false
+    }
+  }, [])
 
   return null
 }
@@ -575,18 +595,6 @@ export default function Record() {
     }
   }, [ac]);
 
-  // Trigger initial frame capture when recording starts
-  useEffect(() => {
-    if (!isRecording) return
-    if (!recordingSessionId) {
-      console.warn('Recording flagged as active but no sessionId yet; waiting for sessionId before capturing frames.')
-      return
-    }
-    // Start the capture sequence once both flags are ready
-    frameNumberRef.current = 0
-    captureFrame(0)
-  }, [isRecording, recordingSessionId])
-
   // Initialize WebSocket connection with simple auto-reconnect
   useEffect(() => {
     let websocket: WebSocket | null = null
@@ -614,7 +622,7 @@ export default function Record() {
           }
 
           else if (message.type === 'frame-ack') {
-            setUploadedFrameCount(message.totalFrames)
+            // setUploadedFrameCount(message.totalFrames)
             console.log(`✓ Frame ${message.frameNumber} uploaded (${message.totalFrames} total)`)
           }
 
@@ -842,74 +850,6 @@ export default function Record() {
     const wavBlob = audioBufferToWav(audioBuffer);
     console.log(`WAV blob created: ${wavBlob.size} bytes`);
     return wavBlob;
-  }
-
-  // Frame capture function
-  const captureFrame = (frameNumber: number) => {
-    const canvas = canvasRef.current
-    // If prerequisites aren't ready yet (e.g. canvas not mounted immediately after page load),
-    // reschedule this frame instead of silently giving up.
-    if (!canvas || !ws || !recordingSessionId) {
-      requestAnimationFrame(() => captureFrame(frameNumber))
-      return
-    }
-
-    try {
-      // Convert canvas to Blob (binary, not base64)
-      canvas.toBlob((blob) => {
-        if (!blob) {
-          console.error(`Failed to create blob for frame ${frameNumber}`)
-          return
-        }
-
-        // Create binary message: [4 bytes frame number][PNG data]
-        blob.arrayBuffer().then(arrayBuffer => {
-          // Create buffer with 4-byte header for frame number
-          const frameNumberBuffer = new ArrayBuffer(4)
-          const view = new DataView(frameNumberBuffer)
-          view.setUint32(0, frameNumber, false) // Big-endian
-
-          // Combine frame number + PNG data
-          const combinedBuffer = new Uint8Array(frameNumberBuffer.byteLength + arrayBuffer.byteLength)
-          combinedBuffer.set(new Uint8Array(frameNumberBuffer), 0)
-          combinedBuffer.set(new Uint8Array(arrayBuffer), frameNumberBuffer.byteLength)
-
-          // Send binary data via WebSocket
-          if (ws.readyState === WebSocket.OPEN) {
-            ws.send(combinedBuffer)
-            console.log(`→ Frame ${frameNumber} sent (${(blob.size / 1024).toFixed(1)} KB)`)
-          } else {
-            console.error(`WebSocket not open, cannot send frame ${frameNumber}`)
-          }
-        })
-      }, 'image/png')
-
-      // Update frame ref (KeyStateController reads this in R3F render loop)
-      frameNumberRef.current = frameNumber
-
-      // Update UI counter every 10 frames (reduce re-renders)
-      if (frameNumber % 10 === 0) {
-        setUiFrameCount(frameNumber)
-      }
-
-      // Auto-advance to next frame after canvas renders
-      if (frameNumber < totalFrames - 1) {
-        // Wait for R3F to render the updated frame
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => captureFrame(frameNumber + 1))
-        })
-      } else {
-        // Recording complete
-        setUiFrameCount(frameNumber) // Final update
-        setIsRecording(false)
-        console.log('Recording complete! Finalizing...')
-
-        // Wait a moment for final frames to upload, then finalize
-        setTimeout(() => finalizeRecording(), 2000)
-      }
-    } catch (error) {
-      console.error('Error capturing frame:', error)
-    }
   }
 
   // Finalize recording and send audio
@@ -1219,7 +1159,7 @@ export default function Record() {
         {isRecording && (
           <div style={{ marginTop: '10px', fontSize: '12px' }}>
             <p>Recording... {((uiFrameCount / totalFrames) * 100).toFixed(1)}%</p>
-            <p>Uploaded: {uploadedFrameCount}/{totalFrames} frames</p>
+            {/* <p>Uploaded: {uploadedFrameCount}/{totalFrames} frames</p> */}
           </div>
         )}
         {isProcessingVideo && <p style={{ marginTop: '10px', fontSize: '12px' }}>Generating video...</p>}
@@ -1233,6 +1173,7 @@ export default function Record() {
           width: CANVAS_WIDTH,
           height: CANVAS_HEIGHT
         }}
+        frameloop="demand"
         orthographic 
         camera={{ zoom: 9 }}
         gl={{ 
@@ -1257,7 +1198,7 @@ export default function Record() {
         <RecordTitle
           title={title}
           artist={artist}
-          currentFrame={uiFrameCount}
+          frameNumberRef={frameNumberRef}
           isRecording={isRecording}
           fps={FPS}
         />
@@ -1279,13 +1220,24 @@ export default function Record() {
         {midiObject && (
           <FrameBasedShaderBlocks 
             midiObject={midiObject} 
-            currentFrame={playbackFrame}
+            frameNumberRef={frameNumberRef}
+            noteStartDelayFrames={NOTE_START_DELAY_FRAMES}
             layout={pianoLayout}
             scaleMultiplier={keyboardScaleOptions.multiplier}
             scaleFillRatio={keyboardScaleOptions.fillRatio}
             scaleMax={keyboardScaleOptions.max}
           />
         )}
+        <DeterministicRecorder
+          isRecording={isRecording}
+          totalFrames={totalFrames}
+          onComplete={() => finalizeRecording()}
+          wsRef={wsRef}
+          sessionId={recordingSessionId}
+          setUiFrameCount={setUiFrameCount}
+          setIsRecording={setIsRecording}
+          frameNumberRef={frameNumberRef}
+        />
       </Canvas>
     </div>
   )

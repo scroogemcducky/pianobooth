@@ -163,7 +163,7 @@ function FrameBasedInstances({ blocks, scaleFactor, currentTimeMs, distance }: F
     const speedAdjusted = speed * distance / factor;
     const accumValue = (currentTimeMs / 1000) * speedAdjusted;
     materialRef.current.uniforms.uAccum.value = accumValue;
-  }, [currentTimeMs, distance]);
+  });
 
   if (!blocks.length || !geometry) return null;
 
@@ -177,7 +177,8 @@ function FrameBasedInstances({ blocks, scaleFactor, currentTimeMs, distance }: F
 
 interface FrameBasedShaderBlocksProps {
   midiObject: MidiNote[]
-  currentFrame: number
+  frameNumberRef: React.MutableRefObject<number>
+  noteStartDelayFrames: number
   layout?: PianoLayout
   scaleMultiplier?: number
   scaleFillRatio?: number
@@ -186,7 +187,8 @@ interface FrameBasedShaderBlocksProps {
 
 function FrameBasedShaderBlocks({
   midiObject,
-  currentFrame,
+  frameNumberRef,
+  noteStartDelayFrames,
   layout,
   scaleMultiplier = 1,
   scaleFillRatio,
@@ -195,6 +197,7 @@ function FrameBasedShaderBlocks({
   const { viewport } = useThree()
   const [blocks, setBlocks] = useState<Block[]>([])
   const activeLayout = layout ?? DEFAULT_PIANO_LAYOUT
+  const currentFrame = Math.max(0, (frameNumberRef?.current ?? 0) - noteStartDelayFrames)
 
   const totalKeyboardWidth = getKeyboardWidth(activeLayout)
   const scaleFactor = scalingFactor(viewport.width, totalKeyboardWidth, {
