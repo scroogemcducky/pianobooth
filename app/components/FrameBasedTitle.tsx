@@ -1,14 +1,16 @@
-import React, { useMemo } from 'react'
+import React, { useRef, forwardRef, useImperativeHandle } from 'react'
 import { Text } from '@react-three/drei'
 import { useThree } from '@react-three/fiber'
-import { Color } from 'three'
+import { Color, Mesh } from 'three'
+
+export interface FrameBasedTitleHandle {
+  setFrame: (rawFrame: number) => void
+}
 
 type Props = {
   title?: string | null
   artist?: string | null
-  frameNumberRef?: React.MutableRefObject<number>
   fps?: number
-  isRecording?: boolean
 }
 
 const PRIMARY_FONT = '/fonts/EBGaramond-VariableFont_wght.ttf'
@@ -26,14 +28,11 @@ const fadedHex = (baseHex: string, intensity: number) => {
   return `#${color.getHexString()}`
 }
 
-export default function RecordTitle({
-  title,
-  artist,
-  frameNumberRef,
-  fps = DEFAULT_FPS,
-  isRecording = false,
-}: Props) {
+const FrameBasedTitle = forwardRef<FrameBasedTitleHandle, Props>(
+  function FrameBasedTitle({ title, artist, fps = DEFAULT_FPS }, ref) {
   const { viewport } = useThree()
+  const titleRef = useRef<Mesh>(null)
+  const artistRef = useRef<Mesh>(null)
   const hasTitle = Boolean(title)
   const hasArtist = Boolean(artist)
 
@@ -41,25 +40,47 @@ export default function RecordTitle({
   const fadeFrames = Math.max(1, Math.round(FADE_DURATION_SECONDS * fps))
   const fadeStartFrame = displayFrames
   const fadeEndFrame = fadeStartFrame + fadeFrames
-  const currentFrame = frameNumberRef?.current ?? 0
 
-  let opacity: number
+  useImperativeHandle(ref, () => ({
+    setFrame: (rawFrame: number) => {
+      let opacity: number
 
-  if (!hasTitle && !hasArtist) { opacity = 0}
-  else if (!isRecording) { opacity = 1 }
-  else if (currentFrame <= fadeStartFrame) {opacity = 1}
-  else if (currentFrame >= fadeEndFrame) {opacity = 0} 
-  else {
+      if (!hasTitle && !hasArtist) {
+        opacity = 0
+      } else if (rawFrame <= fadeStartFrame) {
+        opacity = 1
+      } else if (rawFrame >= fadeEndFrame) {
+        opacity = 0
+      } else {
+        const framesIntoFade = rawFrame - fadeStartFrame
+        opacity = 1 - framesIntoFade / fadeFrames
+      }
 
-    const framesIntoFade = currentFrame - fadeStartFrame
-    opacity =1 - framesIntoFade / fadeFrames
+      opacity = clamp01(opacity)
 
-  }
+      // Update title mesh material
+      if (titleRef.current && titleRef.current.material) {
+        const mat = titleRef.current.material as any
+        if (mat.color) {
+          mat.color.setHex(0xffffff).multiplyScalar(opacity)
+        }
+        if ('opacity' in mat) {
+          mat.opacity = opacity
+        }
+      }
 
-
-  opacity = clamp01(opacity)
-  const titleColor = fadedHex('#ffffff', opacity)
-  const artistColor = fadedHex('#cccccc', opacity)
+      // Update artist mesh material
+      if (artistRef.current && artistRef.current.material) {
+        const mat = artistRef.current.material as any
+        if (mat.color) {
+          mat.color.setHex(0xcccccc).multiplyScalar(opacity)
+        }
+        if ('opacity' in mat) {
+          mat.opacity = opacity
+        }
+      }
+    }
+  }), [hasTitle, hasArtist, fadeStartFrame, fadeEndFrame, fadeFrames])
 
   if (!hasTitle && !hasArtist) return null
 
@@ -71,34 +92,36 @@ export default function RecordTitle({
     <group position={[0, topY, 0.5]}>
       {hasTitle && (
         <Text
+          ref={titleRef}
           font={PRIMARY_FONT}
           fontSize={titleSize}
-          color={titleColor}
-          fillOpacity={opacity}
+          color="#ffffff"
+          fillOpacity={1}
           anchorX="center"
           anchorY="middle"
           maxWidth={viewport.width * 0.8}
           outlineWidth={0}
-          transparent
         >
           {title}
         </Text>
       )}
       {hasArtist && (
         <Text
+          ref={artistRef}
           font={PRIMARY_FONT}
           fontSize={artistSize}
-          color={artistColor}
-          fillOpacity={opacity}
+          color="#cccccc"
+          fillOpacity={1}
           anchorX="center"
           anchorY="middle"
           position={[0, -titleSize * 0.9, 0]}
           maxWidth={viewport.width * 0.8}
-          transparent
         >
           {artist}
         </Text>
       )}
     </group>
   )
-}
+})
+
+export default FrameBasedTitle

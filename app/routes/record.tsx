@@ -2,13 +2,13 @@
 // Renders MIDI piano visualization offline for video creation
 
 import React, { useState, useEffect, useRef } from 'react'
-import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { Canvas, useThree } from '@react-three/fiber'
 import midiParser from '../utils/MidiParser'
-import useKeyStore from '../store/keyPressStore'  
 import useMidiStore from '../store/midiStore'
-import FrameBasedShaderBlocks from '../components/FrameBasedShaderBlocks'
-import RecordKeys from '../components/RecordKeys'
-import RecordTitle from '../components/RecordTitle'
+import FrameBasedShaderBlocks, { type FrameBasedShaderBlocksHandle } from '../components/FrameBasedShaderBlocks'
+import FrameBasedTitle, { type FrameBasedTitleHandle } from '../components/FrameBasedTitle'
+import FrameBasedKeyController, { type FrameBasedKeyControllerHandle } from '../components/FrameBasedKeyController'
+import RecordKeys from '../components/FrameBasedKeys'
 import * as THREE from 'three'
 import { ActionFunctionArgs, json } from '@remix-run/cloudflare'
 import { useFetcher } from '@remix-run/react'
@@ -170,86 +170,30 @@ function audioBufferToWav(buffer: AudioBuffer): Blob {
   return new Blob([arrayBuffer], { type: 'audio/wav' });
 }
 
-// Component that updates key states based on frame number (runs in R3F render loop)
-function KeyStateController({
-  frameNumberRef,
-  midiObject,
-  isRecording
-}: {
-  frameNumberRef: React.MutableRefObject<number>
-  midiObject: MidiNote[] | null
-  isRecording: boolean
-}) {
-  const activeNotesRef = useRef<Set<number>>(new Set())
-  const KEY_PRESS_DELAY_MS = -1000
-
-  useFrame(() => {
-    if (!isRecording || !midiObject) return
-
-    // Read current frame from ref (no React state!)
-    const currentFrame = frameNumberRef.current
-    // Apply a global note-start offset so keys (and thus frames) begin 2s after the MIDI timeline
-    const currentTimeMs = currentFrame * FRAME_DURATION_MS - NOTE_START_DELAY_SECONDS * 1000
-
-    // Calculate which notes should be active
-    const newActiveNotes = new Set<number>()
-
-    midiObject.forEach((note: MidiNote) => {
-      const noteStartMs = Math.floor(note.Delta / 1000)
-      const noteDurationMs = note.Duration / 1000000 * 1000
-      const noteEndMs = noteStartMs + noteDurationMs
-
-      const keyPressStartMs = noteStartMs - KEY_PRESS_DELAY_MS
-      const keyPressEndMs = noteEndMs - KEY_PRESS_DELAY_MS
-
-      if (currentTimeMs >= keyPressStartMs && currentTimeMs <= keyPressEndMs) {
-        newActiveNotes.add(note.NoteNumber)
-      }
-    })
-
-    // Update key states (only what changed)
-    const keyStore = useKeyStore.getState()
-
-    activeNotesRef.current.forEach(noteNumber => {
-      if (!newActiveNotes.has(noteNumber)) {
-        // @ts-expect-error - keyStore accepts numbers despite type error
-        keyStore.setKey(noteNumber, false)
-      }
-    })
-
-    newActiveNotes.forEach(noteNumber => {
-      if (!activeNotesRef.current.has(noteNumber)) {
-        // @ts-expect-error - keyStore accepts numbers despite type error
-        keyStore.setKey(noteNumber, true)
-      }
-    })
-
-    activeNotesRef.current = newActiveNotes
-  })
-
-  return null // This component doesn't render anything
-}
-
 // Component that captures frames in sync with R3F render loop
 // Deterministic recorder: manually advances R3F and captures each frame in order
 function DeterministicRecorder({
   isRecording,
   totalFrames,
+  noteStartDelayFrames,
   onComplete,
   wsRef,
   sessionId,
-  setUiFrameCount,
   setIsRecording,
-  frameNumberRef,
+  blocksRef,
+  titleRef,
+  keysRef,
 }: {
   isRecording: boolean
   totalFrames: number
+  noteStartDelayFrames: number
   onComplete: () => void
   wsRef: React.MutableRefObject<WebSocket | null>
   sessionId: string | null
-  setUiFrameCount: (count: number) => void
   setIsRecording: (recording: boolean) => void
-  frameNumberRef: React.MutableRefObject<number>
+  blocksRef: React.RefObject<FrameBasedShaderBlocksHandle | null>
+  titleRef: React.RefObject<FrameBasedTitleHandle | null>
+  keysRef: React.RefObject<FrameBasedKeyControllerHandle | null>
 }) {
   const { gl, advance } = useThree()
   const isRecordingRef = useRef(false)
@@ -259,7 +203,6 @@ function DeterministicRecorder({
     const canvas = gl?.domElement as HTMLCanvasElement | undefined
     if (!canvas) return
 
-    // gl.getContext().finish()
     const blob: Blob | null = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.95))
     if (!blob) return
 
@@ -283,31 +226,23 @@ function DeterministicRecorder({
     for (let i = 0; i < totalFrames; i++) {
       if (!isRecordingRef.current) break
 
-      // Set frame state for all useFrame subscribers (KeyStateController)
-      frameNumberRef.current = i
+      // Single source of truth: calculate adjusted frame here
+      const adjustedFrame = Math.max(0, i - noteStartDelayFrames)
 
-      // Force a single render/update pass for this frame index
-      await new Promise<void>((resolve) => {
-        advance(FRAME_DURATION_MS)
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            gl.getContext().finish()
-            resolve()
-          })
-        })
-      })
+      // Update all visual state imperatively
+      blocksRef.current?.setFrame(adjustedFrame)
+      titleRef.current?.setFrame(i)  // title uses raw frame for fade timing
+      keysRef.current?.setFrame(adjustedFrame)
+
+      // Render the scene
+      advance(i * FRAME_DURATION_MS)
+      gl.getContext().finish()
 
       // Capture and send
       await captureFramePayload(i)
-
-      // UI updates sparingly
-      // if (i % 10 === 0) {
-      //   setUiFrameCount(i)
-      // }
     }
 
     if (isRecordingRef.current) {
-      // setUiFrameCount(totalFrames - 1)
       setIsRecording(false)
       console.log('Recording complete! Finalizing...')
       setTimeout(() => onComplete(), 2000)
@@ -473,9 +408,12 @@ export default function Record() {
   const [midiObject, setMidiObject] = useState<MidiNote[] | null>(null)
   const [pianoLayout, setPianoLayout] = useState<PianoLayout>(DEFAULT_PIANO_LAYOUT)
   const [isRecording, setIsRecording] = useState(false)
-  const frameNumberRef = useRef(0)
-  const [uiFrameCount, setUiFrameCount] = useState(0) // For UI display only
   const canvasRef = useRef<HTMLCanvasElement>(null)
+
+  // Imperative refs for frame-based components
+  const blocksRef = useRef<FrameBasedShaderBlocksHandle>(null)
+  const titleRef = useRef<FrameBasedTitleHandle>(null)
+  const keysRef = useRef<FrameBasedKeyControllerHandle>(null)
   const midiFile = useMidiStore((state) => state.midiFile)
   const [isProcessingVideo, setIsProcessingVideo] = useState(false)
   const [audioFile, setAudioFile] = useState<File | null>(null)
@@ -761,9 +699,6 @@ export default function Record() {
     }
   }, [midiFile])
 
-  // Calculate playback frame from ref
-  const playbackFrame = Math.max(0, frameNumberRef.current - NOTE_START_DELAY_FRAMES)
-
   const midiFrameCount = midiObject ? calculateTotalFrames(midiObject) : 0
   const totalFrames = midiFrameCount + NOTE_START_DELAY_FRAMES
   const keyboardScaleOptions = {
@@ -1027,8 +962,6 @@ export default function Record() {
     }))
 
     setIsRecording(true)
-    frameNumberRef.current = 0
-    setUiFrameCount(0)
     console.log(`Starting recording: ${totalFrames} frames at ${FPS} FPS`)
     console.log(`Session ID: ${sessionId}`)
   }
@@ -1036,9 +969,6 @@ export default function Record() {
   // Stop recording and finalize
   const stopRecording = () => {
     setIsRecording(false)
-    frameNumberRef.current = 0
-    setUiFrameCount(0)
-
     console.log(`Recording stopped manually. Finalizing...`)
     // Wait for any pending frames to upload
     setTimeout(() => finalizeRecording(), 2000)
@@ -1158,8 +1088,7 @@ export default function Record() {
         
         {isRecording && (
           <div style={{ marginTop: '10px', fontSize: '12px' }}>
-            <p>Recording... {((uiFrameCount / totalFrames) * 100).toFixed(1)}%</p>
-            {/* <p>Uploaded: {uploadedFrameCount}/{totalFrames} frames</p> */}
+            <p>Recording...</p>
           </div>
         )}
         {isProcessingVideo && <p style={{ marginTop: '10px', fontSize: '12px' }}>Generating video...</p>}
@@ -1195,14 +1124,13 @@ export default function Record() {
           position={[directionalX, directionalY, directionalZ]} 
           intensity={directionalIntensity}
         />
-        <RecordTitle
+        <FrameBasedTitle
+          ref={titleRef}
           title={title}
           artist={artist}
-          frameNumberRef={frameNumberRef}
-          isRecording={isRecording}
           fps={FPS}
         />
-        
+
         <RecordKeys
           layout={pianoLayout}
           scaleMultiplier={keyboardScaleOptions.multiplier}
@@ -1210,18 +1138,15 @@ export default function Record() {
           scaleMax={keyboardScaleOptions.max}
         />
 
-        {/* Key state controller - updates key lighting based on frame ref */}
-        <KeyStateController
-          frameNumberRef={frameNumberRef}
+        <FrameBasedKeyController
+          ref={keysRef}
           midiObject={midiObject}
-          isRecording={isRecording}
         />
 
         {midiObject && (
-          <FrameBasedShaderBlocks 
-            midiObject={midiObject} 
-            frameNumberRef={frameNumberRef}
-            noteStartDelayFrames={NOTE_START_DELAY_FRAMES}
+          <FrameBasedShaderBlocks
+            ref={blocksRef}
+            midiObject={midiObject}
             layout={pianoLayout}
             scaleMultiplier={keyboardScaleOptions.multiplier}
             scaleFillRatio={keyboardScaleOptions.fillRatio}
@@ -1231,12 +1156,14 @@ export default function Record() {
         <DeterministicRecorder
           isRecording={isRecording}
           totalFrames={totalFrames}
+          noteStartDelayFrames={NOTE_START_DELAY_FRAMES}
           onComplete={() => finalizeRecording()}
           wsRef={wsRef}
           sessionId={recordingSessionId}
-          setUiFrameCount={setUiFrameCount}
           setIsRecording={setIsRecording}
-          frameNumberRef={frameNumberRef}
+          blocksRef={blocksRef}
+          titleRef={titleRef}
+          keysRef={keysRef}
         />
       </Canvas>
     </div>

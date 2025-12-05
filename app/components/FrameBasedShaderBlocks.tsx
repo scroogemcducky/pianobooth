@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useRef } from 'react'
+import { useEffect, useState, useMemo, useRef, forwardRef, useImperativeHandle } from 'react'
 import * as THREE from 'three'
 import { extend, useThree } from '@react-three/fiber'
 import { factor, speed, black_width, white_width, BLACK_KEY_COLOR, WHITE_KEY_COLOR } from '../utils/constants'
@@ -10,6 +10,12 @@ import {
   getKeyboardWidth,
   getNoteXPosition,
 } from '../utils/pianoLayout'
+
+const FRAME_DURATION_MS = 1000 / 60
+
+export interface FrameBasedShaderBlocksHandle {
+  setFrame: (adjustedFrame: number) => void
+}
 
 interface MidiNote {
   Delta: number;
@@ -86,15 +92,28 @@ declare module '@react-three/fiber' {
 
 extend({ CustomShaderMaterial });
 
+interface FrameBasedInstancesHandle {
+  setTime: (currentTimeMs: number) => void
+}
+
 interface FrameBasedInstancesProps {
   blocks: Block[];
   scaleFactor: number
-  currentTimeMs: number
   distance: number
 }
 
-function FrameBasedInstances({ blocks, scaleFactor, currentTimeMs, distance }: FrameBasedInstancesProps) {
+const FrameBasedInstances = forwardRef<FrameBasedInstancesHandle, FrameBasedInstancesProps>(
+  function FrameBasedInstances({ blocks, scaleFactor, distance }, ref) {
   const materialRef = useRef<CustomShaderMaterial>(null);
+
+  useImperativeHandle(ref, () => ({
+    setTime: (currentTimeMs: number) => {
+      if (!materialRef.current) return
+      const speedAdjusted = speed * distance / factor
+      const accumValue = (currentTimeMs / 1000) * speedAdjusted
+      materialRef.current.uniforms.uAccum.value = accumValue
+    }
+  }), [distance])
 
   const geometry = useMemo(() => {
     if (!blocks.length) return null;
@@ -156,15 +175,6 @@ function FrameBasedInstances({ blocks, scaleFactor, currentTimeMs, distance }: F
     geometry.attributes.isBlackKey.needsUpdate = true;
   }, [blocks, geometry, scaleFactor]);
 
-  // Update shader based on current time
-  useEffect(() => {
-    if (!materialRef.current) return;
-
-    const speedAdjusted = speed * distance / factor;
-    const accumValue = (currentTimeMs / 1000) * speedAdjusted;
-    materialRef.current.uniforms.uAccum.value = accumValue;
-  });
-
   if (!blocks.length || !geometry) return null;
 
   return (
@@ -173,31 +183,28 @@ function FrameBasedInstances({ blocks, scaleFactor, currentTimeMs, distance }: F
       <customShaderMaterial ref={materialRef} />
     </mesh>
   );
-}
+})
 
 interface FrameBasedShaderBlocksProps {
   midiObject: MidiNote[]
-  frameNumberRef: React.MutableRefObject<number>
-  noteStartDelayFrames: number
   layout?: PianoLayout
   scaleMultiplier?: number
   scaleFillRatio?: number
   scaleMax?: number
 }
 
-function FrameBasedShaderBlocks({
-  midiObject,
-  frameNumberRef,
-  noteStartDelayFrames,
-  layout,
-  scaleMultiplier = 1,
-  scaleFillRatio,
-  scaleMax,
-}: FrameBasedShaderBlocksProps) {
+const FrameBasedShaderBlocks = forwardRef<FrameBasedShaderBlocksHandle, FrameBasedShaderBlocksProps>(
+  function FrameBasedShaderBlocks({
+    midiObject,
+    layout,
+    scaleMultiplier = 1,
+    scaleFillRatio,
+    scaleMax,
+  }, ref) {
   const { viewport } = useThree()
   const [blocks, setBlocks] = useState<Block[]>([])
+  const instancesRef = useRef<FrameBasedInstancesHandle>(null)
   const activeLayout = layout ?? DEFAULT_PIANO_LAYOUT
-  const currentFrame = Math.max(0, (frameNumberRef?.current ?? 0) - noteStartDelayFrames)
 
   const totalKeyboardWidth = getKeyboardWidth(activeLayout)
   const scaleFactor = scalingFactor(viewport.width, totalKeyboardWidth, {
@@ -207,6 +214,13 @@ function FrameBasedShaderBlocks({
   })
   const { distance } = getKeyboardMetrics(viewport.height, scaleFactor)
   const half_screen = viewport.height / 2
+
+  useImperativeHandle(ref, () => ({
+    setFrame: (adjustedFrame: number) => {
+      const currentTimeMs = adjustedFrame * FRAME_DURATION_MS
+      instancesRef.current?.setTime(currentTimeMs)
+    }
+  }), [])
 
   useEffect(() => {
     if (midiObject) {
@@ -232,20 +246,18 @@ function FrameBasedShaderBlocks({
     }
   }, [activeLayout, midiObject, viewport.height, viewport.width, half_screen, distance, scaleFactor])
 
-  const currentTimeMs = currentFrame * (1000 / 60) // 60 FPS
-
   return (
     <>
       {blocks.length > 0 && (
-        <FrameBasedInstances 
+        <FrameBasedInstances
+          ref={instancesRef}
           blocks={blocks}
           scaleFactor={scaleFactor}
-          currentTimeMs={currentTimeMs}
           distance={distance}
         />
       )}
     </>
   )
-}
+})
 
 export default FrameBasedShaderBlocks
