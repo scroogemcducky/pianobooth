@@ -29,7 +29,6 @@
     "@supabase/ssr": "^0.5.1",
     "@supabase/supabase-js": "^2.46.1",
     "@tonejs/midi": "^2.0.28",
-    "framer-motion-3d": "^11.11.11",
     "isbot": "^3.6.8",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
