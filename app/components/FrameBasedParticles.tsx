@@ -496,7 +496,10 @@ const FrameBasedParticles = forwardRef<FrameBasedParticlesHandle, FrameBasedPart
       })
     }, [midiObject])
 
-    const perStreamCount = Math.max(50, Math.floor(settings.count / Math.max(1, activeNoteInfos.length)))
+    // Use a fixed particle count per stream to match real-time intensity
+    // In real-time, single notes get full settings.count (4000 default)
+    // We use a reasonable per-stream count that looks good regardless of total notes
+    const perStreamCount = Math.max(200, Math.floor(settings.count / 4))
 
     // Register stream ref
     const registerStreamRef = useCallback((noteNumber: number, handle: FrameBasedParticleStreamHandle | null) => {
