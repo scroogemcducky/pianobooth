@@ -227,6 +227,13 @@ function DeterministicRecorder({
   }
 
   const processRecording = async () => {
+    // Wait for title/artist text to be ready (font loaded) before capturing frames
+    if (titleRef.current?.waitForReady) {
+      console.log('⏳ Waiting for title text to be ready...')
+      await titleRef.current.waitForReady()
+      console.log('✅ Title text ready, starting frame capture')
+    }
+
     for (let i = 0; i < totalFrames; i++) {
       if (!isRecordingRef.current) break
 

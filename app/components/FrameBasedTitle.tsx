@@ -1,10 +1,11 @@
-import React, { useRef, forwardRef, useImperativeHandle } from 'react'
+import React, { useRef, forwardRef, useImperativeHandle, useCallback } from 'react'
 import { Text } from '@react-three/drei'
 import { useThree } from '@react-three/fiber'
 import { Color, Mesh } from 'three'
 
 export interface FrameBasedTitleHandle {
   setFrame: (rawFrame: number) => void
+  waitForReady: () => Promise<void>
 }
 
 type Props = {
@@ -35,6 +36,30 @@ const FrameBasedTitle = forwardRef<FrameBasedTitleHandle, Props>(
   const artistRef = useRef<Mesh>(null)
   const hasTitle = Boolean(title)
   const hasArtist = Boolean(artist)
+
+  // Track font/text readiness for both title and artist
+  const titleReadyRef = useRef(false)
+  const artistReadyRef = useRef(false)
+  const readyResolversRef = useRef<Array<() => void>>([])
+
+  const checkAndResolveReady = useCallback(() => {
+    const titleReady = !hasTitle || titleReadyRef.current
+    const artistReady = !hasArtist || artistReadyRef.current
+    if (titleReady && artistReady) {
+      readyResolversRef.current.forEach(resolve => resolve())
+      readyResolversRef.current = []
+    }
+  }, [hasTitle, hasArtist])
+
+  const onTitleSync = useCallback(() => {
+    titleReadyRef.current = true
+    checkAndResolveReady()
+  }, [checkAndResolveReady])
+
+  const onArtistSync = useCallback(() => {
+    artistReadyRef.current = true
+    checkAndResolveReady()
+  }, [checkAndResolveReady])
 
   const displayFrames = Math.round(DISPLAY_DURATION_SECONDS * fps)
   const fadeFrames = Math.max(1, Math.round(FADE_DURATION_SECONDS * fps))
@@ -79,6 +104,22 @@ const FrameBasedTitle = forwardRef<FrameBasedTitleHandle, Props>(
           mat.opacity = opacity
         }
       }
+    },
+    waitForReady: () => {
+      // If no title/artist, resolve immediately
+      if (!hasTitle && !hasArtist) {
+        return Promise.resolve()
+      }
+      // If already ready, resolve immediately
+      const titleReady = !hasTitle || titleReadyRef.current
+      const artistReady = !hasArtist || artistReadyRef.current
+      if (titleReady && artistReady) {
+        return Promise.resolve()
+      }
+      // Otherwise wait for onSync callbacks
+      return new Promise<void>((resolve) => {
+        readyResolversRef.current.push(resolve)
+      })
     }
   }), [hasTitle, hasArtist, fadeStartFrame, fadeEndFrame, fadeFrames])
 
@@ -101,6 +142,7 @@ const FrameBasedTitle = forwardRef<FrameBasedTitleHandle, Props>(
           anchorY="middle"
           maxWidth={viewport.width * 0.8}
           outlineWidth={0}
+          onSync={onTitleSync}
         >
           {title}
         </Text>
@@ -116,6 +158,7 @@ const FrameBasedTitle = forwardRef<FrameBasedTitleHandle, Props>(
           anchorY="middle"
           position={[0, -titleSize * 0.9, 0]}
           maxWidth={viewport.width * 0.8}
+          onSync={onArtistSync}
         >
           {artist}
         </Text>
