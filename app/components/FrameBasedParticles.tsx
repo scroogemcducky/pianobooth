@@ -44,6 +44,7 @@ const vertexShader = /* glsl */ `
   uniform float uHeight;
   uniform float uBaseSize;
   uniform vec3 uDrift;
+  uniform float uIntensity;
   attribute float aSeed;
   attribute float aLife;
   attribute float aSpeed;
@@ -54,6 +55,7 @@ const vertexShader = /* glsl */ `
   attribute vec2 aBaseOffset;
   varying float vProgress;
   varying float vSeed;
+  varying float vIntensity;
   void main() {
     float lifeTime = uTime * aSpeed + aPhase;
     float lifeProgress = fract(lifeTime / aLife);
@@ -69,9 +71,11 @@ const vertexShader = /* glsl */ `
 
     vProgress = lifeProgress;
     vSeed = aSeed;
+    vIntensity = uIntensity;
 
     vec4 mvPosition = modelViewMatrix * vec4(displaced, 1.0);
-    float size = uBaseSize * aSize * (1.0 - lifeProgress);
+    // Boost size based on intensity
+    float size = uBaseSize * aSize * (1.0 - lifeProgress) * uIntensity;
     gl_PointSize = max(1.0, size / -mvPosition.z);
     gl_Position = projectionMatrix * mvPosition;
   }
@@ -92,6 +96,7 @@ const fragmentShader = /* glsl */ `
   uniform float uGlowSpread;
   varying float vProgress;
   varying float vSeed;
+  varying float vIntensity;
   void main() {
     vec2 coord = gl_PointCoord - 0.5;
     float dist = length(coord);
@@ -113,12 +118,13 @@ const fragmentShader = /* glsl */ `
       float wave = fract(vSeed + uTime * uSparklingFrequency);
       float start = 1.0 - clamp(uSparklingDuration, 0.001, 0.999);
       if (wave > start) {
-        sparkle = ((wave - start) / (1.0 - start)) * uSparklingAlpha;
+        sparkle = ((wave - start) / (1.0 - start)) * uSparklingAlpha * vIntensity;
       }
     }
 
     vec3 color = mix(uAccentColor, uPrimaryColor, vProgress);
-    float finalAlpha = alpha * fade * uOpacity + sparkle;
+    // Boost opacity based on intensity
+    float finalAlpha = alpha * fade * uOpacity * vIntensity + sparkle;
     if (finalAlpha <= 0.01) discard;
     gl_FragColor = vec4(color, finalAlpha);
   }
@@ -134,7 +140,7 @@ function seededRandom(seed: number): () => number {
 }
 
 interface FrameBasedParticleStreamHandle {
-  setTime: (timeSeconds: number, visible: boolean) => void
+  setTime: (timeSeconds: number, visible: boolean, intensity: number) => void
 }
 
 type FrameBasedParticleStreamProps = {
@@ -313,6 +319,7 @@ const FrameBasedParticleStream = forwardRef<FrameBasedParticleStreamHandle, Fram
         uSolidAlpha: { value: 0 },
         uOpacity: { value: 1 },
         uGlowSpread: { value: 0 },
+        uIntensity: { value: 1 },
       }),
       [],
     )
@@ -368,12 +375,14 @@ const FrameBasedParticleStream = forwardRef<FrameBasedParticleStreamHandle, Fram
       }
     }, [basePosition])
 
-    // Expose setTime for imperative time updates with visibility control
+    // Expose setTime for imperative time updates with visibility and intensity control
     useImperativeHandle(ref, () => ({
-      setTime: (timeSeconds: number, visible: boolean) => {
+      setTime: (timeSeconds: number, visible: boolean, intensity: number) => {
         uniforms.uTime.value = timeSeconds + timeOffset
         // Control visibility by setting opacity to 0 when not visible
         uniforms.uOpacity.value = visible ? opacity : 0
+        // Set intensity for attack envelope effect
+        uniforms.uIntensity.value = intensity
         const [x, y, z] = basePositionRef.current
         if (pointsRef.current) {
           pointsRef.current.position.set(x, y, z)
@@ -447,15 +456,27 @@ const FrameBasedParticles = forwardRef<FrameBasedParticlesHandle, FrameBasedPart
       })
     }, [midiObject])
 
-    // Calculate active notes for a given time
-    const getActiveNotesAtTime = useCallback((currentTimeMs: number): Set<number> => {
-      const active = new Set<number>()
+    // Attack envelope parameters
+    const ATTACK_BOOST = 0.6 // 60% extra intensity at note start
+    const DECAY_TIME_MS = 250 // Time to decay back to base level
+
+    // Calculate active notes and their intensity for a given time
+    const getActiveNotesWithIntensity = useCallback((currentTimeMs: number): Map<number, number> => {
+      const activeWithIntensity = new Map<number, number>()
       for (const timing of noteTimingData) {
         if (currentTimeMs >= timing.keyPressStartMs && currentTimeMs <= timing.keyPressEndMs) {
-          active.add(timing.noteNumber)
+          // Calculate time since note started
+          const timeSinceStart = currentTimeMs - timing.keyPressStartMs
+          // Exponential decay from attack boost to base level
+          const intensity = 1.0 + ATTACK_BOOST * Math.exp(-timeSinceStart / DECAY_TIME_MS)
+          // Keep the highest intensity if same note appears multiple times
+          const existing = activeWithIntensity.get(timing.noteNumber)
+          if (existing === undefined || intensity > existing) {
+            activeWithIntensity.set(timing.noteNumber, intensity)
+          }
         }
       }
-      return active
+      return activeWithIntensity
     }, [noteTimingData])
 
     // Expose setFrame for imperative control
@@ -465,17 +486,18 @@ const FrameBasedParticles = forwardRef<FrameBasedParticlesHandle, FrameBasedPart
         const currentTimeSeconds = currentTimeMs / 1000
         currentTimeRef.current = currentTimeSeconds
 
-        // Calculate which notes should be active
-        const newActiveNotes = getActiveNotesAtTime(currentTimeMs)
-        activeNotesRef.current = newActiveNotes
+        // Calculate which notes should be active and their intensity
+        const activeNotesWithIntensity = getActiveNotesWithIntensity(currentTimeMs)
+        activeNotesRef.current = new Set(activeNotesWithIntensity.keys())
 
-        // Update all streams with visibility based on active state
+        // Update all streams with visibility and intensity based on active state
         streamRefs.current.forEach((streamRef, noteNumber) => {
-          const isActive = newActiveNotes.has(noteNumber)
-          streamRef.setTime(currentTimeSeconds, isActive)
+          const intensity = activeNotesWithIntensity.get(noteNumber)
+          const isActive = intensity !== undefined
+          streamRef.setTime(currentTimeSeconds, isActive, isActive ? intensity : 1.0)
         })
       }
-    }), [getActiveNotesAtTime])
+    }), [getActiveNotesWithIntensity])
 
     // Build active note info for rendering
     const activeNoteInfos = useMemo((): ActiveNoteInfo[] => {
