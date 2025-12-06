@@ -5,7 +5,6 @@ node_modules/
 build/
 public/build/
 dist/
-midi/
 
 # Logs and diagnostics
 logs/
