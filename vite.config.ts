@@ -13,6 +13,12 @@ declare module "@remix-run/cloudflare" {
 }
 
 export default defineConfig({
+  resolve: {
+    dedupe: ['react', 'react-dom', 'scheduler', '@remix-run/react'],
+  },
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime'],
+  },
   plugins: [
     remixCloudflareDevProxy(),
     remix({
