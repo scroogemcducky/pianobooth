@@ -16,6 +16,8 @@ type MidiNote = {
 type LoaderData = {
   title: string
   artist: string
+  artistSlug: string
+  songSlug: string
   durationMs: number
   midiSha256: string
   midiObject: MidiNote[]
@@ -32,25 +34,41 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
     { title: 'Piano Piece' },
     { name: 'description', content: 'Interactive MIDI piano visualization.' },
   ]
+
+  const pageTitle = `${data.title} — ${data.artist}`
+  const description = `Interactive MIDI visualization of ${data.title} by ${data.artist}. Practice piano with animated falling notes.`
+  const ogImageUrl = `/og-images/${data.artistSlug}/${data.songSlug}.png`
+
   return [
-    { title: `${data.title} — ${data.artist}` },
-    { name: 'description', content: `Interactive MIDI visualization of ${data.title} by ${data.artist}.` },
-    { property: 'og:title', content: `${data.title} — ${data.artist}` },
-    { property: 'og:description', content: `Interactive MIDI visualization of ${data.title} by ${data.artist}.` },
+    { title: pageTitle },
+    { name: 'description', content: description },
+    // Open Graph
+    { property: 'og:type', content: 'website' },
+    { property: 'og:title', content: pageTitle },
+    { property: 'og:description', content: description },
+    { property: 'og:image', content: ogImageUrl },
+    { property: 'og:image:width', content: '1200' },
+    { property: 'og:image:height', content: '630' },
+    // Twitter Card
+    { name: 'twitter:card', content: 'summary_large_image' },
+    { name: 'twitter:title', content: pageTitle },
+    { name: 'twitter:description', content: description },
+    { name: 'twitter:image', content: ogImageUrl },
   ]
 }
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
-  const artist = params.artist || ''
-  const song = params.song || ''
-  if (!artist || !song) throw new Response('Not Found', { status: 404 })
+  const artistSlug = params.artist || ''
+  const songSlug = params.song || ''
+  if (!artistSlug || !songSlug) throw new Response('Not Found', { status: 404 })
   const url = new URL(request.url)
-  const jsonUrl = `${url.origin}/public_midi_json/${encodeURIComponent(artist)}/${encodeURIComponent(song)}.json`
+  const jsonUrl = `${url.origin}/public_midi_json/${encodeURIComponent(artistSlug)}/${encodeURIComponent(songSlug)}.json`
   const res = await fetch(jsonUrl)
   if (!res.ok) throw new Response('Not Found', { status: 404 })
   const data = await res.json() as LoaderData
   if (!data || !Array.isArray(data.midiObject)) throw new Response('Bad Data', { status: 500 })
-  return json<LoaderData>(data)
+  // Include slugs for OG image URL generation
+  return json<LoaderData>({ ...data, artistSlug, songSlug })
 }
 
 export default function PublicPieceByArtistSongRoute() {
