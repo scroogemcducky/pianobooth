@@ -3,7 +3,7 @@ import { ShaderMaterial } from 'three'
 import { extend, useFrame } from '@react-three/fiber'
 import React, { useMemo, useRef, useEffect, type Ref } from 'react'
 import usePlayStore from '../store/playStore'
-import { factor, BLACK_KEY_COLOR, WHITE_KEY_COLOR } from '../utils/constants'
+import { BLACK_KEY_COLOR, WHITE_KEY_COLOR } from '../utils/constants'
 
 interface Block {
   position: [number, number, number]
@@ -90,6 +90,7 @@ const CustomGeometryParticles: React.FC<CustomGeometryParticlesProps> = ({
 }) => {
   const playing = usePlayStore((state) => state.playing)
   const speed = usePlayStore((state) => state.speed)
+  const lookahead = usePlayStore((state) => state.lookahead)
   const materialRef = useRef<CustomShaderMaterial>(null)
 
   const timeRef = useRef(0)
@@ -141,7 +142,7 @@ const CustomGeometryParticles: React.FC<CustomGeometryParticlesProps> = ({
       seek: (ms: number) => {
         timeRef.current = ms
         if (materialRef.current) {
-          materialRef.current.uniforms.uAccum.value = (distance / factor) * (ms / 1000)
+          materialRef.current.uniforms.uAccum.value = (distance / lookahead) * (ms / 1000)
         }
         // Binary search to find first note strictly after ms
         let lo = 0
@@ -164,9 +165,9 @@ const CustomGeometryParticles: React.FC<CustomGeometryParticlesProps> = ({
         if ((visualizerRef as any).current === handle) (visualizerRef as any).current = null
       }
     }
-  }, [visualizerRef, distance, notes])
+  }, [visualizerRef, distance, lookahead, notes])
 
-  const speedAdjusted = useMemo(() => speed * distance / factor, [speed, distance])
+  const speedAdjusted = useMemo(() => speed * distance / lookahead, [speed, distance, lookahead])
   const speed_ms = useMemo(() => speed * 1000, [speed])
   const block_duration_factor = useMemo(() => 1000 / speed, [speed])
 

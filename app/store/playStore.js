@@ -7,6 +7,8 @@ const useStore = create(set => ({
   setSpeed: (speed) => set({ speed }),
   particlesEnabled: true,
   setParticlesEnabled: (value) => set({ particlesEnabled: value }),
+  lookahead: 2,
+  setLookahead: (lookahead) => set({ lookahead }),
 
 }))
 
