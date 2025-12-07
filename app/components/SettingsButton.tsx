@@ -96,6 +96,8 @@ const SettingsButton = ({ onClick }: SettingsButtonProps) => {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const speed = usePlayStore(state => state.speed);
   const setSpeed = usePlayStore(state => state.setSpeed);
+  const lookahead = usePlayStore(state => state.lookahead);
+  const setLookahead = usePlayStore(state => state.setLookahead);
   const particlesEnabled = usePlayStore((state) => state.particlesEnabled);
   const setParticlesEnabled = usePlayStore((state) => state.setParticlesEnabled);
   const {
@@ -240,6 +242,22 @@ const SettingsButton = ({ onClick }: SettingsButtonProps) => {
                 value={speed}
                 aria-label="Playback speed"
                 onChange={(e) => setSpeed(parseFloat(e.target.value))}
+                className="w-full accent-white"
+              />
+            </li>
+            <li className="border-b border-white/20 pb-3">
+              <div className="flex items-center justify-between text-xs uppercase tracking-wide mb-2">
+                <span>Note Lookahead</span>
+                <span className="text-[10px] opacity-80">{lookahead.toFixed(1)}s</span>
+              </div>
+              <input
+                type="range"
+                min="0.5"
+                max="4"
+                step="0.5"
+                value={lookahead}
+                aria-label="Note lookahead time"
+                onChange={(e) => setLookahead(parseFloat(e.target.value))}
                 className="w-full accent-white"
               />
             </li>
