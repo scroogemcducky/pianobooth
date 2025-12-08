@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo, useRef, forwardRef, useImperativeHandle } from 'react'
 import * as THREE from 'three'
 import { extend, useThree } from '@react-three/fiber'
-import { factor, speed, black_width, white_width, BLACK_KEY_COLOR, WHITE_KEY_COLOR } from '../utils/constants'
+import { speed, black_width, white_width, BLACK_KEY_COLOR, WHITE_KEY_COLOR } from '../utils/constants'
 import { calculateHeight, isBlack, scalingFactor } from '../utils/functions.js'
 import {
   type PianoLayout,
@@ -100,20 +100,21 @@ interface FrameBasedInstancesProps {
   blocks: Block[];
   scaleFactor: number
   distance: number
+  lookahead: number
 }
 
 const FrameBasedInstances = forwardRef<FrameBasedInstancesHandle, FrameBasedInstancesProps>(
-  function FrameBasedInstances({ blocks, scaleFactor, distance }, ref) {
+  function FrameBasedInstances({ blocks, scaleFactor, distance, lookahead }, ref) {
   const materialRef = useRef<CustomShaderMaterial>(null);
 
   useImperativeHandle(ref, () => ({
     setTime: (currentTimeMs: number) => {
       if (!materialRef.current) return
-      const speedAdjusted = speed * distance / factor
+      const speedAdjusted = speed * distance / lookahead
       const accumValue = (currentTimeMs / 1000) * speedAdjusted
       materialRef.current.uniforms.uAccum.value = accumValue
     }
-  }), [distance])
+  }), [distance, lookahead])
 
   const geometry = useMemo(() => {
     if (!blocks.length) return null;
@@ -191,6 +192,7 @@ interface FrameBasedShaderBlocksProps {
   scaleMultiplier?: number
   scaleFillRatio?: number
   scaleMax?: number
+  lookahead?: number
 }
 
 const FrameBasedShaderBlocks = forwardRef<FrameBasedShaderBlocksHandle, FrameBasedShaderBlocksProps>(
@@ -200,6 +202,7 @@ const FrameBasedShaderBlocks = forwardRef<FrameBasedShaderBlocksHandle, FrameBas
     scaleMultiplier = 1,
     scaleFillRatio,
     scaleMax,
+    lookahead = 3,
   }, ref) {
   const { viewport } = useThree()
   const [blocks, setBlocks] = useState<Block[]>([])
@@ -225,10 +228,10 @@ const FrameBasedShaderBlocks = forwardRef<FrameBasedShaderBlocksHandle, FrameBas
   useEffect(() => {
     if (midiObject) {
       const newBlocks = midiObject.map((note) => {
-        const height = calculateHeight(note.Duration, distance) / factor
+        const height = calculateHeight(note.Duration, distance) / lookahead
         const deltaMs = Math.floor(note.Delta / 1000)
         const xPosition = getNoteXPosition(note.NoteNumber, activeLayout)
-        const yPosition = height / 2 + half_screen + (distance * deltaMs) / (1000 * factor)
+        const yPosition = height / 2 + half_screen + (distance * deltaMs) / (1000 * lookahead)
         const blockWidth = isBlack(note.NoteNumber) ? black_width : white_width - 0.1
         return {
           noteNumber: note.NoteNumber,
@@ -244,7 +247,7 @@ const FrameBasedShaderBlocks = forwardRef<FrameBasedShaderBlocksHandle, FrameBas
 
       setBlocks(newBlocks)
     }
-  }, [activeLayout, midiObject, viewport.height, viewport.width, half_screen, distance, scaleFactor])
+  }, [activeLayout, midiObject, viewport.height, viewport.width, half_screen, distance, scaleFactor, lookahead])
 
   return (
     <>
@@ -254,6 +257,7 @@ const FrameBasedShaderBlocks = forwardRef<FrameBasedShaderBlocksHandle, FrameBas
           blocks={blocks}
           scaleFactor={scaleFactor}
           distance={distance}
+          lookahead={lookahead}
         />
       )}
     </>

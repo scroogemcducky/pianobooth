@@ -8,7 +8,6 @@ import useParticleSettingsStore, { type ParticleSettings, PARTICLE_DEFAULTS } fr
 import { isBlack } from '../utils/functions'
 
 const FRAME_DURATION_MS = 1000 / 60
-const KEY_PRESS_DELAY_MS = -1000
 
 export interface FrameBasedParticlesHandle {
   setFrame: (adjustedFrame: number) => void
@@ -34,6 +33,7 @@ interface FrameBasedParticlesProps {
   scaleMultiplier?: number
   scaleFillRatio?: number
   scaleMax?: number
+  lookahead?: number
 }
 
 const WHITE_KEY_Z = 2.2
@@ -409,7 +409,7 @@ const FrameBasedParticleStream = forwardRef<FrameBasedParticleStreamHandle, Fram
 
 const FrameBasedParticles = forwardRef<FrameBasedParticlesHandle, FrameBasedParticlesProps>(
   function FrameBasedParticles(
-    { midiObject, layout, scaleMultiplier = 1, scaleFillRatio, scaleMax },
+    { midiObject, layout, scaleMultiplier = 1, scaleFillRatio, scaleMax, lookahead = 3 },
     ref
   ) {
     const { viewport } = useThree()
@@ -441,20 +441,21 @@ const FrameBasedParticles = forwardRef<FrameBasedParticlesHandle, FrameBasedPart
     // Pre-compute note timing data for efficient frame lookups
     const noteTimingData = useMemo(() => {
       if (!midiObject) return []
+      // Key press is delayed by lookahead seconds so it syncs with notes reaching keyboard
+      const keyPressDelayMs = lookahead * 1000
       return midiObject.map((note) => {
         const noteStartMs = Math.floor(note.Delta / 1000)
         const noteDurationMs = (note.Duration / 1000000) * 1000
         const noteEndMs = noteStartMs + noteDurationMs
-        // Use same delay as FrameBasedKeyController for sync
-        const keyPressStartMs = noteStartMs - KEY_PRESS_DELAY_MS
-        const keyPressEndMs = noteEndMs - KEY_PRESS_DELAY_MS
+        const keyPressStartMs = noteStartMs + keyPressDelayMs
+        const keyPressEndMs = noteEndMs + keyPressDelayMs
         return {
           noteNumber: note.NoteNumber,
           keyPressStartMs,
           keyPressEndMs,
         }
       })
-    }, [midiObject])
+    }, [midiObject, lookahead])
 
     // Attack envelope parameters
     const ATTACK_BOOST = 0.6 // 60% extra intensity at note start

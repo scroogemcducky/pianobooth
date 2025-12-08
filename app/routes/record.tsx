@@ -104,11 +104,12 @@ interface FetcherData {
 
 // Frame recording configuration
 const FPS = 60
-// Keep the recorded audio/visuals two seconds behind the original MIDI timing
+// Visual intro delay before notes start appearing
 const NOTE_START_DELAY_SECONDS = 2
-// Keys light up 1 second after the note's Delta time (KEY_PRESS_DELAY_MS = -1000 in FrameBasedKeyController)
-const KEY_PRESS_DELAY_SECONDS = 1
-const AUDIO_PLAYBACK_DELAY_SECONDS = NOTE_START_DELAY_SECONDS + KEY_PRESS_DELAY_SECONDS  // 3 seconds total
+// Time for notes to fall from top to keyboard (must match lookahead prop in frame-based components)
+const LOOKAHEAD_SECONDS = 3
+// Audio plays when keys press (intro delay + lookahead for notes to reach keyboard)
+const AUDIO_PLAYBACK_DELAY_SECONDS = NOTE_START_DELAY_SECONDS + LOOKAHEAD_SECONDS  // 5 seconds total
 const NOTE_START_DELAY_FRAMES = Math.round(NOTE_START_DELAY_SECONDS * FPS)
 const FRAME_DURATION_MS = 1000 / FPS
 const CANVAS_WIDTH = 1920
@@ -122,15 +123,18 @@ const sanitizeFileName = (s: string): string => s.replace(/[\\/:*?"<>|]/g, '').r
 // Calculate total duration and frames needed
 function calculateTotalFrames(midiObject: MidiNote[]): number {
   if (!midiObject || midiObject.length === 0) return 0
-  
-  // Find the last note end time
-  const lastNoteEnd = Math.max(...midiObject.map((note: MidiNote) => 
+
+  // Find the last note end time (in MIDI time)
+  const lastNoteEnd = Math.max(...midiObject.map((note: MidiNote) =>
     Math.floor(note.Delta / 1000) + (note.Duration / 1000000 * 1000)
   ))
-  
-  // Add some padding at the end (2 seconds)
-  const totalDurationMs = lastNoteEnd + 2000
-  
+
+  // Total duration includes:
+  // - lastNoteEnd: when the last note finishes in MIDI time
+  // - LOOKAHEAD_SECONDS * 1000: time for that note to fall from top to keyboard
+  // - 2000: tail padding after last note finishes
+  const totalDurationMs = lastNoteEnd + (LOOKAHEAD_SECONDS * 1000) + 2000
+
   return Math.ceil(totalDurationMs / FRAME_DURATION_MS)
 }
 
@@ -730,10 +734,10 @@ export default function Record() {
     console.log(`🎵 Generating audio from MIDI for ${midiObject.length} notes...`)
 
     // Calculate total duration:
-    // - 3 second intro delay (2s visual delay + 1s key press delay to sync with key activation)
+    // - 5 second intro delay (2s visual intro + 3s lookahead for notes to reach keyboard)
     // - MIDI duration
     // - 2 second tail padding
-    const introDelayMs = AUDIO_PLAYBACK_DELAY_SECONDS * 1000  // 3000ms (matches when keys light up)
+    const introDelayMs = AUDIO_PLAYBACK_DELAY_SECONDS * 1000  // 5000ms (matches when keys light up)
     const lastNoteEndMs = Math.max(...midiObject.map(note =>
       Math.floor(note.Delta / 1000) + (note.Duration / 1000000 * 1000)
     ))
@@ -760,10 +764,10 @@ export default function Record() {
       const offlineInstrument = await soundFont.instrument(offlineContext, 'acoustic_grand_piano')
       console.log('   ✅ Offline instrument loaded')
 
-      // Schedule all notes with 3-second delay to match when keys light up
-      // (2s visual intro + 1s KEY_PRESS_DELAY_MS offset in FrameBasedKeyController)
+      // Schedule all notes with delay to match when keys light up
+      // (2s visual intro + 3s lookahead for notes to reach keyboard)
       let scheduledNotes = 0
-      const delaySeconds = AUDIO_PLAYBACK_DELAY_SECONDS  // 3 seconds to sync with key activation
+      const delaySeconds = AUDIO_PLAYBACK_DELAY_SECONDS  // 5 seconds to sync with key activation
 
       for (const note of midiObject) {
         const noteTimeSeconds = Math.floor(note.Delta / 1000) / 1000

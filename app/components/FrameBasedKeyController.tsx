@@ -15,13 +15,13 @@ export interface FrameBasedKeyControllerHandle {
 
 interface Props {
   midiObject: MidiNote[] | null
+  lookahead?: number
 }
 
 const FRAME_DURATION_MS = 1000 / 60
-const KEY_PRESS_DELAY_MS = -1000
 
 const FrameBasedKeyController = forwardRef<FrameBasedKeyControllerHandle, Props>(
-  function FrameBasedKeyController({ midiObject }, ref) {
+  function FrameBasedKeyController({ midiObject, lookahead = 3 }, ref) {
   const activeNotesRef = useRef<Set<number>>(new Set())
 
   useImperativeHandle(ref, () => ({
@@ -29,6 +29,8 @@ const FrameBasedKeyController = forwardRef<FrameBasedKeyControllerHandle, Props>
       if (!midiObject) return
 
       const currentTimeMs = adjustedFrame * FRAME_DURATION_MS
+      // Key press is delayed by lookahead seconds so it syncs with notes reaching keyboard
+      const keyPressDelayMs = lookahead * 1000
 
       // Calculate which notes should be active
       const newActiveNotes = new Set<number>()
@@ -38,8 +40,8 @@ const FrameBasedKeyController = forwardRef<FrameBasedKeyControllerHandle, Props>
         const noteDurationMs = note.Duration / 1000000 * 1000
         const noteEndMs = noteStartMs + noteDurationMs
 
-        const keyPressStartMs = noteStartMs - KEY_PRESS_DELAY_MS
-        const keyPressEndMs = noteEndMs - KEY_PRESS_DELAY_MS
+        const keyPressStartMs = noteStartMs + keyPressDelayMs
+        const keyPressEndMs = noteEndMs + keyPressDelayMs
 
         if (currentTimeMs >= keyPressStartMs && currentTimeMs <= keyPressEndMs) {
           newActiveNotes.add(note.NoteNumber)
@@ -63,7 +65,7 @@ const FrameBasedKeyController = forwardRef<FrameBasedKeyControllerHandle, Props>
 
       activeNotesRef.current = newActiveNotes
     }
-  }), [midiObject])
+  }), [midiObject, lookahead])
 
   return null
 })
