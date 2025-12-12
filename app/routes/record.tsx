@@ -11,9 +11,7 @@ import FrameBasedKeyController, { type FrameBasedKeyControllerHandle } from '../
 import FrameBasedParticles, { type FrameBasedParticlesHandle } from '../components/FrameBasedParticles'
 import RecordKeys from '../components/FrameBasedKeys'
 import * as THREE from 'three'
-import { ActionFunctionArgs, json } from '@remix-run/cloudflare'
-import { useFetcher } from '@remix-run/react'
-import soundFont, { Player } from 'soundfont-player'
+import soundFont from 'soundfont-player'
 import { computePianoLayout, DEFAULT_PIANO_LAYOUT, type PianoLayout } from '../utils/pianoLayout'
 
 const KNOWN_COMPOSERS = /(bach|beethoven|chopin|debussy|mozart|liszt|schubert|schumann|rachmaninoff|handel|haydn|tchaikovsky|gershwin|albeniz)/i
@@ -95,13 +93,6 @@ interface MidiNote {
   SoundDuration: number;
 }
 
-interface FetcherData {
-  success?: boolean;
-  videoUrl?: string;
-  message?: string;
-  error?: string;
-}
-
 // Frame recording configuration
 const FPS = 60
 // Visual intro delay before notes start appearing
@@ -114,11 +105,6 @@ const NOTE_START_DELAY_FRAMES = Math.round(NOTE_START_DELAY_SECONDS * FPS)
 const FRAME_DURATION_MS = 1000 / FPS
 const CANVAS_WIDTH = 1920
 const CANVAS_HEIGHT = 1080
-const VIDEO_POLL_INTERVAL_MS = 3000
-const VIDEO_POLL_MAX_ATTEMPTS = 100
-
-// Mirror server-side file name sanitization
-const sanitizeFileName = (s: string): string => s.replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, ' ').trim()
 
 // Calculate total duration and frames needed
 function calculateTotalFrames(midiObject: MidiNote[]): number {
@@ -283,143 +269,6 @@ function DeterministicRecorder({
   return null
 }
 
-// Server action to process frames and generate video with optional audio
-export async function action({ request }: ActionFunctionArgs) {
-  console.log('🚀 Server action started')
-  
-  let formData;
-  try {
-    formData = await request.formData()
-    console.log('📝 Form data received successfully')
-  } catch (error) {
-    console.error('❌ Failed to parse form data:', error)
-    return json({ error: 'Failed to parse form data - possibly too large' }, { status: 413 })
-  }
-  
-  const framesData = formData.get('frames') as string
-  const fps = parseInt(formData.get('fps') as string) || 60
-  const audioBase64 = formData.get('audio_base64') as string | null;
-  
-  console.log('📋 Form entries:', Array.from(formData.keys()))
-  
-  if (!framesData) {
-    return json({ error: 'No frames data provided' }, { status: 400 })
-  }
-
-  try {
-    const frames = JSON.parse(framesData) as string[]
-    
-    // Dynamic imports for Node.js modules (only available on server)
-    const { spawn } = await import('child_process')
-    const fs = await import('fs')
-    const path = await import('path')
-    const { promisify } = await import('util')
-    const writeFile = promisify(fs.writeFile)
-    const mkdir = promisify(fs.mkdir)
-    
-    // Create temporary directory
-    const tempDir = path.join(process.cwd(), 'temp_frames', `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`)
-    await mkdir(tempDir, { recursive: true })
-    
-    console.log(`Processing ${frames.length} frames...`)
-    
-    // Save all frames to temporary directory
-    const framePromises = frames.map(async (dataURL, index) => {
-      if (dataURL) {
-        const base64Data = dataURL.replace(/^data:image\/png;base64,/, '')
-        const buffer = Buffer.from(base64Data, 'base64')
-        const filename = `frame_${String(index).padStart(6, '0')}.png`
-        const filepath = path.join(tempDir, filename)
-        await writeFile(filepath, buffer)
-      }
-    })
-    
-    await Promise.all(framePromises)
-    console.log('All frames saved to disk')
-    
-    // Handle audio file if provided
-    let audioPath: string | null = null;
-    if (audioBase64) {
-      console.log(`📄 Base64 audio data received, decoding...`);
-      const audioBuffer = Buffer.from(audioBase64, 'base64');
-      audioPath = path.join(tempDir, 'audio.wav');
-      await writeFile(audioPath, audioBuffer);
-      console.log(`✅ Audio file saved from base64 to: ${audioPath}`);
-    } else {
-      console.log('❌ No audio data provided to server.');
-    }
-    
-    // Generate video with ffmpeg (with or without audio)
-    const outputPath = path.join(process.cwd(), 'public', `piano_video_${Date.now()}.mp4`)
-    
-    return new Promise((resolve) => {
-      const ffmpegArgs = [
-        '-framerate', fps.toString(),
-        '-i', path.join(tempDir, 'frame_%06d.png')
-      ]
-      
-      // Add audio input if provided
-      if (audioPath) {
-        console.log(`🎵 Adding audio input: ${audioPath}`)
-        ffmpegArgs.push('-i', audioPath)
-        ffmpegArgs.push('-c:a', 'aac')
-        ffmpegArgs.push('-b:a', '192k') // High quality audio
-      } else {
-        console.log('🔇 No audio - creating video without sound')
-      }
-      
-      // Video encoding settings
-      ffmpegArgs.push(
-        '-c:v', 'libx264',
-        '-pix_fmt', 'yuv420p',
-        '-preset', 'fast',
-        '-crf', '18' // High quality
-      )
-      
-      // If audio is provided, ensure video and audio are same length
-      if (audioPath) {
-        ffmpegArgs.push('-shortest')
-      }
-      
-      ffmpegArgs.push(outputPath)
-      
-      console.log(`🎬 FFmpeg command: ffmpeg ${ffmpegArgs.join(' ')}`)
-      const ffmpeg = spawn('ffmpeg', ffmpegArgs)
-      
-      ffmpeg.stderr.on('data', (data) => {
-        console.log(`ffmpeg: ${data}`)
-      })
-      
-      ffmpeg.on('close', async (code) => {
-        // Clean up temporary files
-        try {
-          const files = await fs.promises.readdir(tempDir)
-          await Promise.all(files.map(file => fs.promises.unlink(path.join(tempDir, file))))
-          await fs.promises.rmdir(tempDir)
-        } catch (error) {
-          console.error('Cleanup error:', error)
-        }
-        
-        if (code === 0) {
-          const videoFileName = path.basename(outputPath)
-          const audioType = audioPath ? ' with audio' : ''
-          resolve(json({ 
-            success: true, 
-            videoUrl: `/${videoFileName}`,
-            message: `Video generated${audioType}: ${videoFileName}`
-          }))
-        } else {
-          resolve(json({ error: 'ffmpeg failed' }, { status: 500 }))
-        }
-      })
-    })
-    
-  } catch (error) {
-    console.error('Server action error:', error)
-    return json({ error: 'Failed to process frames' }, { status: 500 })
-  }
-}
-
 export default function Record() {
   const [midiObject, setMidiObject] = useState<MidiNote[] | null>(null)
   const [pianoLayout, setPianoLayout] = useState<PianoLayout>(DEFAULT_PIANO_LAYOUT)
@@ -439,9 +288,6 @@ export default function Record() {
   const [ws, setWs] = useState<WebSocket | null>(null)
   const [wsConnected, setWsConnected] = useState(false)
   const [recordingSessionId, setRecordingSessionId] = useState<string | null>(null)
-  const [uploadedFrameCount, setUploadedFrameCount] = useState(0)
-  const [ac, setAc] = useState<AudioContext | null>(null)
-  const [instrument, setInstrument] = useState<Player | null>(null)
   const [title, setTitle] = useState('Untitled')
   const [artist, setArtist] = useState('Piano')
   const [ambientIntensity, setAmbientIntensity] = useState(7.5)
@@ -449,106 +295,14 @@ export default function Record() {
   const [directionalX, setDirectionalX] = useState(9)
   const [directionalY, setDirectionalY] = useState(-6)
   const [directionalZ, setDirectionalZ] = useState(123)
-  const fetcher = useFetcher<FetcherData>()
   const wsRef = useRef<WebSocket | null>(null)
   const connectWebSocketRef = useRef<() => void>(() => {})
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const recordingSessionIdRef = useRef<string | null>(null)
-  const uploadedFrameCountRef = useRef(0)
-  const videoPollingRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
     recordingSessionIdRef.current = recordingSessionId
   }, [recordingSessionId])
-
-  useEffect(() => {
-    uploadedFrameCountRef.current = uploadedFrameCount
-  }, [uploadedFrameCount])
-
-  const handleVideoReady = (videoUrl: string) => {
-    if (videoPollingRef.current) {
-      clearInterval(videoPollingRef.current)
-      videoPollingRef.current = null
-    }
-    setIsProcessingVideo(false)
-
-    // Auto-download the video
-    const link = document.createElement('a')
-    link.href = videoUrl
-    const videoName = videoUrl.split('/').pop()
-    if (videoName) {
-      link.download = videoName
-    }
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    console.log(`Video created successfully! ${videoName || videoUrl}`)
-  }
-
-  const startVideoPolling = () => {
-    // Avoid duplicate pollers
-    if (videoPollingRef.current) return
-
-    setIsProcessingVideo(true)
-    const videoFileName = `${sanitizeFileName(`${artist} - ${title}`)}.mp4`
-    console.log(`📡 Polling for video file: ${videoFileName}`)
-    let attempts = 0
-
-    const poll = async () => {
-      attempts++
-      try {
-        const res = await fetch(`/${videoFileName}`, { method: 'HEAD', cache: 'no-cache' })
-        if (res.ok) {
-          if (videoPollingRef.current) {
-            clearInterval(videoPollingRef.current)
-            videoPollingRef.current = null
-          }
-          const videoUrl = `/${videoFileName}`
-          console.log(`✅ Video ready (polled): ${videoUrl}`)
-          handleVideoReady(videoUrl)
-          return
-        }
-      } catch (error) {
-        console.warn('Video polling error:', error)
-      }
-
-      if (attempts >= VIDEO_POLL_MAX_ATTEMPTS) {
-        if (videoPollingRef.current) {
-          clearInterval(videoPollingRef.current)
-          videoPollingRef.current = null
-        }
-        console.error('Video polling timed out')
-        setIsProcessingVideo(false)
-      }
-    }
-
-    videoPollingRef.current = window.setInterval(poll, VIDEO_POLL_INTERVAL_MS)
-    // Kick off immediately instead of waiting for first interval tick
-    poll()
-  }
-
-  useEffect(() => {
-    return () => {
-      if (videoPollingRef.current) {
-        clearInterval(videoPollingRef.current)
-        videoPollingRef.current = null
-      }
-    }
-  }, [])
-
-  // Initialize audio context and instrument
-  useEffect(() => {
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-    setAc(audioContext);
-  }, []);
-
-  useEffect(() => {
-    if (ac) {
-      soundFont.instrument(ac, 'acoustic_grand_piano').then(function (piano: Player) {
-        setInstrument(piano);
-      });
-    }
-  }, [ac]);
 
   // Initialize WebSocket connection with simple auto-reconnect
   useEffect(() => {
@@ -577,13 +331,12 @@ export default function Record() {
           }
 
           else if (message.type === 'frame-ack') {
-            // setUploadedFrameCount(message.totalFrames)
             console.log(`✓ Frame ${message.frameNumber} uploaded (${message.totalFrames} total)`)
           }
 
           else if (message.type === 'video-ready') {
-            console.log(`✅ Video ready: ${message.videoUrl}`)
-            handleVideoReady(message.videoUrl)
+            console.log(`✅ Video generated on server`)
+            setIsProcessingVideo(false)
           }
 
           else if (message.type === 'error') {
@@ -609,9 +362,6 @@ export default function Record() {
         setWsConnected(false)
         setWs(null)
         wsRef.current = null
-        if (recordingSessionIdRef.current && uploadedFrameCountRef.current > 0) {
-          startVideoPolling()
-        }
         if (!reconnectTimeoutRef.current) {
           reconnectTimeoutRef.current = window.setTimeout(() => {
             reconnectTimeoutRef.current = null
@@ -831,14 +581,12 @@ export default function Record() {
   // Finalize recording and send audio
   const finalizeRecording = async () => {
     if (!ws || !recordingSessionId) {
-      console.warn('Finalize requested but missing WebSocket or session id; starting video polling fallback.')
-      startVideoPolling()
+      console.warn('Finalize requested but missing WebSocket or session id')
       return
     }
 
     if (ws.readyState !== WebSocket.OPEN) {
-      console.warn('WebSocket not open during finalize; starting video polling fallback.')
-      startVideoPolling()
+      console.warn('WebSocket not open during finalize')
       return
     }
 
@@ -932,86 +680,6 @@ export default function Record() {
     console.log('✅ Finalize message sent, waiting for video generation...')
   }
 
-  // OLD: Process frames into video using server action (DEPRECATED)
-  const processVideo = async () => {
-    setIsProcessingVideo(true)
-    
-    const formData = new FormData()
-    formData.append('frames', JSON.stringify(capturedFrames))
-    formData.append('fps', FPS.toString())
-    
-    const blobToBase64 = (blob: Blob): Promise<string> => {
-      return new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-              const base64String = (reader.result as string).split(',')[1];
-              resolve(base64String);
-          };
-          reader.onerror = reject;
-          reader.readAsDataURL(blob);
-      });
-    };
-
-    // Add audio file if selected, or generate from MIDI
-    if (audioFile) {
-      console.log(`📎 Adding uploaded audio file: ${audioFile.size} bytes`)
-      const audioBase64 = await blobToBase64(audioFile);
-      formData.append('audio_base64', audioBase64);
-    } else if (midiObject && ac && instrument) {
-      try {
-        console.log('Generating soundfont audio...')
-        const audioBlob = await generateAudioFromMIDI()
-        if (audioBlob) {
-          console.log(`📎 Converting generated audio to base64...`);
-          const audioBase64 = await blobToBase64(audioBlob);
-          formData.append('audio_base64', audioBase64);
-          console.log('✅ Generated audio converted and added to form data');
-        } else {
-          console.error('❌ Failed to generate audio blob')
-        }
-      } catch (error) {
-        console.error('❌ Failed to generate audio:', error)
-      }
-    } else {
-      console.log('⚠️ No audio will be included - missing dependencies')
-    }
-    
-    // Log total form data size
-    let totalSize = 0;
-    for (const [key, value] of formData.entries()) {
-      if (value instanceof File) {
-        totalSize += value.size;
-        console.log(`FormData entry "${key}": ${value.size} bytes (${value.type})`);
-      } else {
-        totalSize += value.length;
-        console.log(`FormData entry "${key}": ${value.length} characters`);
-      }
-    }
-    console.log(`📦 Total form data size: ${(totalSize / 1024 / 1024).toFixed(2)} MB`);
-    
-    fetcher.submit(formData, { method: 'POST' })
-  }
-
-  // Handle server response (DEPRECATED - using WebSocket streaming now)
-  useEffect(() => {
-    if (fetcher.data) {
-      setIsProcessingVideo(false)
-      if (fetcher.data.success && fetcher.data.videoUrl) {
-        console.log(`Video created successfully! Download: ${fetcher.data.videoUrl}`)
-        // Auto-download the video
-        const link = document.createElement('a')
-        link.href = fetcher.data.videoUrl
-        const videoName = fetcher.data.videoUrl.split('/').pop()
-        if (videoName) {
-          link.download = videoName
-        }
-        link.click()
-      } else if (fetcher.data.error) {
-        console.error(`Error: ${fetcher.data.error}`)
-      }
-    }
-  }, [fetcher.data])
-
   // Start recording
   const startRecording = () => {
     if (!midiObject) {
@@ -1029,7 +697,6 @@ export default function Record() {
     // Generate unique session ID
     const sessionId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     setRecordingSessionId(sessionId)
-    setUploadedFrameCount(0)
 
     // Send init message to server
     socket.send(JSON.stringify({

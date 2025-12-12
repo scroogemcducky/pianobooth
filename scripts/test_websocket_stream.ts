@@ -73,7 +73,7 @@ async function main() {
     timeout: 120_000,
   })
   const videoReady = page.waitForEvent('console', {
-    predicate: (msg) => msg.text().includes('Video ready'),
+    predicate: (msg) => msg.text().includes('Video generated on server'),
     timeout: TIMEOUT_MS,
   })
 
@@ -135,17 +135,16 @@ async function main() {
   // Give the filesystem a brief moment before scanning
   await page.waitForTimeout(1000)
 
-  // Check for video file in public directory
-  console.log('📁 Checking for generated video...')
-  const publicDir = path.resolve('public')
-  const files = await fs.readdir(publicDir)
-  const videoFiles = files.filter(f => f.endsWith('.mp4'))
+  // Check for the expected video file
+  const expectedVideoName = `${artist} - ${title}.mp4`
+  const expectedVideoPath = path.resolve('videos', expectedVideoName)
+  console.log(`📁 Checking for: ${expectedVideoName}`)
 
-  if (videoFiles.length > 0) {
-    console.log('✅ Video files found:')
-    videoFiles.forEach(f => console.log(`   - ${f}`))
-  } else {
-    console.log('⚠️  No video files found in public/')
+  try {
+    const stat = await fs.stat(expectedVideoPath)
+    console.log(`✅ Video found: ${expectedVideoName} (${(stat.size / 1024 / 1024).toFixed(1)} MB)`)
+  } catch {
+    console.log(`⚠️  Expected video not found: ${expectedVideoName}`)
   }
 
   // Close browser

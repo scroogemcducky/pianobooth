@@ -1,9 +1,28 @@
 import WebSocket, { WebSocketServer } from 'ws'
 import fs from 'fs/promises'
+import { appendFileSync, writeFileSync } from 'fs'
 import path from 'path'
 import { spawn } from 'child_process'
+import { PROJECT_ROOT, VIDEO_OUT_DIR, TEMP_FRAMES_DIR, sanitizeFileName } from '../app/utils/paths'
 
-const TEMP_ROOT = path.join(process.cwd(), 'temp_frames')
+const TEMP_ROOT = TEMP_FRAMES_DIR
+const LOG_FILE = path.join(PROJECT_ROOT, 'recording-debug.log')
+
+// File-based logger for debugging (overwrites on each new session)
+function log(message: string) {
+  const timestamp = new Date().toISOString()
+  const line = `[${timestamp}] ${message}\n`
+  console.log(message)
+  try {
+    appendFileSync(LOG_FILE, line)
+  } catch {}
+}
+
+function clearLog() {
+  try {
+    writeFileSync(LOG_FILE, `=== Recording Debug Log ===\nStarted: ${new Date().toISOString()}\n\n`)
+  } catch {}
+}
 
 async function removeDirRecursive(target: string) {
   try {
@@ -18,7 +37,7 @@ async function removeDirRecursive(target: string) {
     }))
     await fs.rmdir(target)
   } catch (error) {
-    console.error(`⚠️ Failed to remove dir ${target}:`, error)
+    log(`⚠️ Failed to remove dir ${target}: ${error}`)
   }
 }
 
@@ -31,13 +50,13 @@ async function pruneStaleSessions(maxAgeMs = 6 * 60 * 60 * 1000) {
       const fullPath = path.join(TEMP_ROOT, entry.name)
       const stat = await fs.stat(fullPath)
       if (now - stat.mtimeMs > maxAgeMs) {
-        console.log(`🧹 Removing stale session dir: ${fullPath}`)
+        log(`🧹 Removing stale session dir: ${fullPath}`)
         await removeDirRecursive(fullPath)
       }
     }))
   } catch (error) {
     if ((error as any)?.code !== 'ENOENT') {
-      console.error('⚠️ Failed to prune stale temp_frames:', error)
+      log(`⚠️ Failed to prune stale temp_frames: ${error}`)
     }
   }
 }
@@ -55,11 +74,6 @@ const activeSessions = new Map<string, {
   ws: WebSocket
 }>()
 
-// Sanitize filename to remove invalid characters
-function sanitizeFileName(s: string): string {
-  return s.replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, ' ').trim()
-}
-
 // Generate video from saved frames
 async function generateVideo(session: {
   sessionId: string
@@ -72,12 +86,16 @@ async function generateVideo(session: {
 }) {
   const displayName = sanitizeFileName(`${session.artist} - ${session.title}`)
   const videoFileName = `${displayName}.mp4`
-  const outputPath = path.join(process.cwd(), 'public', videoFileName)
+  const outputPath = path.join(VIDEO_OUT_DIR, videoFileName)
 
-  console.log(`🎬 Starting video generation for session ${session.sessionId}...`)
-  console.log(`   Frames: ${session.frameCount}`)
-  console.log(`   FPS: ${session.fps}`)
-  console.log(`   Output: ${outputPath}`)
+  log(`🎬 Starting video generation for session ${session.sessionId}...`)
+  log(`   Frames: ${session.frameCount}`)
+  log(`   FPS: ${session.fps}`)
+  log(`   Output: ${outputPath}`)
+  log(`   Audio path: ${session.audioPath || 'NONE'}`)
+
+  // Ensure output directory exists
+  await fs.mkdir(VIDEO_OUT_DIR, { recursive: true })
 
   return new Promise<string>((resolve, reject) => {
     const ffmpegArgs = [
@@ -88,10 +106,12 @@ async function generateVideo(session: {
 
     // Add audio input if provided
     if (session.audioPath) {
-      console.log(`🎵 Adding audio: ${session.audioPath}`)
+      log(`🎵 Adding audio: ${session.audioPath}`)
       ffmpegArgs.push('-i', session.audioPath)
       ffmpegArgs.push('-c:a', 'aac')
       ffmpegArgs.push('-b:a', '192k')
+    } else {
+      log(`⚠️ NO AUDIO - session.audioPath is undefined`)
     }
 
     // Video encoding settings
@@ -109,35 +129,41 @@ async function generateVideo(session: {
 
     ffmpegArgs.push(outputPath)
 
-    console.log(`🎬 FFmpeg command: ffmpeg ${ffmpegArgs.join(' ')}`)
+    log(`🎬 FFmpeg command: ffmpeg ${ffmpegArgs.join(' ')}`)
     const ffmpeg = spawn('ffmpeg', ffmpegArgs)
 
     ffmpeg.stderr.on('data', (data) => {
-      console.log(`ffmpeg: ${data.toString().trim()}`)
+      // Only log important ffmpeg messages (not progress)
+      const msg = data.toString().trim()
+      if (msg.includes('Error') || msg.includes('error') || msg.includes('Invalid')) {
+        log(`ffmpeg ERROR: ${msg}`)
+      }
     })
 
     ffmpeg.on('close', async (code) => {
       // Clean up temporary files
       try {
-        console.log(`🧹 Cleaning up temp files in ${session.sessionDir}`)
+        log(`🧹 Cleaning up temp files in ${session.sessionDir}`)
         const files = await fs.readdir(session.sessionDir)
         await Promise.all(files.map(file => fs.unlink(path.join(session.sessionDir, file))))
         await fs.rmdir(session.sessionDir)
-        console.log(`✅ Cleanup complete`)
+        log(`✅ Cleanup complete`)
       } catch (error) {
-        console.error('⚠️ Cleanup error:', error)
+        log(`⚠️ Cleanup error: ${error}`)
       }
 
       if (code === 0) {
         const videoFileName = path.basename(outputPath)
-        console.log(`✅ Video generated successfully: ${videoFileName}`)
+        log(`✅ Video generated successfully: ${videoFileName}`)
         resolve(videoFileName)
       } else {
+        log(`❌ FFmpeg exited with code ${code}`)
         reject(new Error(`FFmpeg exited with code ${code}`))
       }
     })
 
     ffmpeg.on('error', (error) => {
+      log(`❌ FFmpeg spawn error: ${error}`)
       reject(error)
     })
   })
@@ -146,7 +172,7 @@ async function generateVideo(session: {
 export function setupWebSocketServer(server: any) {
   // Create WebSocket server without automatic server attachment
   const wss = new WebSocketServer({ noServer: true })
-  pruneStaleSessions().catch(err => console.error('⚠️ Failed initial prune:', err))
+  pruneStaleSessions().catch(err => log(`⚠️ Failed initial prune: ${err}`))
 
   // Manually handle upgrade requests only for our path
   server.on('upgrade', (request: any, socket: any, head: any) => {
@@ -160,10 +186,10 @@ export function setupWebSocketServer(server: any) {
     // Let other upgrade requests (like Vite HMR) pass through
   })
 
-  console.log('✅ WebSocket server ready at ws://localhost:PORT/ws/frames')
+  log('✅ WebSocket server ready at ws://localhost:PORT/ws/frames')
 
   wss.on('connection', (ws: WebSocket) => {
-    console.log('🔌 Client connected')
+    log('🔌 Client connected')
 
     let currentSessionId: string | null = null
 
@@ -179,6 +205,14 @@ export function setupWebSocketServer(server: any) {
 
           // Handle session initialization
           if (message.type === 'init') {
+            // Clear log file for new recording session
+            clearLog()
+            log(`📝 NEW SESSION: ${message.sessionId}`)
+            log(`   Title: ${message.title || 'Untitled'}`)
+            log(`   Artist: ${message.artist || 'Piano'}`)
+            log(`   Expected frames: ${message.expectedFrames || 0}`)
+            log(`   FPS: ${message.fps || 60}`)
+
             currentSessionId = message.sessionId
             const sessionDir = path.join(process.cwd(), 'temp_frames', message.sessionId)
 
@@ -209,7 +243,7 @@ export function setupWebSocketServer(server: any) {
               JSON.stringify(metadata, null, 2)
             )
 
-            console.log(`📝 Session initialized: ${message.sessionId}`)
+            log(`✅ Session initialized: ${message.sessionId}`)
 
             // Acknowledge
             ws.send(JSON.stringify({
@@ -222,7 +256,8 @@ export function setupWebSocketServer(server: any) {
         else if (message.type === 'finalize') {
           const session = activeSessions.get(message.sessionId)
           if (session) {
-            console.log(`✅ Session finalized: ${message.sessionId} (${session.frameCount} frames)`)
+            log(`✅ Session finalized: ${message.sessionId} (${session.frameCount} frames)`)
+            log(`   Audio path at finalize: ${session.audioPath || 'NONE'}`)
 
             // Generate video
             try {
@@ -238,13 +273,15 @@ export function setupWebSocketServer(server: any) {
               // Clean up session
               activeSessions.delete(message.sessionId)
             } catch (error) {
-              console.error(`❌ Video generation failed:`, error)
+              log(`❌ Video generation failed: ${error}`)
               await removeDirRecursive(session.sessionDir)
               ws.send(JSON.stringify({
                 type: 'error',
                 error: error instanceof Error ? error.message : 'Video generation failed'
               }))
             }
+          } else {
+            log(`⚠️ Finalize called but session not found: ${message.sessionId}`)
           }
           }
 
@@ -252,31 +289,36 @@ export function setupWebSocketServer(server: any) {
           else if (message.type === 'audio') {
             const session = activeSessions.get(message.sessionId)
             if (session) {
+              log(`🎵 Received audio data for session ${message.sessionId}`)
+              log(`   Audio data size: ${message.audioData?.length || 0} bytes (base64)`)
+
               // Save audio file
               const audioPath = path.join(session.sessionDir, 'audio.wav')
               const audioBuffer = Buffer.from(message.audioData, 'base64')
               await fs.writeFile(audioPath, audioBuffer)
               session.audioPath = audioPath
 
-              console.log(`🎵 Audio saved for session ${message.sessionId}`)
+              log(`🎵 Audio saved: ${audioPath} (${audioBuffer.length} bytes)`)
 
               ws.send(JSON.stringify({
                 type: 'audio-ack',
                 sessionId: message.sessionId
               }))
+            } else {
+              log(`⚠️ Audio received but session not found: ${message.sessionId}`)
             }
           }
         }
         // Otherwise, it's binary frame data
         else {
           if (!currentSessionId) {
-            console.error('❌ Received frame data before session init')
+            log('❌ Received frame data before session init')
             return
           }
 
           const session = activeSessions.get(currentSessionId)
           if (!session) {
-            console.error(`❌ Session not found: ${currentSessionId}`)
+            log(`❌ Session not found: ${currentSessionId}`)
             return
           }
 
@@ -299,10 +341,13 @@ export function setupWebSocketServer(server: any) {
             totalFrames: session.frameCount
           }))
 
-          console.log(`✓ Frame ${frameNumber} saved (${session.frameCount} total)`)
+          // Log every 100th frame to avoid spam
+          if (frameNumber % 100 === 0) {
+            log(`✓ Frame ${frameNumber} saved (${session.frameCount} total)`)
+          }
         }
       } catch (error) {
-        console.error('❌ Error processing message:', error)
+        log(`❌ Error processing message: ${error}`)
         ws.send(JSON.stringify({
           type: 'error',
           error: error instanceof Error ? error.message : 'Unknown error'
@@ -312,31 +357,39 @@ export function setupWebSocketServer(server: any) {
 
     // Handle disconnection
     ws.on('close', async () => {
-      console.log('🔌 Client disconnected')
+      log('🔌 Client disconnected')
       if (currentSessionId) {
         const session = activeSessions.get(currentSessionId)
+        log(`   Session ID: ${currentSessionId}`)
+        log(`   Session found: ${!!session}`)
+        log(`   Frame count: ${session?.frameCount || 0}`)
+        log(`   Audio path: ${session?.audioPath || 'NONE'}`)
+
         if (session && session.frameCount > 0) {
-          console.log(`📦 Session ${currentSessionId} starting video generation`)
+          log(`📦 Session ${currentSessionId} starting video generation ON DISCONNECT`)
 
           // Generate video automatically on disconnect
           try {
             const videoFileName = await generateVideo(session)
-            console.log(`✅ Video generated on disconnect: ${videoFileName}`)
+            log(`✅ Video generated on disconnect: ${videoFileName}`)
             activeSessions.delete(currentSessionId)
           } catch (error) {
-            console.error(`❌ Video generation failed on disconnect:`, error)
+            log(`❌ Video generation failed on disconnect: ${error}`)
           }
         } else if (session) {
           // No frames captured; clean up the empty session directory
+          log(`🧹 No frames captured, cleaning up session directory`)
           await removeDirRecursive(session.sessionDir)
           activeSessions.delete(currentSessionId)
         }
+      } else {
+        log('   No active session on disconnect')
       }
     })
 
     // Handle errors
     ws.on('error', (error) => {
-      console.error('❌ WebSocket error:', error)
+      log(`❌ WebSocket error: ${error}`)
     })
   })
 

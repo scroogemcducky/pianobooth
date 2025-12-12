@@ -1,7 +1,7 @@
 // Renders the next MIDI in midi/video_queue/ to an MP4 using the /record page.
 // - Preloads parsed MIDI data into localStorage so no file picker is needed
 // - Programmatically starts recording
-// - Watches public/ for the new MP4, then renames/moves it to videos/
+// - Watches videos/ (VIDEO_OUT_DIR) for the new MP4
 // - Names output as "Artist - Song.mp4" (using LLM refinement when available)
 
 import path from 'node:path'
@@ -10,10 +10,10 @@ import { createHash } from 'node:crypto'
 import { chromium } from 'playwright'
 
 import { parseMidiFilePath, type MidiNote } from './parse_midi_to_json'
+import { VIDEO_OUT_DIR } from '../app/utils/paths'
 
 type Options = {
   queueDir: string
-  publicDir: string
   outDir: string
   baseUrl: string
   requireLLM: boolean
@@ -28,8 +28,7 @@ type Options = {
 
 const DEFAULTS: Options = {
   queueDir: 'midi/video_queue',
-  publicDir: 'public',
-  outDir: 'videos',
+  outDir: VIDEO_OUT_DIR,
   baseUrl: process.env.RENDER_BASE_URL || 'http://localhost:5173',
   requireLLM: true,
   llmModel: 'gpt-5',
@@ -208,11 +207,11 @@ async function listMp4(dir: string): Promise<{ name: string; path: string; mtime
   return out
 }
 
-async function waitForNewVideo(publicDir: string, sinceMs: number, timeoutMs: number): Promise<string> {
+async function waitForNewVideo(videoDir: string, sinceMs: number, timeoutMs: number): Promise<string> {
   const start = Date.now()
   const lastSeen: Record<string, number> = {}
   while (Date.now() - start < timeoutMs) {
-    const files = await listMp4(publicDir)
+    const files = await listMp4(videoDir)
     const candidates = files.filter(f => f.mtimeMs >= sinceMs)
     for (const f of candidates) {
       const prev = lastSeen[f.path]
@@ -222,13 +221,13 @@ async function waitForNewVideo(publicDir: string, sinceMs: number, timeoutMs: nu
       if (prev !== undefined && prev !== f.size) {
         console.log(`Progress: ${path.basename(f.path)} size ${prev} -> ${f.size} bytes`)
       } else if (prev === undefined) {
-        console.log(`Detected new file: ${path.basename(f.path)} (${f.size} bytes)`)        
+        console.log(`Detected new file: ${path.basename(f.path)} (${f.size} bytes)`)
       }
       lastSeen[f.path] = f.size
     }
     await new Promise(r => setTimeout(r, 2000))
   }
-  throw new Error('Timed out waiting for new video in public/')
+  throw new Error(`Timed out waiting for new video in ${videoDir}`)
 }
 
 async function pickNextMidi(queueDir: string): Promise<string | null> {
@@ -255,7 +254,6 @@ async function main() {
     const a = args[i]
     if (a === '--queue-dir' && args[i + 1]) opts.queueDir = args[++i]
     else if (a === '--out-dir' && args[i + 1]) opts.outDir = args[++i]
-    else if (a === '--public-dir' && args[i + 1]) opts.publicDir = args[++i]
     else if (a === '--base-url' && args[i + 1]) opts.baseUrl = args[++i]
     else if (a === '--keep-midi') opts.keepMidi = true
     else if (a === '--no-llm') opts.requireLLM = false
@@ -334,7 +332,6 @@ async function main() {
   })
   const page = await context.newPage()
 
-  // const beforeFiles = await listMp4(opts.publicDir)
   const since = Date.now()
 
   console.log(`Opening ${opts.baseUrl}/record ...`)
@@ -349,8 +346,9 @@ async function main() {
   console.log('Starting recording...')
   await page.click('#record-button')
 
-  // Wait for new mp4 file in public directory to stabilize
-  const newVideoPath = await waitForNewVideo(opts.publicDir, since, opts.timeoutMs)
+  // Wait for new mp4 file in videos directory to stabilize
+  // (WebSocket server now writes directly to VIDEO_OUT_DIR with proper naming)
+  const newVideoPath = await waitForNewVideo(opts.outDir, since, opts.timeoutMs)
   console.log(`New video detected: ${path.basename(newVideoPath)}`)
 
   // Close browser
@@ -358,9 +356,13 @@ async function main() {
   await context.close()
   await browser.close()
 
-  // Move/rename into videos directory
-  await fs.rename(newVideoPath, targetPath)
-  console.log(`Saved video: ${targetPath}`)
+  // Rename to final target name if different
+  if (newVideoPath !== targetPath) {
+    await fs.rename(newVideoPath, targetPath)
+    console.log(`Renamed video to: ${targetPath}`)
+  } else {
+    console.log(`Video saved: ${targetPath}`)
+  }
 
   // Delete MIDI from queue if requested (default)
   if (!opts.keepMidi) {
