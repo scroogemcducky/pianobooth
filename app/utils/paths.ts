@@ -9,10 +9,10 @@ const here = path.dirname(fileURLToPath(import.meta.url))
 // Project root is two levels up from app/utils/
 export const PROJECT_ROOT = path.resolve(here, '..', '..')
 
-// Runtime video output directory (NOT public/)
+// Runtime video output directory (outside project)
 export const VIDEO_OUT_DIR = process.env.PIANO_VIDEO_OUT_DIR
   ? path.resolve(PROJECT_ROOT, process.env.PIANO_VIDEO_OUT_DIR)
-  : path.join(PROJECT_ROOT, 'videos')
+  : path.resolve(PROJECT_ROOT, '..', 'piano_videos')
 
 // Temporary frames directory
 export const TEMP_FRAMES_DIR = path.join(PROJECT_ROOT, 'temp_frames')
