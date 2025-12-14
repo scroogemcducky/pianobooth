@@ -142,6 +142,7 @@ async function aiRefineMetadata(params: {
       'You are a precise metadata normalizer for classical piano MIDI files. ' +
       'Respond with a strict JSON object only. ' +
       "For classical composers, use the most common short canonical name for the artist (last name only), e.g., 'Bach', 'Beethoven', 'Chopin', 'Mozart', 'Debussy', 'Liszt', 'Schubert', 'Schumann', 'Rachmaninoff', 'Handel', 'Haydn', 'Tchaikovsky', 'Gershwin'. " +
+      'IMPORTANT: Always use English titles, not German or other languages. For example, use "Moonlight Sonata" instead of "Mondscheinsonate", "Pathétique" instead of "Pathétique", etc. ' +
       'Return both a display title/artist and concise short variants for filenames. '
     )
     const user = {
@@ -225,7 +226,7 @@ async function waitForNewVideo(videoDir: string, sinceMs: number, timeoutMs: num
       }
       lastSeen[f.path] = f.size
     }
-    await new Promise(r => setTimeout(r, 2000))
+    await new Promise(r => setTimeout(r, 60000000))
   }
   throw new Error(`Timed out waiting for new video in ${videoDir}`)
 }
