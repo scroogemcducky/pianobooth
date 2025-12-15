@@ -169,21 +169,45 @@ async function generateVideo(session: {
   })
 }
 
+// Track which server instances we've already set up using a WeakSet
+const setupServers = new WeakSet()
+let wssInstance: WebSocketServer | null = null
+
 export function setupWebSocketServer(server: any) {
+  // Prevent multiple setup calls on the same server instance
+  if (setupServers.has(server)) {
+    log('⏭️ WebSocket server already set up on this HTTP server instance, skipping')
+    return wssInstance
+  }
+
+  setupServers.add(server)
+  log('🔧 Setting up upgrade handler...')
+
   // Create WebSocket server without automatic server attachment
   const wss = new WebSocketServer({ noServer: true })
+  wssInstance = wss
   pruneStaleSessions().catch(err => log(`⚠️ Failed initial prune: ${err}`))
 
   // Manually handle upgrade requests only for our path
   server.on('upgrade', (request: any, socket: any, head: any) => {
     const { pathname } = new URL(request.url, `http://${request.headers.host}`)
+    log(`📡 Upgrade request received for: ${pathname}`)
 
     if (pathname === '/ws/frames') {
-      wss.handleUpgrade(request, socket, head, (ws: WebSocket) => {
-        wss.emit('connection', ws, request)
-      })
+      log('✅ Handling WebSocket upgrade for /ws/frames')
+      try {
+        wss.handleUpgrade(request, socket, head, (ws: WebSocket) => {
+          log('🔗 handleUpgrade callback fired, emitting connection event')
+          wss.emit('connection', ws, request)
+        })
+      } catch (error) {
+        log(`❌ Error during handleUpgrade: ${error}`)
+        socket.destroy()
+      }
+    } else {
+      log(`⚠️ Ignoring upgrade request for: ${pathname}`)
+      // Let other upgrade requests (like Vite HMR) pass through
     }
-    // Let other upgrade requests (like Vite HMR) pass through
   })
 
   log('✅ WebSocket server ready at ws://localhost:PORT/ws/frames')

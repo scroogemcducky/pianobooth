@@ -420,7 +420,7 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 }
 
-export default function Record() {
+function Record() {
   const [midiObject, setMidiObject] = useState<MidiNote[] | null>(null)
   const [pianoLayout, setPianoLayout] = useState<PianoLayout>(DEFAULT_PIANO_LAYOUT)
   const [isRecording, setIsRecording] = useState(false)
@@ -552,23 +552,39 @@ export default function Record() {
 
   // Initialize WebSocket connection with simple auto-reconnect
   useEffect(() => {
-    let websocket: WebSocket | null = null
+    let isCleanedUp = false  // Track if this effect has been cleaned up
 
     const connect = () => {
-      if (websocket && (websocket.readyState === WebSocket.OPEN || websocket.readyState === WebSocket.CONNECTING)) {
+      // Don't reconnect if this effect has been cleaned up (Strict Mode double-invocation)
+      if (isCleanedUp) {
+        console.log('⏭️ Skipping WebSocket connection (effect cleaned up)')
         return
       }
 
-      websocket = new WebSocket('ws://localhost:5173/ws/frames')
+      // Check if there's already a valid WebSocket connection (prevents duplicates in Strict Mode)
+      const existing = wsRef.current
+      if (existing && (existing.readyState === WebSocket.OPEN || existing.readyState === WebSocket.CONNECTING)) {
+        console.log('⏭️ WebSocket already exists and is connecting/connected')
+        setWs(existing)
+        setWsConnected(existing.readyState === WebSocket.OPEN)
+        return
+      }
+
+      console.log('🔄 Creating WebSocket connection...')
+      const websocket = new WebSocket('ws://localhost:5173/ws/frames')
       wsRef.current = websocket
       setWs(websocket)
 
       websocket.onopen = () => {
-        console.log('✅ WebSocket connected')
-        setWsConnected(true)
+        if (!isCleanedUp) {
+          console.log('✅ WebSocket connected')
+          setWsConnected(true)
+        }
       }
 
       websocket.onmessage = (event) => {
+        if (isCleanedUp) return
+
         try {
           const message = JSON.parse(event.data)
 
@@ -600,23 +616,28 @@ export default function Record() {
       }
 
       websocket.onerror = (error) => {
-        console.error('❌ WebSocket error:', error)
-        setWsConnected(false)
+        if (!isCleanedUp) {
+          console.error('❌ WebSocket error:', error)
+          setWsConnected(false)
+        }
       }
 
       websocket.onclose = () => {
-        console.log('🔌 WebSocket disconnected')
-        setWsConnected(false)
-        setWs(null)
-        wsRef.current = null
-        if (recordingSessionIdRef.current && uploadedFrameCountRef.current > 0) {
-          startVideoPolling()
-        }
-        if (!reconnectTimeoutRef.current) {
-          reconnectTimeoutRef.current = window.setTimeout(() => {
-            reconnectTimeoutRef.current = null
-            connect()
-          }, 750)
+        if (!isCleanedUp) {
+          console.log('🔌 WebSocket disconnected')
+          setWsConnected(false)
+          setWs(null)
+          wsRef.current = null
+          if (recordingSessionIdRef.current && uploadedFrameCountRef.current > 0) {
+            startVideoPolling()
+          }
+          // Only reconnect if not cleaned up (prevents reconnect during Strict Mode cleanup)
+          if (!reconnectTimeoutRef.current) {
+            reconnectTimeoutRef.current = window.setTimeout(() => {
+              reconnectTimeoutRef.current = null
+              connect()
+            }, 750)
+          }
         }
       }
     }
@@ -626,14 +647,28 @@ export default function Record() {
 
     // Cleanup on unmount
     return () => {
+      console.log('🧹 Cleaning up WebSocket effect...')
+      isCleanedUp = true  // Mark as cleaned up to prevent reconnection
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current)
         reconnectTimeoutRef.current = null
       }
-      if (websocket && websocket.readyState === WebSocket.OPEN) {
-        websocket.close()
+      const websocket = wsRef.current
+      if (websocket) {
+        // Only close if OPEN - let CONNECTING websockets finish their handshake
+        // This prevents Strict Mode from breaking the connection during double-invocation
+        if (websocket.readyState === WebSocket.OPEN) {
+          console.log('🔌 Closing WebSocket (cleanup)')
+          websocket.close()
+          wsRef.current = null
+        } else if (websocket.readyState === WebSocket.CONNECTING) {
+          console.log('⏸️ WebSocket still connecting, keeping it open')
+          // Don't close - let it finish connecting for the next effect iteration
+        } else {
+          // CLOSING or CLOSED state
+          wsRef.current = null
+        }
       }
-      wsRef.current = null
     }
   }, [])
 
@@ -1261,3 +1296,6 @@ export default function Record() {
     </div>
   )
 }
+
+// Export without StrictMode wrapper to prevent WebSocket double-invocation issues
+export default Record

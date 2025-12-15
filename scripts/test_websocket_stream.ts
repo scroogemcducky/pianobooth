@@ -67,7 +67,27 @@ async function main() {
 
   const page = await context.newPage()
 
-  // Wait for key console signals
+  // Listen to console messages for debugging (set up BEFORE navigation)
+  page.on('console', msg => {
+    const text = msg.text()
+    if (
+      text.includes('WebSocket') ||
+      text.includes('Frame') ||
+      text.includes('Session') ||
+      text.includes('Video') ||
+      text.includes('Error') ||
+      text.includes('error')
+    ) {
+      console.log(`   [Browser] ${text}`)
+    }
+  })
+
+  // Listen for page errors
+  page.on('pageerror', error => {
+    console.error(`   [Browser Error] ${error.message}`)
+  })
+
+  // Wait for key console signals (set up AFTER console listener)
   const websocketReady = page.waitForEvent('console', {
     predicate: (msg) => msg.text().includes('WebSocket connected'),
     timeout: 120_000,
@@ -94,19 +114,6 @@ async function main() {
     const btn = document.querySelector('#record-button') as HTMLButtonElement | null
     return !!btn && !btn.disabled
   }, undefined, { timeout: 120_000 })
-
-  // Listen to console messages for debugging
-  page.on('console', msg => {
-    const text = msg.text()
-    if (
-      text.includes('WebSocket') ||
-      text.includes('Frame') ||
-      text.includes('Session') ||
-      text.includes('Video')
-    ) {
-      console.log(`   [Browser] ${text}`)
-    }
-  })
 
   // Ensure WebSocket is actually connected before starting
   console.log('⏳ Waiting for WebSocket connection...')

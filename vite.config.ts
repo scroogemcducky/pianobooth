@@ -5,6 +5,10 @@ import {
 import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 import { setupWebSocketServer } from "./server/websocket";
+import { createServer as createHttpServer } from 'http';
+
+// Global WebSocket server instance to prevent multiple servers
+let globalWsServer: ReturnType<typeof createHttpServer> | null = null;
 
 declare module "@remix-run/cloudflare" {
   interface Future {
@@ -31,15 +35,18 @@ export default defineConfig({
       },
     }),
     tsconfigPaths(),
-    // WebSocket server plugin
+    // WebSocket server plugin - attach to Vite's HTTP server
     {
       name: 'websocket-server',
       configureServer(server) {
-        // Wait for server to be listening before setting up WebSocket
-        server.httpServer?.on('listening', () => {
-          setupWebSocketServer(server.httpServer!);
-          console.log('✅ WebSocket server integrated with Vite dev server');
-        });
+        if (!server.httpServer) {
+          console.warn('⚠️ No HTTP server available for WebSocket setup');
+          return;
+        }
+
+        // Set up WebSocket on Vite's HTTP server (port 5173)
+        setupWebSocketServer(server.httpServer);
+        console.log('✅ WebSocket server attached to Vite dev server (ws://localhost:5173/ws/frames)');
       },
     },
   ],

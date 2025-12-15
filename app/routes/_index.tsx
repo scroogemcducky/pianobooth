@@ -1,8 +1,7 @@
 import { useRef, useState, useEffect} from 'react';
-import { Link, useLoaderData, useNavigate } from "@remix-run/react"; 
+import { Link, useLoaderData, useNavigate } from "@remix-run/react";
 import  useMidiStore  from '../store/midiStore'
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
-import { createClient } from "~/utils/supabase.server";
 import { slugify } from "~/utils/slugify";
 
 export const meta: MetaFunction = () => {
@@ -14,14 +13,41 @@ export const meta: MetaFunction = () => {
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   try {
-    const supabaseUrl = (context as any)?.cloudflare?.env?.SUPABASE_URL;
-    const supabaseKey = (context as any)?.cloudflare?.env?.SUPABASE_KEY;
-    if (!supabaseUrl || !supabaseKey) {
-      return { todos: [] };
-    }
-    const supabase = createClient(request, { SUPABASE_URL: supabaseUrl, SUPABASE_ANON_KEY: supabaseKey });
-    const { data: todos } = await (supabase as any).from('Midi').select();
-    return { todos: todos ?? [] };
+    const fs = await import('node:fs/promises');
+    const path = await import('node:path');
+
+    // Only show composers we have images for
+    const allowedComposers = ['Bach', 'Beethoven', 'Chopin', 'Debussy', 'Klaus Badelt'];
+
+    // Read the static catalog manifest
+    const manifestPath = path.join(process.cwd(), 'catalog/public.jsonl');
+    const content = await fs.readFile(manifestPath, 'utf-8');
+
+    // Parse JSONL format (one JSON object per line)
+    const todos = content
+      .split('\n')
+      .filter(line => line.trim())
+      .map(line => {
+        try {
+          const entry = JSON.parse(line);
+          // Transform to match the expected format
+          return {
+            Artist: entry.artist,
+            Song: entry.title,
+            Album: null, // Not in manifest
+            id: `${entry.artistSlug}-${entry.songSlug}`,
+            artistSlug: entry.artistSlug,
+            songSlug: entry.songSlug,
+            url: entry.url
+          };
+        } catch {
+          return null;
+        }
+      })
+      .filter(Boolean)
+      .filter(todo => allowedComposers.includes(todo.Artist));
+
+    return { todos };
   } catch (error) {
     console.error('Error loading MIDI catalog:', error);
     return { todos: [] };
@@ -101,7 +127,8 @@ const App = () => {
 
   // Group pieces by composer
   const groupedByComposer = (todos || []).reduce((acc: Record<string, any[]>, todo: any) => {
-    const composer = todo.Artist;
+    // Map Klaus Badelt to Pirate for display
+    const composer = todo.Artist === 'Klaus Badelt' ? 'Pirate' : todo.Artist;
     if (!acc[composer]) acc[composer] = [];
     acc[composer].push(todo);
     return acc;
@@ -208,23 +235,19 @@ const App = () => {
             const composerSlug = slugify(composer);
             const additionalStatic = featuredStaticPieces[composer] || [];
             const normalizeTitle = (str: string) => normalizeKey(str)
-            const dynamicLabels = composer === 'Pirate'
-              ? []
-              : previewPieces.map((piece: any) => (piece.Album ? `${piece.Album} - ${piece.Song}` : piece.Song));
-            const dynamicLinks = composer === 'Pirate'
-              ? []
-              : previewPieces.map((piece: any, idx: number) => (
-                <Link
-                  key={`dynamic-${piece.id}`}
-                  to={getStaticUrlForPiece(composer, piece.Song, piece.Album)}
-                  className="block text-left w-full mb-2 text-xl font-garamond text-gray-800 hover:text-blue-600 transition-colors"
-                >
-                  {dynamicLabels[idx]}
-                </Link>
-              ));
+            const dynamicLabels = previewPieces.map((piece: any) => (piece.Album ? `${piece.Album} - ${piece.Song}` : piece.Song));
+            const dynamicLinks = previewPieces.map((piece: any, idx: number) => (
+              <Link
+                key={`dynamic-${piece.id}`}
+                to={piece.url || `/${piece.artistSlug}/${piece.songSlug}`}
+                className="block text-left w-full mb-2 text-xl font-garamond text-gray-800 hover:text-blue-600 transition-colors"
+              >
+                {dynamicLabels[idx]}
+              </Link>
+            ));
             const neededExtras = Math.max(0, 4 - dynamicLinks.length);
             const existingTitles = new Set(
-              (composer === 'Pirate' ? [] : previewPieces).map((piece: any) => normalizeTitle(piece.Song || piece.Album || ''))
+              previewPieces.map((piece: any) => normalizeTitle(piece.Song || piece.Album || ''))
             );
             const staticLinks = additionalStatic
               .filter((piece) => !existingTitles.has(normalizeTitle(piece.title)))
