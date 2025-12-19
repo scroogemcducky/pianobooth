@@ -24,11 +24,12 @@ type Options = {
   slowMo: number
   devtools: boolean
   devMidiPath: string | null
+  count: number
 }
 
 const DEFAULTS: Options = {
   queueDir: 'midi/video_queue',
-  publicDir: 'public',
+  publicDir: 'videos', // Changed from 'public' - videos now save directly to videos/
   outDir: 'videos',
   baseUrl: process.env.RENDER_BASE_URL || 'http://localhost:5173',
   requireLLM: true,
@@ -39,6 +40,7 @@ const DEFAULTS: Options = {
   slowMo: 0,
   devtools: false,
   devMidiPath: null,
+  count: 1,
 }
 
 const KNOWN_COMPOSERS = /(bach|beethoven|chopin|debussy|mozart|liszt|schubert|schumann|rachmaninoff|handel|haydn|tchaikovsky|gershwin)/i
@@ -248,32 +250,8 @@ async function pickNextMidi(queueDir: string): Promise<string | null> {
   return files.length ? files[0].path : null
 }
 
-async function main() {
-  const args = process.argv.slice(2)
-  const opts: Options = { ...DEFAULTS }
-  for (let i = 0; i < args.length; i++) {
-    const a = args[i]
-    if (a === '--queue-dir' && args[i + 1]) opts.queueDir = args[++i]
-    else if (a === '--out-dir' && args[i + 1]) opts.outDir = args[++i]
-    else if (a === '--public-dir' && args[i + 1]) opts.publicDir = args[++i]
-    else if (a === '--base-url' && args[i + 1]) opts.baseUrl = args[++i]
-    else if (a === '--keep-midi') opts.keepMidi = true
-    else if (a === '--no-llm') opts.requireLLM = false
-    else if (a === '--model' && args[i + 1]) opts.llmModel = args[++i]
-    else if (a === '--timeout' && args[i + 1]) opts.timeoutMs = parseInt(args[++i]!, 10)
-    else if (a === '--headful' || a === '--no-headless') opts.headless = false
-    else if (a === '--slowmo' && args[i + 1]) opts.slowMo = parseInt(args[++i]!, 10)
-    else if (a === '--devtools') opts.devtools = true
-    else if (a === '--dev') {
-      opts.devMidiPath = path.join('midi', 'test_videos', 'test.mid')
-      opts.keepMidi = true
-    }
-  }
-
-  if (opts.requireLLM && !process.env.OPENAI_API_KEY) {
-    console.error('Error: OPENAI_API_KEY is required (or pass --no-llm to proceed without it).')
-    process.exit(2)
-  }
+async function processOneVideo(opts: Options, videoNumber?: number): Promise<boolean> {
+  const prefix = videoNumber !== undefined ? `[${videoNumber}] ` : ''
 
   // Pick next MIDI (support dev override)
   let midiPath: string | null = null
@@ -284,19 +262,19 @@ async function main() {
     try {
       await fs.access(candidate)
       midiPath = candidate
-      console.log(`Dev mode enabled: rendering ${candidate}`)
+      console.log(`${prefix}Dev mode enabled: rendering ${candidate}`)
     } catch {
-      console.error(`Dev MIDI not found at ${candidate}. Place test.mid in midi/test_videos/ and try again.`)
-      return
+      console.error(`${prefix}Dev MIDI not found at ${candidate}. Place test.mid in midi/test_videos/ and try again.`)
+      return false
     }
   } else {
     midiPath = await pickNextMidi(opts.queueDir)
   }
   if (!midiPath) {
-    console.log('No MIDI files found in queue.')
-    return
+    console.log(`${prefix}No MIDI files found in queue.`)
+    return false
   }
-  console.log(`Rendering next: ${midiPath}`)
+  console.log(`${prefix}Rendering next: ${midiPath}`)
 
   // Parse MIDI to note events (what the page consumes via localStorage)
   const midiObject: MidiNote[] = await parseMidiFilePath(midiPath)
@@ -330,42 +308,133 @@ async function main() {
     try { window.localStorage.setItem('midiMeta', payload.meta as string) } catch {}
   }, {
     data: JSON.stringify(midiObject),
-    meta: JSON.stringify({ title, artist }),
+    meta: JSON.stringify({ title: fileTitle, artist }),
   })
   const page = await context.newPage()
+
+  // Listen for page errors
+  page.on('pageerror', (error) => {
+    console.error(`${prefix}[PAGE ERROR]`, error.message)
+  })
+  page.on('console', (msg) => {
+    const text = msg.text()
+    if (text.includes('Error') || text.includes('error') || text.includes('Failed')) {
+      console.log(`${prefix}[CONSOLE]`, text)
+    }
+  })
 
   // const beforeFiles = await listMp4(opts.publicDir)
   const since = Date.now()
 
-  console.log(`Opening ${opts.baseUrl}/record ...`)
-  // Vite/Remix dev servers keep HMR connections open; avoid networkidle here
-  await page.goto(`${opts.baseUrl}/record`, { waitUntil: 'domcontentloaded', timeout: 120_000 })
+  console.log(`${prefix}Opening ${opts.baseUrl}/record ...`)
+
+  try {
+    // Vite/Remix dev servers keep HMR connections open; avoid networkidle here
+    await page.goto(`${opts.baseUrl}/record`, { waitUntil: 'domcontentloaded', timeout: 120_000 })
+  } catch (error) {
+    console.error(`${prefix}Failed to load page:`, error)
+    throw error
+  }
+
+  console.log(`${prefix}Page loaded, waiting for record button...`)
+
   // Ensure the record button is visible and enabled before clicking
-  await page.waitForSelector('#record-button', { state: 'visible', timeout: 120_000 })
+  try {
+    await page.waitForSelector('#record-button', { state: 'visible', timeout: 120_000 })
+  } catch (error) {
+    console.error(`${prefix}Record button not found. Taking screenshot...`)
+    await page.screenshot({ path: `error-${Date.now()}.png` })
+    throw error
+  }
   await page.waitForFunction(() => {
     const btn = document.querySelector('#record-button') as HTMLButtonElement | null
     return !!btn && !btn.disabled
   }, undefined, { timeout: 120_000 })
-  console.log('Starting recording...')
+  console.log(`${prefix}Starting recording...`)
   await page.click('#record-button')
 
   // Wait for new mp4 file in public directory to stabilize
   const newVideoPath = await waitForNewVideo(opts.publicDir, since, opts.timeoutMs)
-  console.log(`New video detected: ${path.basename(newVideoPath)}`)
+  console.log(`${prefix}New video detected: ${path.basename(newVideoPath)}`)
 
   // Close browser
   await page.close()
   await context.close()
   await browser.close()
 
-  // Move/rename into videos directory
-  await fs.rename(newVideoPath, targetPath)
-  console.log(`Saved video: ${targetPath}`)
+  // Move/rename into videos directory (only if paths differ)
+  if (path.resolve(newVideoPath) !== path.resolve(targetPath)) {
+    await fs.rename(newVideoPath, targetPath)
+    console.log(`${prefix}Saved video: ${targetPath}`)
+  } else {
+    console.log(`${prefix}Video already in correct location: ${targetPath}`)
+  }
 
   // Delete MIDI from queue if requested (default)
   if (!opts.keepMidi) {
-    try { await fs.unlink(midiPath); console.log(`Deleted source MIDI: ${midiPath}`) } catch {}
+    try { await fs.unlink(midiPath); console.log(`${prefix}Deleted source MIDI: ${midiPath}`) } catch {}
   }
+
+  return true
+}
+
+async function main() {
+  const args = process.argv.slice(2)
+  const opts: Options = { ...DEFAULTS }
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i]
+    if (a === '--queue-dir' && args[i + 1]) opts.queueDir = args[++i]
+    else if (a === '--out-dir' && args[i + 1]) opts.outDir = args[++i]
+    else if (a === '--public-dir' && args[i + 1]) opts.publicDir = args[++i]
+    else if (a === '--base-url' && args[i + 1]) opts.baseUrl = args[++i]
+    else if (a === '--keep-midi') opts.keepMidi = true
+    else if (a === '--no-llm') opts.requireLLM = false
+    else if (a === '--model' && args[i + 1]) opts.llmModel = args[++i]
+    else if (a === '--timeout' && args[i + 1]) opts.timeoutMs = parseInt(args[++i]!, 10)
+    else if (a === '--headful' || a === '--no-headless') opts.headless = false
+    else if (a === '--slowmo' && args[i + 1]) opts.slowMo = parseInt(args[++i]!, 10)
+    else if (a === '--devtools') opts.devtools = true
+    else if (a === '-n' && args[i + 1]) opts.count = parseInt(args[++i]!, 10)
+    else if (a.startsWith('-n') && a.length > 2) {
+      // Support -n5 syntax
+      const num = parseInt(a.substring(2), 10)
+      if (!isNaN(num)) opts.count = num
+    }
+    else if (a === '--dev') {
+      opts.devMidiPath = path.join('midi', 'test_videos', 'test.mid')
+      opts.keepMidi = true
+    }
+  }
+
+  if (opts.requireLLM && !process.env.OPENAI_API_KEY) {
+    console.error('Error: OPENAI_API_KEY is required (or pass --no-llm to proceed without it).')
+    process.exit(2)
+  }
+
+  console.log(`🎬 Processing ${opts.count} video${opts.count !== 1 ? 's' : ''} from queue...`)
+  console.log('')
+
+  let processed = 0
+  for (let i = 1; i <= opts.count; i++) {
+    try {
+      const success = await processOneVideo(opts, opts.count > 1 ? i : undefined)
+      if (success) {
+        processed++
+      } else {
+        console.log(`\nQueue exhausted after ${processed} video${processed !== 1 ? 's' : ''}. Stopping.`)
+        break
+      }
+      if (i < opts.count) {
+        console.log('\n' + '='.repeat(60) + '\n')
+      }
+    } catch (error) {
+      console.error(`\n❌ Error processing video ${i}:`, error)
+      console.log(`Stopping after ${processed} successful video${processed !== 1 ? 's' : ''}.`)
+      throw error
+    }
+  }
+
+  console.log(`\n✅ Complete! Processed ${processed}/${opts.count} video${opts.count !== 1 ? 's' : ''}.`)
 }
 
 if (import.meta.main) {

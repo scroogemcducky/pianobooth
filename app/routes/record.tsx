@@ -2,6 +2,7 @@
 // Renders MIDI piano visualization offline for video creation
 
 import React, { useState, useEffect, useRef } from 'react'
+import { flushSync } from 'react-dom'
 import { Canvas, useThree } from '@react-three/fiber'
 import midiParser from '../utils/MidiParser'
 import useMidiStore from '../store/midiStore'
@@ -346,7 +347,7 @@ export async function action({ request }: ActionFunctionArgs) {
     }
     
     // Generate video with ffmpeg (with or without audio)
-    const outputPath = path.join(process.cwd(), 'public', `piano_video_${Date.now()}.mp4`)
+    const outputPath = path.join(process.cwd(), 'videos', `piano_video_${Date.now()}.mp4`)
     
     return new Promise((resolve) => {
       const ffmpegArgs = [
@@ -399,9 +400,9 @@ export async function action({ request }: ActionFunctionArgs) {
         if (code === 0) {
           const videoFileName = path.basename(outputPath)
           const audioType = audioPath ? ' with audio' : ''
-          resolve(json({ 
-            success: true, 
-            videoUrl: `/${videoFileName}`,
+          resolve(json({
+            success: true,
+            videoUrl: `/videos/${videoFileName}`,
             message: `Video generated${audioType}: ${videoFileName}`
           }))
         } else {
@@ -493,13 +494,13 @@ export default function Record() {
     const poll = async () => {
       attempts++
       try {
-        const res = await fetch(`/${videoFileName}`, { method: 'HEAD', cache: 'no-cache' })
+        const res = await fetch(`/videos/${videoFileName}`, { method: 'HEAD', cache: 'no-cache' })
         if (res.ok) {
           if (videoPollingRef.current) {
             clearInterval(videoPollingRef.current)
             videoPollingRef.current = null
           }
-          const videoUrl = `/${videoFileName}`
+          const videoUrl = `/videos/${videoFileName}`
           console.log(`✅ Video ready (polled): ${videoUrl}`)
           handleVideoReady(videoUrl)
           return
@@ -683,18 +684,22 @@ export default function Record() {
           const parsedData = JSON.parse(storedData);
           console.log('Loaded from localStorage:', parsedData);
           const storedMeta = localStorage.getItem('midiMeta')
-          if (storedMeta) {
-            try {
-              const parsedMeta = normalizeMeta(JSON.parse(storedMeta) as MidiMeta)
-              setTitle(parsedMeta.title || '')
-              setArtist(parsedMeta.artist || '')
-              updateMidiState(parsedData as MidiNote[], parsedMeta)
-            } catch {
+
+          // Use flushSync to ensure state updates complete synchronously for automated recording
+          flushSync(() => {
+            if (storedMeta) {
+              try {
+                const parsedMeta = normalizeMeta(JSON.parse(storedMeta) as MidiMeta)
+                setTitle(parsedMeta.title || '')
+                setArtist(parsedMeta.artist || '')
+                updateMidiState(parsedData as MidiNote[], parsedMeta)
+              } catch {
+                updateMidiState(parsedData as MidiNote[])
+              }
+            } else {
               updateMidiState(parsedData as MidiNote[])
             }
-          } else {
-            updateMidiState(parsedData as MidiNote[])
-          }
+          })
         } catch (error) {
           console.error('Error loading from localStorage:', error);
           localStorage.removeItem('processedMidiData');
@@ -1022,10 +1027,12 @@ export default function Record() {
       return
     }
 
-    // Generate unique session ID
+    // Generate unique session ID and update state synchronously
     const sessionId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    setRecordingSessionId(sessionId)
-    setUploadedFrameCount(0)
+    flushSync(() => {
+      setRecordingSessionId(sessionId)
+      setUploadedFrameCount(0)
+    })
 
     // Send init message to server
     socket.send(JSON.stringify({

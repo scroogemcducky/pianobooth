@@ -57,3 +57,6 @@ todos.md
 pyproject.toml
 uv.lock
 main.py
+# Temporary files
+temp_frames/
+*.mp4

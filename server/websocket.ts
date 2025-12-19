@@ -72,7 +72,7 @@ async function generateVideo(session: {
 }) {
   const displayName = sanitizeFileName(`${session.artist} - ${session.title}`)
   const videoFileName = `${displayName}.mp4`
-  const outputPath = path.join(process.cwd(), 'public', videoFileName)
+  const outputPath = path.join(process.cwd(), 'videos', videoFileName)
 
   console.log(`🎬 Starting video generation for session ${session.sessionId}...`)
   console.log(`   Frames: ${session.frameCount}`)
@@ -231,7 +231,7 @@ export function setupWebSocketServer(server: any) {
               ws.send(JSON.stringify({
                 type: 'video-ready',
                 sessionId: message.sessionId,
-                videoUrl: `/${videoFileName}`,
+                videoUrl: `/videos/${videoFileName}`,
                 frameCount: session.frameCount
               }))
 

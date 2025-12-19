@@ -42,5 +42,25 @@ export default defineConfig({
         });
       },
     },
+    // Serve videos directory as static files
+    {
+      name: 'serve-videos',
+      configureServer(server) {
+        server.middlewares.use('/videos', async (req, res, next) => {
+          const fs = await import('fs')
+          const path = await import('path')
+          const url = new URL(req.url || '', 'http://localhost')
+          const filePath = path.join(process.cwd(), 'videos', url.pathname)
+
+          if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+            res.setHeader('Content-Type', 'video/mp4')
+            res.setHeader('Accept-Ranges', 'bytes')
+            fs.createReadStream(filePath).pipe(res)
+          } else {
+            next()
+          }
+        })
+      },
+    },
   ],
 });
