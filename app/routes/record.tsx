@@ -105,11 +105,11 @@ interface FetcherData {
 
 // Frame recording configuration
 const FPS = 60
-// Keep the recorded audio/visuals two seconds behind the original MIDI timing
-const NOTE_START_DELAY_SECONDS = 2
+// Keep the recorded audio/visuals 0.5 seconds behind the original MIDI timing
+const NOTE_START_DELAY_SECONDS = 0.5
 // Keys light up 1 second after the note's Delta time (KEY_PRESS_DELAY_MS = -1000 in FrameBasedKeyController)
 const KEY_PRESS_DELAY_SECONDS = 1
-const AUDIO_PLAYBACK_DELAY_SECONDS = NOTE_START_DELAY_SECONDS + KEY_PRESS_DELAY_SECONDS  // 3 seconds total
+const AUDIO_PLAYBACK_DELAY_SECONDS = NOTE_START_DELAY_SECONDS + KEY_PRESS_DELAY_SECONDS  // 1.5 seconds total
 const NOTE_START_DELAY_FRAMES = Math.round(NOTE_START_DELAY_SECONDS * FPS)
 const FRAME_DURATION_MS = 1000 / FPS
 const CANVAS_WIDTH = 1920
