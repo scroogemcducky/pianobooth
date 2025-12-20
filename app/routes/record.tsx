@@ -105,11 +105,12 @@ interface FetcherData {
 
 // Frame recording configuration
 const FPS = 60
+const FALL_DURATION_SECONDS = 3  // How long blocks take to fall from top to keyboard
 // Keep the recorded audio/visuals 0.5 seconds behind the original MIDI timing
 const NOTE_START_DELAY_SECONDS = 0.5
-// Keys light up 1 second after the note's Delta time (KEY_PRESS_DELAY_MS = -1000 in FrameBasedKeyController)
-const KEY_PRESS_DELAY_SECONDS = 1
-const AUDIO_PLAYBACK_DELAY_SECONDS = NOTE_START_DELAY_SECONDS + KEY_PRESS_DELAY_SECONDS  // 1.5 seconds total
+// Keys light up after blocks fall (derived from FALL_DURATION_SECONDS)
+const KEY_PRESS_DELAY_SECONDS = FALL_DURATION_SECONDS
+const AUDIO_PLAYBACK_DELAY_SECONDS = NOTE_START_DELAY_SECONDS + KEY_PRESS_DELAY_SECONDS  // 3.5 seconds total
 const NOTE_START_DELAY_FRAMES = Math.round(NOTE_START_DELAY_SECONDS * FPS)
 const FRAME_DURATION_MS = 1000 / FPS
 const CANVAS_WIDTH = 1920
@@ -124,13 +125,17 @@ const sanitizeFileName = (s: string): string => s.replace(/[\\/:*?"<>|]/g, '').r
 function calculateTotalFrames(midiObject: MidiNote[]): number {
   if (!midiObject || midiObject.length === 0) return 0
   
-  // Find the last note end time
-  const lastNoteEnd = Math.max(...midiObject.map((note: MidiNote) => 
-    Math.floor(note.Delta / 1000) + (note.Duration / 1000000 * 1000)
-  ))
+  // Find the last note's visual end time (accounting for fall time and scaled duration)
+  const lastNoteVisualEnd = Math.max(...midiObject.map((note: MidiNote) => {
+    const noteDeltaMs = Math.floor(note.Delta / 1000)
+    const noteDurationMs = note.Duration / 1000000 * 1000
+    // Block falls for FALL_DURATION_SECONDS, then key stays pressed for scaled duration
+    const visualEndMs = noteDeltaMs + (FALL_DURATION_SECONDS * 1000) + (noteDurationMs * FALL_DURATION_SECONDS)
+    return visualEndMs
+  }))
   
   // Add some padding at the end (2 seconds)
-  const totalDurationMs = lastNoteEnd + 2000
+  const totalDurationMs = lastNoteVisualEnd + 2000
   
   return Math.ceil(totalDurationMs / FRAME_DURATION_MS)
 }

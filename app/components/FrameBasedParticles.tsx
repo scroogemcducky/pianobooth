@@ -8,7 +8,8 @@ import useParticleSettingsStore, { type ParticleSettings, PARTICLE_DEFAULTS } fr
 import { isBlack } from '../utils/functions'
 
 const FRAME_DURATION_MS = 1000 / 60
-const KEY_PRESS_DELAY_MS = -1000
+const FALL_DURATION_SECONDS = 3  // How long blocks take to fall (must match FrameBasedShaderBlocks)
+const KEY_PRESS_DELAY_MS = -FALL_DURATION_SECONDS * 1000  // Particles sync with key presses
 
 export interface FrameBasedParticlesHandle {
   setFrame: (adjustedFrame: number) => void
@@ -445,9 +446,11 @@ const FrameBasedParticles = forwardRef<FrameBasedParticlesHandle, FrameBasedPart
         const noteStartMs = Math.floor(note.Delta / 1000)
         const noteDurationMs = (note.Duration / 1000000) * 1000
         const noteEndMs = noteStartMs + noteDurationMs
-        // Use same delay as FrameBasedKeyController for sync
+        // Use same delay and duration scaling as FrameBasedKeyController for sync
         const keyPressStartMs = noteStartMs - KEY_PRESS_DELAY_MS
-        const keyPressEndMs = noteEndMs - KEY_PRESS_DELAY_MS
+        // Scale the particle duration by FALL_DURATION_SECONDS (particles emit for longer as blocks move slower)
+        const scaledNoteDurationMs = noteDurationMs * FALL_DURATION_SECONDS
+        const keyPressEndMs = keyPressStartMs + scaledNoteDurationMs
         return {
           noteNumber: note.NoteNumber,
           keyPressStartMs,

@@ -12,6 +12,7 @@ import {
 } from '../utils/pianoLayout'
 
 const FRAME_DURATION_MS = 1000 / 60
+const FALL_DURATION_SECONDS = 3  // How long blocks take to fall from top to keyboard
 
 export interface FrameBasedShaderBlocksHandle {
   setFrame: (adjustedFrame: number) => void
@@ -109,7 +110,10 @@ const FrameBasedInstances = forwardRef<FrameBasedInstancesHandle, FrameBasedInst
   useImperativeHandle(ref, () => ({
     setTime: (currentTimeMs: number) => {
       if (!materialRef.current) return
-      const speedAdjusted = speed * distance / factor
+      // Fall speed adjusted for desired fall duration
+      // We want blocks to fall for FALL_DURATION_SECONDS before reaching keyboard
+      // So we divide the normal speed by FALL_DURATION_SECONDS
+      const speedAdjusted = (speed * distance / factor) / FALL_DURATION_SECONDS
       const accumValue = (currentTimeMs / 1000) * speedAdjusted
       materialRef.current.uniforms.uAccum.value = accumValue
     }
@@ -228,7 +232,14 @@ const FrameBasedShaderBlocks = forwardRef<FrameBasedShaderBlocksHandle, FrameBas
         const height = calculateHeight(note.Duration, distance) / factor
         const deltaMs = Math.floor(note.Delta / 1000)
         const xPosition = getNoteXPosition(note.NoteNumber, activeLayout)
-        const yPosition = height / 2 + half_screen + (distance * deltaMs) / (1000 * factor)
+        // At time=deltaMs, block should be FALL_DURATION_SECONDS worth of falling away from keyboard
+        // Fall speed = distance / FALL_DURATION_SECONDS
+        // Distance to fall in FALL_DURATION_SECONDS = FALL_DURATION_SECONDS * (distance / FALL_DURATION_SECONDS) = distance
+        // So at deltaMs: block Y should be keyboard_Y + distance ≈ 0 + distance ≈ half_screen
+        // Block Y at time T = initial_Y - (T/1000) * fall_speed
+        // At T=deltaMs: initial_Y - (deltaMs/1000) * (distance/FALL_DURATION_SECONDS) = half_screen
+        // Therefore: initial_Y = height/2 + half_screen + (deltaMs/1000) * (distance/FALL_DURATION_SECONDS)
+        const yPosition = height / 2 + half_screen + (distance * deltaMs / 1000) / FALL_DURATION_SECONDS
         const blockWidth = isBlack(note.NoteNumber) ? black_width : white_width - 0.1
         return {
           noteNumber: note.NoteNumber,
