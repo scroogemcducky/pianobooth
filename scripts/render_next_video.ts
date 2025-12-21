@@ -305,12 +305,20 @@ async function processOneVideo(opts: Options, videoNumber?: number): Promise<boo
   const browser = await chromium.launch({ headless: opts.headless, slowMo: opts.slowMo, devtools: opts.devtools })
   const context = await browser.newContext({ viewport: { width: 1920, height: 1080 } })
   // Preload localStorage with processed MIDI
+  console.log(`${prefix}Setting fallDuration in localStorage: ${opts.fallDuration}`)
   await context.addInitScript((payload) => {
     try { window.localStorage.setItem('processedMidiData', payload.data as string) } catch {}
     try { window.localStorage.setItem('midiMeta', payload.meta as string) } catch {}
+    try { 
+      window.localStorage.setItem('fallDuration', payload.fallDuration as string)
+      console.log('✅ localStorage.fallDuration set to:', payload.fallDuration)
+    } catch (e) {
+      console.error('❌ Failed to set fallDuration:', e)
+    }
   }, {
     data: JSON.stringify(midiObject),
     meta: JSON.stringify({ title: fileTitle, artist }),
+    fallDuration: String(opts.fallDuration),
   })
   const page = await context.newPage()
 
@@ -328,7 +336,7 @@ async function processOneVideo(opts: Options, videoNumber?: number): Promise<boo
   // const beforeFiles = await listMp4(opts.publicDir)
   const since = Date.now()
 
-  const recordUrl = `${opts.baseUrl}/record?fallDuration=${opts.fallDuration}`
+  const recordUrl = `${opts.baseUrl}/record`
   console.log(`${prefix}Opening ${recordUrl} ...`)
 
   try {

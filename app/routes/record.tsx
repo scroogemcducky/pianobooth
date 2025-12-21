@@ -483,23 +483,32 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function Record() {
-  const [searchParams] = useSearchParams()
-  
-  // Local state for fall duration (lookahead time)
-  const [fallDuration, setFallDurationState] = useState(FALL_DURATION_SECONDS)
-  
-  // Initialize fall duration from URL parameter
-  useEffect(() => {
-    const fallDurationParam = searchParams.get('fallDuration')
-    if (fallDurationParam) {
-      const duration = parseFloat(fallDurationParam)
-      if (!isNaN(duration)) {
-        setFallDuration(duration)
-        setFallDurationState(duration)
-        console.log(`🎬 Fall duration set to ${duration} seconds from URL parameter`)
+  // Read fall duration from localStorage or use default
+  const initialFallDuration = (() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('fallDuration')
+      console.log('🔍 localStorage.fallDuration:', stored)
+      if (stored) {
+        const duration = parseFloat(stored)
+        console.log('🔍 Parsed fall duration:', duration)
+        if (!isNaN(duration) && duration > 0) {
+          console.log(`✅ Using fall duration from localStorage: ${duration} seconds`)
+          return duration
+        }
       }
     }
-  }, [searchParams])
+    console.log(`⚠️ Using default fall duration: ${FALL_DURATION_SECONDS} seconds`)
+    return FALL_DURATION_SECONDS
+  })()
+  
+  // Local state for fall duration (lookahead time)
+  const [fallDuration, setFallDurationState] = useState(initialFallDuration)
+  
+  // Update global variable for backwards compatibility
+  useEffect(() => {
+    setFallDuration(fallDuration)
+    console.log(`🎬 Fall duration set to ${fallDuration} seconds`)
+  }, [fallDuration])
   
   const [midiObject, setMidiObject] = useState<MidiNote[] | null>(null)
   const [pianoLayout, setPianoLayout] = useState<PianoLayout>(DEFAULT_PIANO_LAYOUT)

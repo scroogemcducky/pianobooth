@@ -11,11 +11,24 @@ const BASE_URL = process.env.RENDER_BASE_URL || 'http://localhost:5173'
 const HEADLESS = process.argv.includes('--headless')
 const TIMEOUT_MS = 10 * 60 * 1000 // 10 minutes
 
+// Parse fall duration from command line
+let fallDuration = 3 // Default
+const args = process.argv.slice(2)
+for (let i = 0; i < args.length; i++) {
+  if (args[i] === '-t' && args[i + 1]) {
+    const duration = parseFloat(args[i + 1])
+    if (!isNaN(duration) && duration > 0) {
+      fallDuration = duration
+    }
+  }
+}
+
 async function main() {
   console.log('🧪 Testing WebSocket streaming...')
   console.log(`   MIDI: ${TEST_MIDI}`)
   console.log(`   URL: ${BASE_URL}`)
   console.log(`   Mode: ${HEADLESS ? 'headless' : 'headful'}`)
+  console.log(`   Fall duration: ${fallDuration}s`)
 
   // Check if test MIDI exists
   const midiPath = path.resolve(TEST_MIDI)
@@ -60,9 +73,13 @@ async function main() {
     try {
       window.localStorage.setItem('midiMeta', payload.meta as string)
     } catch {}
+    try {
+      window.localStorage.setItem('fallDuration', payload.fallDuration as string)
+    } catch {}
   }, {
     data: JSON.stringify(midiObject),
     meta: JSON.stringify({ title, artist }),
+    fallDuration: String(fallDuration),
   })
 
   const page = await context.newPage()
