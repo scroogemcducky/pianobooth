@@ -230,7 +230,10 @@ const FrameBasedShaderBlocks = forwardRef<FrameBasedShaderBlocksHandle, FrameBas
   useEffect(() => {
     if (midiObject) {
       const newBlocks = midiObject.map((note) => {
-        const height = calculateHeight(note.Duration, distance) / factor
+        // Block height is inversely proportional to lookahead
+        // When blocks fall slower (higher lookahead), they need to be shorter
+        // so they cover the keyboard for the same visual duration
+        const height = calculateHeight(note.Duration, distance) / lookahead
         const deltaMs = Math.floor(note.Delta / 1000)
         const xPosition = getNoteXPosition(note.NoteNumber, activeLayout)
         // At time=deltaMs, block should be 'lookahead' seconds worth of falling away from keyboard
