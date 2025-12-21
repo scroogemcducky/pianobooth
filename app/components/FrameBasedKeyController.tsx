@@ -1,5 +1,6 @@
 import { useRef, forwardRef, useImperativeHandle } from 'react'
 import useKeyStore from '../store/keyPressStore'
+import { FALL_DURATION_SECONDS } from '../utils/recordingConstants'
 
 interface MidiNote {
   Delta: number
@@ -18,7 +19,6 @@ interface Props {
 }
 
 const FRAME_DURATION_MS = 1000 / 60
-const FALL_DURATION_SECONDS = 3  // How long blocks take to fall (must match FrameBasedShaderBlocks)
 const KEY_PRESS_DELAY_MS = -FALL_DURATION_SECONDS * 1000  // Keys press after blocks fall
 
 const FrameBasedKeyController = forwardRef<FrameBasedKeyControllerHandle, Props>(

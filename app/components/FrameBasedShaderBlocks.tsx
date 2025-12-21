@@ -10,9 +10,9 @@ import {
   getKeyboardWidth,
   getNoteXPosition,
 } from '../utils/pianoLayout'
+import { FALL_DURATION_SECONDS } from '../utils/recordingConstants'
 
 const FRAME_DURATION_MS = 1000 / 60
-const FALL_DURATION_SECONDS = 3  // How long blocks take to fall from top to keyboard
 
 export interface FrameBasedShaderBlocksHandle {
   setFrame: (adjustedFrame: number) => void

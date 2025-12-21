@@ -6,9 +6,9 @@ import { white_key_dimensions, black_key_dimensions, BLACK_KEY_COLOR, WHITE_KEY_
 import { type PianoLayout, getKeyboardMetrics, getKeyboardWidth, getNoteXPosition } from '../utils/pianoLayout'
 import useParticleSettingsStore, { type ParticleSettings, PARTICLE_DEFAULTS } from '../store/particleSettingsStore'
 import { isBlack } from '../utils/functions'
+import { FALL_DURATION_SECONDS } from '../utils/recordingConstants'
 
 const FRAME_DURATION_MS = 1000 / 60
-const FALL_DURATION_SECONDS = 3  // How long blocks take to fall (must match FrameBasedShaderBlocks)
 const KEY_PRESS_DELAY_MS = -FALL_DURATION_SECONDS * 1000  // Particles sync with key presses
 
 export interface FrameBasedParticlesHandle {

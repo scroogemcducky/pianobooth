@@ -16,6 +16,7 @@ import { ActionFunctionArgs, json } from '@remix-run/cloudflare'
 import { useFetcher } from '@remix-run/react'
 import soundFont, { Player } from 'soundfont-player'
 import { computePianoLayout, DEFAULT_PIANO_LAYOUT, type PianoLayout } from '../utils/pianoLayout'
+import { FALL_DURATION_SECONDS } from '../utils/recordingConstants'
 
 const KNOWN_COMPOSERS = /(bach|beethoven|chopin|debussy|mozart|liszt|schubert|schumann|rachmaninoff|handel|haydn|tchaikovsky|gershwin|albeniz)/i
 
@@ -105,7 +106,6 @@ interface FetcherData {
 
 // Frame recording configuration
 const FPS = 60
-const FALL_DURATION_SECONDS = 3  // How long blocks take to fall from top to keyboard
 // Keep the recorded audio/visuals 0.5 seconds behind the original MIDI timing
 const NOTE_START_DELAY_SECONDS = 0.5
 // Keys light up after blocks fall (derived from FALL_DURATION_SECONDS)
@@ -125,19 +125,74 @@ const sanitizeFileName = (s: string): string => s.replace(/[\\/:*?"<>|]/g, '').r
 function calculateTotalFrames(midiObject: MidiNote[]): number {
   if (!midiObject || midiObject.length === 0) return 0
   
-  // Find the last note's visual end time (accounting for fall time and scaled duration)
-  const lastNoteVisualEnd = Math.max(...midiObject.map((note: MidiNote) => {
+  // Step 1: Find when the last MIDI note ends (in original MIDI time)
+  let lastMidiEndMs = 0
+  let lastNote: MidiNote | null = null
+  
+  midiObject.forEach((note: MidiNote) => {
     const noteDeltaMs = Math.floor(note.Delta / 1000)
     const noteDurationMs = note.Duration / 1000000 * 1000
-    // Block falls for FALL_DURATION_SECONDS, then key stays pressed for scaled duration
-    const visualEndMs = noteDeltaMs + (FALL_DURATION_SECONDS * 1000) + (noteDurationMs * FALL_DURATION_SECONDS)
-    return visualEndMs
-  }))
+    const noteEndMs = noteDeltaMs + noteDurationMs
+    
+    if (noteEndMs > lastMidiEndMs) {
+      lastMidiEndMs = noteEndMs
+      lastNote = note
+    }
+  })
   
-  // Add some padding at the end (2 seconds)
-  const totalDurationMs = lastNoteVisualEnd + 2000
+  // Step 2: Convert to video timeline
+  // In MIDI: note ends at lastMidiEndMs
+  // In video (adjusted timeline):
+  //   - Block appears and starts falling at time = note.Delta
+  //   - Block falls for FALL_DURATION_SECONDS
+  //   - Key presses at time = note.Delta + FALL_DURATION_SECONDS*1000
+  //   - Key stays pressed for note.Duration * FALL_DURATION_SECONDS
+  //   - Key finishes at time = note.Delta + FALL_DURATION_SECONDS*1000 + note.Duration*FALL_DURATION_SECONDS
   
-  return Math.ceil(totalDurationMs / FRAME_DURATION_MS)
+  if (!lastNote) return 0
+  
+  const lastNoteDeltaMs = Math.floor(lastNote.Delta / 1000)
+  const lastNoteDurationMs = lastNote.Duration / 1000000 * 1000
+  const keyPressStartMs = lastNoteDeltaMs + (FALL_DURATION_SECONDS * 1000)
+  const scaledDurationMs = lastNoteDurationMs * FALL_DURATION_SECONDS
+  const keyPressEndMs = keyPressStartMs + scaledDurationMs
+  
+  // Step 3: Add padding for particles to settle
+  const totalDurationMs = keyPressEndMs + 2000
+  
+  // Step 4: Convert to frames
+  const totalFrames = Math.ceil(totalDurationMs / FRAME_DURATION_MS)
+  
+  // Debug logging to file
+  const debugInfo = {
+    timestamp: new Date().toISOString(),
+    lastMidiEndMs,
+    lastNoteDeltaMs,
+    lastNoteDurationMs,
+    noteNumber: lastNote.NoteNumber,
+    keyPressStartMs,
+    scaledDurationMs,
+    keyPressEndMs,
+    totalDurationMs,
+    totalAdjustedFrames: totalFrames,
+    totalRawFrames: totalFrames + NOTE_START_DELAY_FRAMES,
+    fallDurationSeconds: FALL_DURATION_SECONDS,
+    noteStartDelayFrames: NOTE_START_DELAY_FRAMES,
+    fps: FPS,
+  }
+  
+  // Write to debug file
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('video_debug', JSON.stringify(debugInfo, null, 2))
+    console.log('📊 Video debug info saved to localStorage["video_debug"]')
+  }
+  
+  console.log('📊 Video Duration Calculation:')
+  console.log(`  Last MIDI note ends at: ${lastMidiEndMs}ms (Delta=${lastNoteDeltaMs}ms + Duration=${lastNoteDurationMs}ms)`)
+  console.log(`  Note number: ${lastNote.NoteNumber}`)
+  console.log(`  Total raw frames to render: ${totalFrames + NOTE_START_DELAY_FRAMES}`)
+  
+  return totalFrames
 }
 
 // Convert AudioBuffer to WAV blob
@@ -240,6 +295,7 @@ function DeterministicRecorder({
       console.log('✅ Title text ready, starting frame capture')
     }
 
+    let framesRendered = 0
     for (let i = 0; i < totalFrames; i++) {
       if (!isRecordingRef.current) break
 
@@ -258,11 +314,19 @@ function DeterministicRecorder({
 
       // Capture and send
       await captureFramePayload(i)
+      framesRendered++
     }
 
     if (isRecordingRef.current) {
       setIsRecording(false)
-      console.log('Recording complete! Finalizing...')
+      console.log(`Recording complete! Rendered ${framesRendered}/${totalFrames} frames. Finalizing...`)
+      
+      // Update debug info with actual rendered count
+      const debugInfo = JSON.parse(localStorage.getItem('video_debug') || '{}')
+      debugInfo.framesActuallyRendered = framesRendered
+      debugInfo.framesExpected = totalFrames
+      localStorage.setItem('video_debug', JSON.stringify(debugInfo, null, 2))
+      
       setTimeout(() => onComplete(), 2000)
     }
   }
@@ -739,20 +803,30 @@ export default function Record() {
 
     console.log(`🎵 Generating audio from MIDI for ${midiObject.length} notes...`)
 
-    // Calculate total duration:
-    // - 3 second intro delay (2s visual delay + 1s key press delay to sync with key activation)
-    // - MIDI duration
-    // - 2 second tail padding
-    const introDelayMs = AUDIO_PLAYBACK_DELAY_SECONDS * 1000  // 3000ms (matches when keys light up)
-    const lastNoteEndMs = Math.max(...midiObject.map(note =>
-      Math.floor(note.Delta / 1000) + (note.Duration / 1000000 * 1000)
-    ))
-    const tailPaddingMs = 2000
-    const totalDurationMs = introDelayMs + lastNoteEndMs + tailPaddingMs
+    // Calculate total duration to match video length:
+    // Audio must be at least as long as the video to avoid ffmpeg cutting it short with -shortest flag
+    
+    // Find the last note's VISUAL end time (same calculation as video frames)
+    let lastNoteVisualEndMs = 0
+    midiObject.forEach(note => {
+      const noteDeltaMs = Math.floor(note.Delta / 1000)
+      const noteDurationMs = note.Duration / 1000000 * 1000
+      const keyPressStartMs = noteDeltaMs + (FALL_DURATION_SECONDS * 1000)
+      const scaledDurationMs = noteDurationMs * FALL_DURATION_SECONDS
+      const keyPressEndMs = keyPressStartMs + scaledDurationMs
+      if (keyPressEndMs > lastNoteVisualEndMs) {
+        lastNoteVisualEndMs = keyPressEndMs
+      }
+    })
+    
+    // Audio starts after NOTE_START_DELAY (0.5s) and includes the full visual duration
+    const introDelayMs = NOTE_START_DELAY_SECONDS * 1000  // 500ms visual intro
+    const tailPaddingMs = 2000  // Extra padding for reverb/sustain
+    const totalDurationMs = introDelayMs + lastNoteVisualEndMs + tailPaddingMs
     const totalDurationSec = totalDurationMs / 1000
 
     console.log(`   Intro delay: ${introDelayMs}ms`)
-    console.log(`   MIDI duration: ${lastNoteEndMs}ms (last note ends at ${(lastNoteEndMs/1000).toFixed(2)}s)`)
+    console.log(`   Last visual key press ends at: ${lastNoteVisualEndMs}ms`)
     console.log(`   Tail padding: ${tailPaddingMs}ms`)
     console.log(`   Total audio duration: ${totalDurationSec.toFixed(2)}s`)
 
