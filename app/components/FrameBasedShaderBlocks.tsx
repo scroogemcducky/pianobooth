@@ -10,7 +10,6 @@ import {
   getKeyboardWidth,
   getNoteXPosition,
 } from '../utils/pianoLayout'
-import { FALL_DURATION_SECONDS } from '../utils/recordingConstants'
 
 const FRAME_DURATION_MS = 1000 / 60
 
@@ -101,23 +100,23 @@ interface FrameBasedInstancesProps {
   blocks: Block[];
   scaleFactor: number
   distance: number
+  lookahead: number
 }
 
 const FrameBasedInstances = forwardRef<FrameBasedInstancesHandle, FrameBasedInstancesProps>(
-  function FrameBasedInstances({ blocks, scaleFactor, distance }, ref) {
+  function FrameBasedInstances({ blocks, scaleFactor, distance, lookahead }, ref) {
   const materialRef = useRef<CustomShaderMaterial>(null);
 
   useImperativeHandle(ref, () => ({
     setTime: (currentTimeMs: number) => {
       if (!materialRef.current) return
       // Fall speed adjusted for desired fall duration
-      // We want blocks to fall for FALL_DURATION_SECONDS before reaching keyboard
-      // So we divide the normal speed by FALL_DURATION_SECONDS
-      const speedAdjusted = (speed * distance / factor) / FALL_DURATION_SECONDS
+      // Blocks should fall 'distance' units in 'lookahead' seconds
+      const speedAdjusted = speed * distance / lookahead
       const accumValue = (currentTimeMs / 1000) * speedAdjusted
       materialRef.current.uniforms.uAccum.value = accumValue
     }
-  }), [distance])
+  }), [distance, lookahead])
 
   const geometry = useMemo(() => {
     if (!blocks.length) return null;
@@ -195,6 +194,7 @@ interface FrameBasedShaderBlocksProps {
   scaleMultiplier?: number
   scaleFillRatio?: number
   scaleMax?: number
+  lookahead?: number
 }
 
 const FrameBasedShaderBlocks = forwardRef<FrameBasedShaderBlocksHandle, FrameBasedShaderBlocksProps>(
@@ -204,6 +204,7 @@ const FrameBasedShaderBlocks = forwardRef<FrameBasedShaderBlocksHandle, FrameBas
     scaleMultiplier = 1,
     scaleFillRatio,
     scaleMax,
+    lookahead = 3,
   }, ref) {
   const { viewport } = useThree()
   const [blocks, setBlocks] = useState<Block[]>([])
@@ -232,14 +233,11 @@ const FrameBasedShaderBlocks = forwardRef<FrameBasedShaderBlocksHandle, FrameBas
         const height = calculateHeight(note.Duration, distance) / factor
         const deltaMs = Math.floor(note.Delta / 1000)
         const xPosition = getNoteXPosition(note.NoteNumber, activeLayout)
-        // At time=deltaMs, block should be FALL_DURATION_SECONDS worth of falling away from keyboard
-        // Fall speed = distance / FALL_DURATION_SECONDS
-        // Distance to fall in FALL_DURATION_SECONDS = FALL_DURATION_SECONDS * (distance / FALL_DURATION_SECONDS) = distance
-        // So at deltaMs: block Y should be keyboard_Y + distance ≈ 0 + distance ≈ half_screen
-        // Block Y at time T = initial_Y - (T/1000) * fall_speed
-        // At T=deltaMs: initial_Y - (deltaMs/1000) * (distance/FALL_DURATION_SECONDS) = half_screen
-        // Therefore: initial_Y = height/2 + half_screen + (deltaMs/1000) * (distance/FALL_DURATION_SECONDS)
-        const yPosition = height / 2 + half_screen + (distance * deltaMs / 1000) / FALL_DURATION_SECONDS
+        // At time=deltaMs, block should be 'lookahead' seconds worth of falling away from keyboard
+        // Fall speed = distance / lookahead
+        // At T=deltaMs: initial_Y - (deltaMs/1000) * (distance/lookahead) = half_screen
+        // Therefore: initial_Y = height/2 + half_screen + (distance * deltaMs) / (1000 * lookahead)
+        const yPosition = height / 2 + half_screen + (distance * deltaMs) / (1000 * lookahead)
         const blockWidth = isBlack(note.NoteNumber) ? black_width : white_width - 0.1
         return {
           noteNumber: note.NoteNumber,
@@ -255,7 +253,7 @@ const FrameBasedShaderBlocks = forwardRef<FrameBasedShaderBlocksHandle, FrameBas
 
       setBlocks(newBlocks)
     }
-  }, [activeLayout, midiObject, viewport.height, viewport.width, half_screen, distance, scaleFactor])
+  }, [activeLayout, midiObject, viewport.height, viewport.width, half_screen, distance, scaleFactor, lookahead])
 
   return (
     <>
@@ -265,6 +263,7 @@ const FrameBasedShaderBlocks = forwardRef<FrameBasedShaderBlocksHandle, FrameBas
           blocks={blocks}
           scaleFactor={scaleFactor}
           distance={distance}
+          lookahead={lookahead}
         />
       )}
     </>

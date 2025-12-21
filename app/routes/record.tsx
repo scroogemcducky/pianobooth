@@ -109,9 +109,6 @@ interface FetcherData {
 const FPS = 60
 // Keep the recorded audio/visuals 0.5 seconds behind the original MIDI timing
 const NOTE_START_DELAY_SECONDS = 0.5
-// Keys light up after blocks fall (derived from FALL_DURATION_SECONDS)
-const KEY_PRESS_DELAY_SECONDS = FALL_DURATION_SECONDS
-const AUDIO_PLAYBACK_DELAY_SECONDS = NOTE_START_DELAY_SECONDS + KEY_PRESS_DELAY_SECONDS  // 3.5 seconds total
 const NOTE_START_DELAY_FRAMES = Math.round(NOTE_START_DELAY_SECONDS * FPS)
 const FRAME_DURATION_MS = 1000 / FPS
 const CANVAS_WIDTH = 1920
@@ -123,7 +120,7 @@ const VIDEO_POLL_MAX_ATTEMPTS = 100
 const sanitizeFileName = (s: string): string => s.replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, ' ').trim()
 
 // Calculate total duration and frames needed
-function calculateTotalFrames(midiObject: MidiNote[]): number {
+function calculateTotalFrames(midiObject: MidiNote[], fallDurationSeconds: number): number {
   if (!midiObject || midiObject.length === 0) return 0
   
   // Step 1: Find when the last MIDI note ends (in original MIDI time)
@@ -145,18 +142,17 @@ function calculateTotalFrames(midiObject: MidiNote[]): number {
   // In MIDI: note ends at lastMidiEndMs
   // In video (adjusted timeline):
   //   - Block appears and starts falling at time = note.Delta
-  //   - Block falls for FALL_DURATION_SECONDS
-  //   - Key presses at time = note.Delta + FALL_DURATION_SECONDS*1000
-  //   - Key stays pressed for note.Duration * FALL_DURATION_SECONDS
-  //   - Key finishes at time = note.Delta + FALL_DURATION_SECONDS*1000 + note.Duration*FALL_DURATION_SECONDS
+  //   - Block falls for fallDurationSeconds
+  //   - Key presses at time = note.Delta + fallDurationSeconds*1000
+  //   - Key stays pressed for note.Duration (no scaling)
+  //   - Key finishes at time = note.Delta + fallDurationSeconds*1000 + note.Duration
   
   if (!lastNote) return 0
   
   const lastNoteDeltaMs = Math.floor(lastNote.Delta / 1000)
   const lastNoteDurationMs = lastNote.Duration / 1000000 * 1000
-  const keyPressStartMs = lastNoteDeltaMs + (FALL_DURATION_SECONDS * 1000)
-  const scaledDurationMs = lastNoteDurationMs * FALL_DURATION_SECONDS
-  const keyPressEndMs = keyPressStartMs + scaledDurationMs
+  const keyPressStartMs = lastNoteDeltaMs + (fallDurationSeconds * 1000)
+  const keyPressEndMs = keyPressStartMs + lastNoteDurationMs
   
   // Step 3: Add padding for particles to settle
   const totalDurationMs = keyPressEndMs + 2000
@@ -172,12 +168,11 @@ function calculateTotalFrames(midiObject: MidiNote[]): number {
     lastNoteDurationMs,
     noteNumber: lastNote.NoteNumber,
     keyPressStartMs,
-    scaledDurationMs,
     keyPressEndMs,
     totalDurationMs,
     totalAdjustedFrames: totalFrames,
     totalRawFrames: totalFrames + NOTE_START_DELAY_FRAMES,
-    fallDurationSeconds: FALL_DURATION_SECONDS,
+    fallDurationSeconds: fallDurationSeconds,
     noteStartDelayFrames: NOTE_START_DELAY_FRAMES,
     fps: FPS,
   }
@@ -490,6 +485,9 @@ export async function action({ request }: ActionFunctionArgs) {
 export default function Record() {
   const [searchParams] = useSearchParams()
   
+  // Local state for fall duration (lookahead time)
+  const [fallDuration, setFallDurationState] = useState(FALL_DURATION_SECONDS)
+  
   // Initialize fall duration from URL parameter
   useEffect(() => {
     const fallDurationParam = searchParams.get('fallDuration')
@@ -497,6 +495,7 @@ export default function Record() {
       const duration = parseFloat(fallDurationParam)
       if (!isNaN(duration)) {
         setFallDuration(duration)
+        setFallDurationState(duration)
         console.log(`🎬 Fall duration set to ${duration} seconds from URL parameter`)
       }
     }
@@ -801,7 +800,7 @@ export default function Record() {
     }
   }, [midiFile])
 
-  const midiFrameCount = midiObject ? calculateTotalFrames(midiObject) : 0
+  const midiFrameCount = midiObject ? calculateTotalFrames(midiObject, fallDuration) : 0
   const totalFrames = midiFrameCount + NOTE_START_DELAY_FRAMES
   const keyboardScaleOptions = {
     multiplier: 1.2,
@@ -826,9 +825,8 @@ export default function Record() {
     midiObject.forEach(note => {
       const noteDeltaMs = Math.floor(note.Delta / 1000)
       const noteDurationMs = note.Duration / 1000000 * 1000
-      const keyPressStartMs = noteDeltaMs + (FALL_DURATION_SECONDS * 1000)
-      const scaledDurationMs = noteDurationMs * FALL_DURATION_SECONDS
-      const keyPressEndMs = keyPressStartMs + scaledDurationMs
+      const keyPressStartMs = noteDeltaMs + (fallDuration * 1000)
+      const keyPressEndMs = keyPressStartMs + noteDurationMs
       if (keyPressEndMs > lastNoteVisualEndMs) {
         lastNoteVisualEndMs = keyPressEndMs
       }
@@ -859,10 +857,10 @@ export default function Record() {
       const offlineInstrument = await soundFont.instrument(offlineContext, 'acoustic_grand_piano')
       console.log('   ✅ Offline instrument loaded')
 
-      // Schedule all notes with 3-second delay to match when keys light up
-      // (2s visual intro + 1s KEY_PRESS_DELAY_MS offset in FrameBasedKeyController)
+      // Schedule all notes with delay to match when keys light up
+      // (NOTE_START_DELAY_SECONDS visual intro + fallDuration lookahead)
       let scheduledNotes = 0
-      const delaySeconds = AUDIO_PLAYBACK_DELAY_SECONDS  // 3 seconds to sync with key activation
+      const delaySeconds = NOTE_START_DELAY_SECONDS + fallDuration  // Total delay to sync with key activation
 
       for (const note of midiObject) {
         const noteTimeSeconds = Math.floor(note.Delta / 1000) / 1000
@@ -1318,6 +1316,7 @@ export default function Record() {
         <FrameBasedKeyController
           ref={keysRef}
           midiObject={midiObject}
+          lookahead={fallDuration}
         />
 
         {midiObject && (
@@ -1328,6 +1327,7 @@ export default function Record() {
             scaleMultiplier={keyboardScaleOptions.multiplier}
             scaleFillRatio={keyboardScaleOptions.fillRatio}
             scaleMax={keyboardScaleOptions.max}
+            lookahead={fallDuration}
           />
         )}
 
@@ -1339,6 +1339,7 @@ export default function Record() {
             scaleMultiplier={keyboardScaleOptions.multiplier}
             scaleFillRatio={keyboardScaleOptions.fillRatio}
             scaleMax={keyboardScaleOptions.max}
+            lookahead={fallDuration}
           />
         )}
         <DeterministicRecorder

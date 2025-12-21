@@ -1,6 +1,5 @@
 import { useRef, forwardRef, useImperativeHandle } from 'react'
 import useKeyStore from '../store/keyPressStore'
-import { FALL_DURATION_SECONDS } from '../utils/recordingConstants'
 
 interface MidiNote {
   Delta: number
@@ -16,12 +15,13 @@ export interface FrameBasedKeyControllerHandle {
 
 interface Props {
   midiObject: MidiNote[] | null
+  lookahead?: number
 }
 
 const FRAME_DURATION_MS = 1000 / 60
 
 const FrameBasedKeyController = forwardRef<FrameBasedKeyControllerHandle, Props>(
-  function FrameBasedKeyController({ midiObject }, ref) {
+  function FrameBasedKeyController({ midiObject, lookahead = 3 }, ref) {
   const activeNotesRef = useRef<Set<number>>(new Set())
 
   useImperativeHandle(ref, () => ({
@@ -38,12 +38,10 @@ const FrameBasedKeyController = forwardRef<FrameBasedKeyControllerHandle, Props>
         const noteDurationMs = note.Duration / 1000000 * 1000
         const noteEndMs = noteStartMs + noteDurationMs
 
-        // Calculate KEY_PRESS_DELAY_MS dynamically to use current FALL_DURATION_SECONDS
-        const keyPressDelayMs = -FALL_DURATION_SECONDS * 1000
-        const keyPressStartMs = noteStartMs - keyPressDelayMs
-        // Scale the key press duration by FALL_DURATION_SECONDS (blocks move slower, so keys stay pressed longer)
-        const scaledNoteDurationMs = noteDurationMs * FALL_DURATION_SECONDS
-        const keyPressEndMs = keyPressStartMs + scaledNoteDurationMs
+        // Keys light up after blocks have fallen for 'lookahead' seconds
+        const keyPressDelayMs = lookahead * 1000
+        const keyPressStartMs = noteStartMs + keyPressDelayMs
+        const keyPressEndMs = noteEndMs + keyPressDelayMs
 
         if (currentTimeMs >= keyPressStartMs && currentTimeMs <= keyPressEndMs) {
           newActiveNotes.add(note.NoteNumber)

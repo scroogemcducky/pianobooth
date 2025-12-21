@@ -6,7 +6,6 @@ import { white_key_dimensions, black_key_dimensions, BLACK_KEY_COLOR, WHITE_KEY_
 import { type PianoLayout, getKeyboardMetrics, getKeyboardWidth, getNoteXPosition } from '../utils/pianoLayout'
 import useParticleSettingsStore, { type ParticleSettings, PARTICLE_DEFAULTS } from '../store/particleSettingsStore'
 import { isBlack } from '../utils/functions'
-import { FALL_DURATION_SECONDS } from '../utils/recordingConstants'
 
 const FRAME_DURATION_MS = 1000 / 60
 
@@ -34,6 +33,7 @@ interface FrameBasedParticlesProps {
   scaleMultiplier?: number
   scaleFillRatio?: number
   scaleMax?: number
+  lookahead?: number
 }
 
 const WHITE_KEY_Z = 2.2
@@ -409,7 +409,7 @@ const FrameBasedParticleStream = forwardRef<FrameBasedParticleStreamHandle, Fram
 
 const FrameBasedParticles = forwardRef<FrameBasedParticlesHandle, FrameBasedParticlesProps>(
   function FrameBasedParticles(
-    { midiObject, layout, scaleMultiplier = 1, scaleFillRatio, scaleMax },
+    { midiObject, layout, scaleMultiplier = 1, scaleFillRatio, scaleMax, lookahead = 3 },
     ref
   ) {
     const { viewport } = useThree()
@@ -445,20 +445,17 @@ const FrameBasedParticles = forwardRef<FrameBasedParticlesHandle, FrameBasedPart
         const noteStartMs = Math.floor(note.Delta / 1000)
         const noteDurationMs = (note.Duration / 1000000) * 1000
         const noteEndMs = noteStartMs + noteDurationMs
-        // Use same delay and duration scaling as FrameBasedKeyController for sync
-        // Calculate delay dynamically to use current FALL_DURATION_SECONDS
-        const keyPressDelayMs = -FALL_DURATION_SECONDS * 1000
-        const keyPressStartMs = noteStartMs - keyPressDelayMs
-        // Scale the particle duration by FALL_DURATION_SECONDS (particles emit for longer as blocks move slower)
-        const scaledNoteDurationMs = noteDurationMs * FALL_DURATION_SECONDS
-        const keyPressEndMs = keyPressStartMs + scaledNoteDurationMs
+        // Particles emit when keys are pressed (after lookahead delay)
+        const keyPressDelayMs = lookahead * 1000
+        const keyPressStartMs = noteStartMs + keyPressDelayMs
+        const keyPressEndMs = noteEndMs + keyPressDelayMs
         return {
           noteNumber: note.NoteNumber,
           keyPressStartMs,
           keyPressEndMs,
         }
       })
-    }, [midiObject])
+    }, [midiObject, lookahead])
 
     // Attack envelope parameters
     const ATTACK_BOOST = 0.6 // 60% extra intensity at note start
