@@ -9,7 +9,6 @@ import { isBlack } from '../utils/functions'
 import { FALL_DURATION_SECONDS } from '../utils/recordingConstants'
 
 const FRAME_DURATION_MS = 1000 / 60
-const KEY_PRESS_DELAY_MS = -FALL_DURATION_SECONDS * 1000  // Particles sync with key presses
 
 export interface FrameBasedParticlesHandle {
   setFrame: (adjustedFrame: number) => void
@@ -447,7 +446,9 @@ const FrameBasedParticles = forwardRef<FrameBasedParticlesHandle, FrameBasedPart
         const noteDurationMs = (note.Duration / 1000000) * 1000
         const noteEndMs = noteStartMs + noteDurationMs
         // Use same delay and duration scaling as FrameBasedKeyController for sync
-        const keyPressStartMs = noteStartMs - KEY_PRESS_DELAY_MS
+        // Calculate delay dynamically to use current FALL_DURATION_SECONDS
+        const keyPressDelayMs = -FALL_DURATION_SECONDS * 1000
+        const keyPressStartMs = noteStartMs - keyPressDelayMs
         // Scale the particle duration by FALL_DURATION_SECONDS (particles emit for longer as blocks move slower)
         const scaledNoteDurationMs = noteDurationMs * FALL_DURATION_SECONDS
         const keyPressEndMs = keyPressStartMs + scaledNoteDurationMs

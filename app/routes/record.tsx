@@ -16,7 +16,8 @@ import { ActionFunctionArgs, json } from '@remix-run/cloudflare'
 import { useFetcher } from '@remix-run/react'
 import soundFont, { Player } from 'soundfont-player'
 import { computePianoLayout, DEFAULT_PIANO_LAYOUT, type PianoLayout } from '../utils/pianoLayout'
-import { FALL_DURATION_SECONDS } from '../utils/recordingConstants'
+import { FALL_DURATION_SECONDS, setFallDuration } from '../utils/recordingConstants'
+import { useSearchParams } from '@remix-run/react'
 
 const KNOWN_COMPOSERS = /(bach|beethoven|chopin|debussy|mozart|liszt|schubert|schumann|rachmaninoff|handel|haydn|tchaikovsky|gershwin|albeniz)/i
 
@@ -487,6 +488,20 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function Record() {
+  const [searchParams] = useSearchParams()
+  
+  // Initialize fall duration from URL parameter
+  useEffect(() => {
+    const fallDurationParam = searchParams.get('fallDuration')
+    if (fallDurationParam) {
+      const duration = parseFloat(fallDurationParam)
+      if (!isNaN(duration)) {
+        setFallDuration(duration)
+        console.log(`🎬 Fall duration set to ${duration} seconds from URL parameter`)
+      }
+    }
+  }, [searchParams])
+  
   const [midiObject, setMidiObject] = useState<MidiNote[] | null>(null)
   const [pianoLayout, setPianoLayout] = useState<PianoLayout>(DEFAULT_PIANO_LAYOUT)
   const [isRecording, setIsRecording] = useState(false)

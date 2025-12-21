@@ -25,6 +25,7 @@ type Options = {
   devtools: boolean
   devMidiPath: string | null
   count: number
+  fallDuration: number
 }
 
 const DEFAULTS: Options = {
@@ -41,6 +42,7 @@ const DEFAULTS: Options = {
   devtools: false,
   devMidiPath: null,
   count: 1,
+  fallDuration: 3, // Default fall duration in seconds
 }
 
 const KNOWN_COMPOSERS = /(bach|beethoven|chopin|debussy|mozart|liszt|schubert|schumann|rachmaninoff|handel|haydn|tchaikovsky|gershwin)/i
@@ -326,11 +328,12 @@ async function processOneVideo(opts: Options, videoNumber?: number): Promise<boo
   // const beforeFiles = await listMp4(opts.publicDir)
   const since = Date.now()
 
-  console.log(`${prefix}Opening ${opts.baseUrl}/record ...`)
+  const recordUrl = `${opts.baseUrl}/record?fallDuration=${opts.fallDuration}`
+  console.log(`${prefix}Opening ${recordUrl} ...`)
 
   try {
     // Vite/Remix dev servers keep HMR connections open; avoid networkidle here
-    await page.goto(`${opts.baseUrl}/record`, { waitUntil: 'domcontentloaded', timeout: 120_000 })
+    await page.goto(recordUrl, { waitUntil: 'domcontentloaded', timeout: 120_000 })
   } catch (error) {
     console.error(`${prefix}Failed to load page:`, error)
     throw error
@@ -399,6 +402,10 @@ async function main() {
       // Support -n5 syntax
       const num = parseInt(a.substring(2), 10)
       if (!isNaN(num)) opts.count = num
+    }
+    else if (a === '-t' && args[i + 1]) {
+      const fallDuration = parseFloat(args[++i]!)
+      if (!isNaN(fallDuration) && fallDuration > 0) opts.fallDuration = fallDuration
     }
     else if (a === '--dev') {
       opts.devMidiPath = path.join('midi', 'test_videos', 'test.mid')

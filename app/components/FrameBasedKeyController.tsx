@@ -19,7 +19,6 @@ interface Props {
 }
 
 const FRAME_DURATION_MS = 1000 / 60
-const KEY_PRESS_DELAY_MS = -FALL_DURATION_SECONDS * 1000  // Keys press after blocks fall
 
 const FrameBasedKeyController = forwardRef<FrameBasedKeyControllerHandle, Props>(
   function FrameBasedKeyController({ midiObject }, ref) {
@@ -39,7 +38,9 @@ const FrameBasedKeyController = forwardRef<FrameBasedKeyControllerHandle, Props>
         const noteDurationMs = note.Duration / 1000000 * 1000
         const noteEndMs = noteStartMs + noteDurationMs
 
-        const keyPressStartMs = noteStartMs - KEY_PRESS_DELAY_MS
+        // Calculate KEY_PRESS_DELAY_MS dynamically to use current FALL_DURATION_SECONDS
+        const keyPressDelayMs = -FALL_DURATION_SECONDS * 1000
+        const keyPressStartMs = noteStartMs - keyPressDelayMs
         // Scale the key press duration by FALL_DURATION_SECONDS (blocks move slower, so keys stay pressed longer)
         const scaledNoteDurationMs = noteDurationMs * FALL_DURATION_SECONDS
         const keyPressEndMs = keyPressStartMs + scaledNoteDurationMs
