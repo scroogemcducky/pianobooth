@@ -16,7 +16,7 @@ export default function Index() {
     'Beethoven': '/images/Beethoven4.jpg',
     'Chopin': '/images/Chopin3.jpg',
     'Debussy': '/images/Debussy3.jpg',
-    'Klaus Badelt': '/images/Sparrow3.jpg'
+    'Jack Sparrow': '/images/Sparrow3.jpg'
   };
 
   
@@ -50,9 +50,6 @@ const allPieces: Record<string, { title: string; url: string }[]> = {
     { title: "Prelude and Fugue in C minor, BWV 847", url: "/bach/prelude-and-fugue-in-c-minor-bwv-847" },
     { title: ", : Prelude and Fugue No. 1 in C major, BWV 846", url: "/bach/prelude-and-fugue-no-1-in-c-major-bwv-846" },
     { title: "Prelude & Fugue No. 1 in C major, BWV 846", url: "/bach/wtc-i-prelude-fugue-1-c-major-bwv846" }
-  ],
-  "Klaus Badelt": [
-    { title: "He's a Pirate", url: "/badelt/hes-a-pirate" }
   ],
   "Balakirew": [
     { title: "Orientalische Fantasie", url: "/balakirew/orientalische-fantasie" }
@@ -257,6 +254,9 @@ const allPieces: Record<string, { title: string; url: string }[]> = {
     { title: "Sonate XVI:35 1. Satz", url: "/haydn/sonate-xvi-35-1-satz" },
     { title: "Sonate XVI:35 2. Satz", url: "/haydn/sonate-xvi-35-2-satz" },
     { title: "Sonate XVI:35 3. Satz", url: "/haydn/sonate-xvi-35-3-satz" }
+  ],
+  "Jack Sparrow": [
+    { title: "He's a Pirate", url: "/jack-sparrow/hes-a-pirate" }
   ],
   "Klaviersonate A": [
     { title: "Klaviersonate a-Moll, Opus 143 2. Satz", url: "/klaviersonate-a/klaviersonate-a-moll-opus-143-2-satz" },

@@ -61,7 +61,7 @@ const App = () => {
     'Beethoven': '/images/Beethoven4.jpg',
     'Chopin': '/images/Chopin3.jpg',
     'Debussy': '/images/Debussy3.jpg',
-    'Pirate': '/images/Sparrow3.jpg'
+    'Jack Sparrow': '/images/Sparrow3.jpg'
   };
 
   const featuredStaticPieces: Record<string, { title: string; url: string }[]> = {
@@ -89,15 +89,15 @@ const App = () => {
       { title: "Jimbo's Lullaby", url: '/debussy/jimbo-s-lullaby' },
       { title: 'Passepied', url: '/debussy/passepied' },
     ],
-    Pirate: [
-      { title: "He's a Pirate", url: '/klaus-badelt/hes-a-pirate' },
+    'Jack Sparrow': [
+      { title: "He's a Pirate", url: '/jack-sparrow/hes-a-pirate' },
     ],
   }
 
-  // Get composers from featuredStaticPieces, with Pirate (Sparrow) last
+  // Get composers from featuredStaticPieces, with Jack Sparrow last
   const regularComposers = Object.entries(featuredStaticPieces).sort(([a], [b]) => {
-    if (a === 'Pirate') return 1;
-    if (b === 'Pirate') return -1;
+    if (a === 'Jack Sparrow') return 1;
+    if (b === 'Jack Sparrow') return -1;
     return a.localeCompare(b);
   });
 
@@ -148,7 +148,7 @@ const App = () => {
                   )}
                   <div className="ml-4 md:ml-0">
                     <h2 className="text-2xl font-bold font-garamond text-gray-800 mb-4 underline">
-                      {composer === 'Pirate' ? 'Jack Sparrow' : composer}
+                      {composer}
                     </h2>
                     <div>
                       {displayPieces.map((piece, index) => (
