@@ -11,107 +11,452 @@ export const meta: MetaFunction = () => {
 
 export default function Index() {
   // Composer images mapping
-  const composerImages = {
+  const composerImages: Record<string, string> = {
     'Bach': '/images/Bach2.jpg',
     'Beethoven': '/images/Beethoven4.jpg',
     'Chopin': '/images/Chopin3.jpg',
     'Debussy': '/images/Debussy3.jpg',
-    'Pirate': '/images/Sparrow3.jpg'
+    'Klaus Badelt': '/images/Sparrow3.jpg'
   };
 
-  const allPieces: Record<string, { title: string; url: string }[]> = {
-    Bach: [
-      { title: 'Prelude & Fugue No. 1 in C major, BWV 846', url: '/bach/prelude-and-fugue-in-c-major-bwv-846' },
-      { title: 'Prelude & Fugue No. 2 in C minor, BWV 847', url: '/bach/prelude-and-fugue-in-c-minor-bwv-847' },
-      { title: 'Prelude & Fugue in D major, BWV 850', url: '/bach/pr-ludium-und-fuge-in-d-dur-bwv-850' },
-    ],
-    Beethoven: [
-      { title: 'Piano Sonata No. 23 "Appassionata" I', url: '/beethoven/piano-sonata-no-23-op-57-in-f-minor-i' },
-      { title: 'Appassionata', url: '/beethoven/appassionata' },
-      { title: 'Für Elise', url: '/beethoven/fur-elise' },
-      { title: 'Hammerklavier Sonata – 1st movement', url: '/beethoven/hammerklaviersonate-1-satz' },
-      { title: 'Hammerklavier Sonata – 2nd movement', url: '/beethoven/hammerklaviersonate-2-satz' },
-      { title: 'Hammerklavier Sonata – 3rd movement', url: '/beethoven/hammerklaviersonate-3-satz' },
-      { title: 'Hammerklavier Sonata – 4th movement', url: '/beethoven/hammerklaviersonate-4-satz' },
-      { title: 'Les Adieux Sonata – 1st movement', url: '/beethoven/sonate-les-adieux-1-satz' },
-      { title: 'Les Adieux Sonata – 2nd movement', url: '/beethoven/sonate-les-adieux-2-satz' },
-      { title: 'Les Adieux Sonata – 3rd movement', url: '/beethoven/sonate-les-adieux-3-satz' },
-      { title: 'Moonlight Sonata', url: '/beethoven/mondscheinsonate-der-grafin-giulietta-guiccardi-gewidmet' },
-      { title: 'Sonata No. 14 in C# minor – 1st movement', url: '/beethoven/sonata-no-14-c-sharp-minor-1-movement' },
-      { title: 'Sonata No. 5 in C minor – 1st movement', url: '/beethoven/sonata-no-5-c-minor-1-movement' },
-      { title: 'Sonata Op. 10 No. 1 – 2nd movement', url: '/beethoven/sonate-op-10-no-1-2-satz' },
-      { title: 'Sonata Op. 10 No. 1 – 3rd movement', url: '/beethoven/sonate-opus-10-no-1-3-satz' },
-      { title: 'Sonata Op. 90 – 1st movement', url: '/beethoven/sonate-opus-90-1-satz' },
-      { title: 'Sonata Op. 90 – 2nd movement', url: '/beethoven/sonate-opus-90-2-satz' },
-      { title: 'Grande Sonata Op. 22 – 1st movement', url: '/beethoven/grande-sonata-opus-22-1-movement' },
-      { title: 'Grande Sonata Op. 22 – 2nd movement', url: '/beethoven/grande-sonata-opus-22-2-movement' },
-      { title: 'Grande Sonata Op. 22 – 3rd movement', url: '/beethoven/grande-sonata-opus-22-3-movement' },
-      { title: 'Grande Sonata Op. 22 – 4th movement', url: '/beethoven/grande-sonate-opus-22-4-movement' },
-    ],
-    Chopin: [
-      { title: 'Grand Valse Brillante, Op. 18', url: '/chopin/grand-valse-brillante-in-es-dur-opus-18' },
-      { title: 'Scherzo in B minor, Op. 31', url: '/chopin/scherzo-in-b-moll-opus-31' },
-      { title: 'Ballade in G minor, Op. 23', url: '/chopin/chopin-ballade-in-g-minor-opus-32' },
-      { title: 'Polonaise in Ab major, Op. 53', url: '/chopin/chopin-polonaise-in-ab-major-opus-53' },
-      { title: 'Nocturne Op. 27 No. 1', url: '/chopin/chopin-nocturne-opus-27-nr-1' },
-      { title: 'Nocturne Op. 27 No. 2', url: '/chopin/chopin-nocturne-opus-27-nr-2' },
-      { title: 'Prelude No. 1, Op. 28', url: '/chopin/chopin-prelude-no-1-opus-28' },
-      { title: 'Prelude No. 2, Op. 28', url: '/chopin/chopin-prelude-no-2-opus-28' },
-      { title: 'Prelude No. 3, Op. 28', url: '/chopin/chopin-prelude-no-3-opus-28' },
-      { title: 'Prelude No. 4, Op. 28', url: '/chopin/chopin-prelude-no-4-opus-28' },
-      { title: 'Prelude No. 5, Op. 28', url: '/chopin/chopin-prelude-no-5-opus-28' },
-      { title: 'Prelude No. 6, Op. 28', url: '/chopin/chopin-prelude-no-6-opus-28' },
-      { title: 'Prelude No. 7', url: '/chopin/chopin-prelude-no-7' },
-      { title: 'Prelude No. 9', url: '/chopin/chopin-prelude-no-9' },
-      { title: 'Prelude No. 12, Op. 28', url: '/chopin/chopin-prelude-no-12-opus-28' },
-      { title: 'Prelude No. 13, Op. 28', url: '/chopin/chopin-prelude-no-13-opus-28' },
-      { title: 'Prelude No. 14, Op. 28', url: '/chopin/chopin-prelude-no-14-opus-28' },
-      { title: 'Prelude No. 15 "Raindrop"', url: '/chopin/chopin-prelude-no-15-opus-28' },
-      { title: 'Prelude No. 16, Op. 28', url: '/chopin/chopin-prelude-no-16-opus-28' },
-      { title: 'Prelude No. 17, Op. 28', url: '/chopin/chopin-prelude-no-17-opus-28' },
-      { title: 'Prelude No. 18, Op. 28', url: '/chopin/chopin-prelude-no-18-opus-28' },
-      { title: 'Prelude No. 19, Op. 28', url: '/chopin/chopin-prelude-no-19-opus-28' },
-      { title: 'Prelude No. 20, Op. 28', url: '/chopin/chopin-prelude-no-20-opus-28' },
-      { title: 'Prelude No. 21, Op. 28', url: '/chopin/chopin-prelude-no-21-opus-28' },
-      { title: 'Prelude No. 22, Op. 28', url: '/chopin/chopin-prelude-no-22-opus-28' },
-      { title: 'Prelude No. 23, Op. 28', url: '/chopin/chopin-prelude-no-23-opus-28' },
-      { title: 'Prelude No. 24, Op. 28', url: '/chopin/chopin-prelude-no-24-opus-28' },
-      { title: 'Étude No. 1, Op. 25', url: '/chopin/chopin-etude-no-1-opus-25' },
-      { title: 'Étude No. 2, Op. 25', url: '/chopin/chopin-etude-no-2-opus-25' },
-      { title: 'Étude No. 3, Op. 25', url: '/chopin/chopin-etude-no-3-opus-25' },
-      { title: 'Étude No. 4, Op. 25', url: '/chopin/chopin-etude-no-4-opus-25' },
-      { title: 'Étude No. 12, Op. 25', url: '/chopin/chopin-etude-no-12-opus-25' },
-      { title: 'Étude Op. 10 No. 5 "Black Keys"', url: '/chopin/etude-opus-10-no-5' },
-      { title: 'Mazurka Op. 7 No. 1', url: '/chopin/chopin-mazurka-opus-7-no-1' },
-      { title: 'Mazurka Op. 7 No. 2', url: '/chopin/chopin-mazurka-opus-7-no-2' },
-      { title: 'Mazurka Op. 33 No. 2', url: '/chopin/chopin-mazurka-opus-33-nr-2' },
-      { title: 'Mazurka Op. 33 No. 4', url: '/chopin/chopin-mazurka-opus-33-nr-4' },
-      { title: 'Impromptu in C# minor, Op. 66', url: '/chopin/impromptu-in-c-minor-opus-66' },
-      { title: 'Sonata Op. 35 – 1st movement', url: '/chopin/sonate-opus-35-1-satz' },
-      { title: 'Sonata Op. 35 – 2nd movement (Funeral March)', url: '/chopin/sonate-opus-35-2-satz' },
-      { title: 'Sonata Op. 35 – 4th movement', url: '/chopin/sonate-opus-35-4-satz' },
-    ],
-    Debussy: [
-      { title: 'Clair de Lune', url: '/debussy/clair-de-lune' },
-      { title: 'Doctor Gradus ad Parnassum', url: '/debussy/doctor-gradus-ad-parnassum' },
-      { title: "Jimbo's Lullaby", url: '/debussy/jimbo-s-lullaby' },
-      { title: 'Passepied', url: '/debussy/passepied' },
-      { title: 'Serenade of the Doll', url: '/debussy/serenade-of-the-doll' },
-      { title: 'The Snow is Dancing', url: '/debussy/the-snow-is-dancing' },
-      { title: "Children's Corner No. 5", url: '/debussy/childrens-corner-5' },
-      { title: "Children's Corner No. 6", url: '/debussy/childrens-corner-6' },
-      { title: 'Menuet', url: '/debussy/menuet' },
-      { title: 'Prelude', url: '/debussy/prelude' },
-    ],
-    Pirate: [
-      { title: "He's a Pirate", url: '/klaus-badelt/hes-a-pirate' },
-    ],
-  };
+  
+const allPieces: Record<string, { title: string; url: string }[]> = {
+  "Abegg": [
+    { title: "Abegg-Variationen", url: "/abegg/abegg-variationen" }
+  ],
+  "Albeniz": [
+    { title: "Aragon", url: "/albeniz/aragon" },
+    { title: "Asturias (Leyenda)", url: "/albeniz/asturias-leyenda" },
+    { title: "Asturias", url: "/albeniz/asturias" },
+    { title: "Cadiz", url: "/albeniz/cadiz" },
+    { title: "España, Op. 165: No. 5, Capricho Catalán", url: "/albeniz/capricho-catalan-op-165-no-5" },
+    { title: "Capricho Catalan", url: "/albeniz/capricho-catalan" },
+    { title: "Castilla", url: "/albeniz/castilla" },
+    { title: "Cataluna", url: "/albeniz/cataluna" },
+    { title: "Cuba", url: "/albeniz/cuba" },
+    { title: "Suite española, Op. 47: No. 1, Granada (Serenata)", url: "/albeniz/granada-op-47-no-1" },
+    { title: "Granada", url: "/albeniz/granada" },
+    { title: "España, Op. 165: No. 3, Malagueña", url: "/albeniz/malaguena-op-165-no-3" },
+    { title: "Malaguena", url: "/albeniz/malaguena" },
+    { title: "Prelude", url: "/albeniz/prelude" },
+    { title: "Serenata", url: "/albeniz/serenata" },
+    { title: "Tango", url: "/albeniz/tango" },
+    { title: "Zortcico", url: "/albeniz/zortcico" }
+  ],
+  "Bach": [
+    { title: "I - Praeludium und Fuge 1 in C-Dur BWV 846", url: "/bach/i-praeludium-und-fuge-1-in-c-dur-bwv-846" },
+    { title: "Präludium und Fuge in D-Dur, BWV 850", url: "/bach/pr-ludium-und-fuge-in-d-dur-bwv-850" },
+    { title: "Präludium und Fuge in D-Dur, BWV 850", url: "/bach/praludium-und-fuge-in-d-dur-bwv-850" },
+    { title: "Prelude and Fugue in C major, BWV 846", url: "/bach/prelude-and-fugue-in-c-major-bwv-846" },
+    { title: "Prelude and Fugue in C minor, BWV 847", url: "/bach/prelude-and-fugue-in-c-minor-bwv-847" },
+    { title: ", : Prelude and Fugue No. 1 in C major, BWV 846", url: "/bach/prelude-and-fugue-no-1-in-c-major-bwv-846" },
+    { title: "Prelude and Fugue in C major, BWV 846", url: "/bach/prelude-fugue-in-c-major-bwv-846" },
+    { title: "Prelude & Fugue No. 1 in C major, BWV 846", url: "/bach/wtc-i-prelude-fugue-1-c-major-bwv846" }
+  ],
+  "Badelt": [
+    { title: "He's a Pirate", url: "/badelt/hes-a-pirate" }
+  ],
+  "Balakirew": [
+    { title: "Orientalische Fantasie", url: "/balakirew/orientalische-fantasie" }
+  ],
+  "Beethoven": [
+    { title: "1. Movement", url: "/beethoven/1-movement" },
+    { title: "2. Movement", url: "/beethoven/2-movement" },
+    { title: "3. Movement", url: "/beethoven/3-movement" },
+    { title: "Appassionata", url: "/beethoven/appassionata" },
+    { title: "Für Elise", url: "/beethoven/f-r-elise" },
+    { title: "Für Elise", url: "/beethoven/fur-elise" },
+    { title: "Grande Sonata Opus 22 1. movement", url: "/beethoven/grande-sonata-opus-22-1-movement" },
+    { title: "Grande Sonata Opus 22 2. movement", url: "/beethoven/grande-sonata-opus-22-2-movement" },
+    { title: "Grande Sonata Opus 22 3. movement", url: "/beethoven/grande-sonata-opus-22-3-movement" },
+    { title: "Grande Sonate Opus 22 - 4. movement", url: "/beethoven/grande-sonate-opus-22-4-movement" },
+    { title: "Hammerklaviersonate 1. Satz", url: "/beethoven/hammerklaviersonate-1-satz" },
+    { title: "Hammerklaviersonate 2. Satz", url: "/beethoven/hammerklaviersonate-2-satz" },
+    { title: "Hammerklaviersonate: 3. Satz", url: "/beethoven/hammerklaviersonate-3-satz" },
+    { title: "Hammerklaviersonate 4. Satz", url: "/beethoven/hammerklaviersonate-4-satz" },
+    { title: "Klaviersonate No. 5 - 1. Satz", url: "/beethoven/klaviersonate-no-5-1-satz" },
+    { title: "Mondscheinsonate; der Gräfin Giulietta Guiccardi gewidmet", url: "/beethoven/mondscheinsonate-der-gr-fin-giulietta-guiccardi-gewidmet" },
+    { title: "Mondscheinsonate; der Gräfin Giulietta Guiccardi gewidmet", url: "/beethoven/mondscheinsonate-der-grafin-giulietta-guiccardi-gewidmet" },
+    { title: "Piano Sonata No. 23 in F minor, Op. 57 \"Appassionata\": I. Allegro assai", url: "/beethoven/piano-sonata-no-23-op-57-in-f-minor-i" },
+    { title: "Sonata No. 14 in C# minor – 1st movement", url: "/beethoven/sonata-no-14-c-sharp-minor-1-movement" },
+    { title: "Sonata No. 5 in C minor – 1st movement", url: "/beethoven/sonata-no-5-c-minor-1-movement" },
+    { title: "Sonate Les adieux 1. Satz", url: "/beethoven/sonate-les-adieux-1-satz" },
+    { title: "Sonate Les adieux 2. Satz", url: "/beethoven/sonate-les-adieux-2-satz" },
+    { title: "Sonate Les adieux 3. Satz", url: "/beethoven/sonate-les-adieux-3-satz" },
+    { title: "Sonate Op. 10 No. 1 2. Satz", url: "/beethoven/sonate-op-10-no-1-2-satz" },
+    { title: "Sonate Opus 10 No. 1 3. Satz", url: "/beethoven/sonate-opus-10-no-1-3-satz" },
+    { title: "Sonate Opus 90, 1. Satz", url: "/beethoven/sonate-opus-90-1-satz" },
+    { title: "Sonate Opus 90, 2. Satz", url: "/beethoven/sonate-opus-90-2-satz" }
+  ],
+  "Borodin": [
+    { title: "1. Im Kloster", url: "/borodin/1-im-kloster" },
+    { title: "2. Intermezzo", url: "/borodin/2-intermezzo" },
+    { title: "3. Mazurka", url: "/borodin/3-mazurka" },
+    { title: "4. Mazurka", url: "/borodin/4-mazurka" },
+    { title: "5. Reverei", url: "/borodin/5-reverei" },
+    { title: "6. Serenade", url: "/borodin/6-serenade" },
+    { title: "7. Nocturne", url: "/borodin/7-nocturne" },
+    { title: "Petite Suite: I. Au couvent (Im Kloster)", url: "/borodin/petite-suite-i-au-couvent" }
+  ],
+  "Brahms": [
+    { title: "Brahms: Intermezzo Opus 117 Nr. 2", url: "/brahms/brahms-intermezzo-opus-117-nr-2" },
+    { title: "Finale - Allegro con fuoco", url: "/brahms/finale-allegro-con-fuoco" },
+    { title: "Intermezzo in A minor, Op. 116 No. 2", url: "/brahms/intermezzo-in-a-minor-op-116-no-2" },
+    { title: "Intermezzo in E-flat major, Op. 117 No. 1", url: "/brahms/intermezzo-in-e-flat-major-op-117-no-1" },
+    { title: "Intermezzo Nr. 5, Opus 116", url: "/brahms/intermezzo-nr-5-opus-116" },
+    { title: "Intermezzo Opus 117 Nr. 1", url: "/brahms/intermezzo-opus-117-nr-1" },
+    { title: "Intermezzo", url: "/brahms/intermezzo" },
+    { title: "Piano Sonata No. 1 in C major, Op. 1: II. Andante", url: "/brahms/piano-sonata-no-1-in-c-major-op-1-ii-andante" },
+    { title: "Rhapsodie Nr. 4 in Es-Dur, Op. 119", url: "/brahms/rhapsodie-nr-4-in-es-dur-op-119" },
+    { title: "Scherzo", url: "/brahms/scherzo" },
+    { title: "Sonate in C 2. Satz", url: "/brahms/sonate-in-c-2-satz" },
+    { title: "Sonate in C Opus 1", url: "/brahms/sonate-in-c-opus-1" }
+  ],
+  "Burgmueller": [
+    { title: "Agitato", url: "/burgmueller/agitato" },
+    { title: "Die Perlen", url: "/burgmueller/die-perlen" },
+    { title: "Die Quelle", url: "/burgmueller/die-quelle" },
+    { title: "Die Sylphen", url: "/burgmueller/die-sylphen" },
+    { title: "Erwachen im Walde", url: "/burgmueller/erwachen-im-walde" },
+    { title: "Geschwindigkeit", url: "/burgmueller/geschwindigkeit" },
+    { title: "Gewitter", url: "/burgmueller/gewitter" },
+    { title: "Spinnerlied", url: "/burgmueller/spinnerlied" },
+    { title: "Trennung", url: "/burgmueller/trennung" }
+  ],
+  "Chopin": [
+    { title: "Chopin Ballade in G minor Opus 32", url: "/chopin/chopin-ballade-in-g-minor-opus-32" },
+    { title: "Chopin Etude No. 1, Opus 25", url: "/chopin/chopin-etude-no-1-opus-25" },
+    { title: "Chopin Etude No. 12, Opus 25", url: "/chopin/chopin-etude-no-12-opus-25" },
+    { title: "Chopin Etude No. 2, Opus 25", url: "/chopin/chopin-etude-no-2-opus-25" },
+    { title: "Chopin Etude No. 3, Opus 25", url: "/chopin/chopin-etude-no-3-opus-25" },
+    { title: "Chopin Etude No. 4, Opus 25", url: "/chopin/chopin-etude-no-4-opus-25" },
+    { title: "Chopin Mazurka Opus 33 Nr. 2", url: "/chopin/chopin-mazurka-opus-33-nr-2" },
+    { title: "Chopin Mazurka Opus 33 Nr. 4", url: "/chopin/chopin-mazurka-opus-33-nr-4" },
+    { title: "Chopin Mazurka Opus 7 No. 1", url: "/chopin/chopin-mazurka-opus-7-no-1" },
+    { title: "Chopin Mazurka Opus 7 No. 2", url: "/chopin/chopin-mazurka-opus-7-no-2" },
+    { title: "Chopin Nocturne Opus 27 Nr. 1", url: "/chopin/chopin-nocturne-opus-27-nr-1" },
+    { title: "Chopin Nocturne Opus 27 Nr. 2", url: "/chopin/chopin-nocturne-opus-27-nr-2" },
+    { title: "Chopin Polonaise in Ab major Opus 53", url: "/chopin/chopin-polonaise-in-ab-major-opus-53" },
+    { title: "Chopin Prelude No. 1, Opus 28", url: "/chopin/chopin-prelude-no-1-opus-28" },
+    { title: "Chopin Prelude No. 12, Opus 28", url: "/chopin/chopin-prelude-no-12-opus-28" },
+    { title: "Chopin Prelude No. 13, Opus 28", url: "/chopin/chopin-prelude-no-13-opus-28" },
+    { title: "Chopin Prelude No. 14, Opus 28", url: "/chopin/chopin-prelude-no-14-opus-28" },
+    { title: "Chopin Prelude No. 15, Opus 28", url: "/chopin/chopin-prelude-no-15-opus-28" },
+    { title: "Chopin Prelude No. 16, Opus 28", url: "/chopin/chopin-prelude-no-16-opus-28" },
+    { title: "Chopin Prelude No. 17, Opus 28", url: "/chopin/chopin-prelude-no-17-opus-28" },
+    { title: "Chopin Prelude No. 18, Opus 28", url: "/chopin/chopin-prelude-no-18-opus-28" },
+    { title: "Chopin Prelude No. 19, Opus 28", url: "/chopin/chopin-prelude-no-19-opus-28" },
+    { title: "Chopin Prelude No. 2, Opus 28", url: "/chopin/chopin-prelude-no-2-opus-28" },
+    { title: "Chopin Prelude No. 20, Opus 28", url: "/chopin/chopin-prelude-no-20-opus-28" },
+    { title: "Chopin Prelude No. 21, Opus 28", url: "/chopin/chopin-prelude-no-21-opus-28" },
+    { title: "Chopin Prelude No. 22, Opus 28", url: "/chopin/chopin-prelude-no-22-opus-28" },
+    { title: "Chopin Prelude No. 23, Opus 28", url: "/chopin/chopin-prelude-no-23-opus-28" },
+    { title: "Chopin Prelude No. 24, Opus 28", url: "/chopin/chopin-prelude-no-24-opus-28" },
+    { title: "Chopin Prelude No. 3, Opus 28", url: "/chopin/chopin-prelude-no-3-opus-28" },
+    { title: "Chopin Prelude No. 4, Opus 28", url: "/chopin/chopin-prelude-no-4-opus-28" },
+    { title: "Chopin Prelude No. 5, Opus 28", url: "/chopin/chopin-prelude-no-5-opus-28" },
+    { title: "Chopin Prelude No. 6, Opus 28", url: "/chopin/chopin-prelude-no-6-opus-28" },
+    { title: "Chopin Prelude No. 7", url: "/chopin/chopin-prelude-no-7" },
+    { title: "Chopin Prelude No. 9", url: "/chopin/chopin-prelude-no-9" },
+    { title: "Etüde Nr. 12", url: "/chopin/et-de-nr-12" },
+    { title: "Etüde Opus 10 No. 5", url: "/chopin/et-de-opus-10-no-5" },
+    { title: "Etüde Opus 10 No. 5", url: "/chopin/etude-no-5-black-key" },
+    { title: "Etüde Nr. 12", url: "/chopin/etude-nr-12" },
+    { title: "Etüde Opus 10 No. 5", url: "/chopin/etude-opus-10-no-5" },
+    { title: "Grand Valse Brillante in Es-Dur Opus 18", url: "/chopin/grand-valse-brillante-in-es-dur-opus-18" },
+    { title: "Impromptu in C# minor Opus 66", url: "/chopin/impromptu-in-c-minor-opus-66" },
+    { title: "Chopin Mazurka Opus 7 No. 1", url: "/chopin/mazurka-no-1" },
+    { title: "Prelude No. 10", url: "/chopin/prelude-no-10" },
+    { title: "Prelude No. 11", url: "/chopin/prelude-no-11" },
+    { title: "Chopin Prelude No. 15, Opus 28", url: "/chopin/prelude-no-15-raindrop" },
+    { title: "Prelude No. 8", url: "/chopin/prelude-no-8" },
+    { title: "Scherzo in b-moll Opus 31", url: "/chopin/scherzo-in-b-moll-opus-31" },
+    { title: "Schwarze-Tasten-Etüde", url: "/chopin/schwarze-tasten-et-de" },
+    { title: "Schwarze-Tasten-Etüde", url: "/chopin/schwarze-tasten-etude" },
+    { title: "Sonate opus 35, 1. Satz", url: "/chopin/sonate-opus-35-1-satz" },
+    { title: "Sonate opus 35, 2. Satz", url: "/chopin/sonate-opus-35-2-satz" },
+    { title: "Sonate opus 35, 4. Satz", url: "/chopin/sonate-opus-35-4-satz" },
+    { title: "Sturmetüde", url: "/chopin/sturmet-de" },
+    { title: "Sturmetüde", url: "/chopin/sturmetude" },
+    { title: "Trauermarsch", url: "/chopin/trauermarsch" }
+  ],
+  "Christfreuden": [
+    { title: "Christfreuden - Weihnachtsfantasie", url: "/christfreuden/christfreuden-weihnachtsfantasie" }
+  ],
+  "Christmas": [
+    { title: "Christfreuden - Weihnachtsfantasie", url: "/christmas/christfreuden-weihnachtsfantasie" },
+    { title: "Fantasie über \"Stille Nacht, heilige Nacht\"", url: "/christmas/fantasie-uber-stille-nacht-heilige-nacht" },
+    { title: "Weihnachts-Fantasie", url: "/christmas/weihnachts-fantasie" },
+    { title: "Weihnachtsfantasie", url: "/christmas/weihnachtsfantasie" },
+    { title: "Zu Weihnachten - Fantasie", url: "/christmas/zu-weihnachten-fantasie" }
+  ],
+  "Clementi": [
+    { title: "Air suisse (Original)", url: "/clementi/air-suisse-original" },
+    { title: "Clementi: Sonatine Opus 36 Nr. 1, 1. Satz", url: "/clementi/clementi-sonatine-opus-36-nr-1-1-satz" },
+    { title: "Clementi: Sonatine Opus 36 Nr. 1, 2. Satz", url: "/clementi/clementi-sonatine-opus-36-nr-1-2-satz" },
+    { title: "Clementi: Sonatine Opus 36 Nr. 1, 3. Satz", url: "/clementi/clementi-sonatine-opus-36-nr-1-3-satz" },
+    { title: "Clementi: Sonatine Opus 36 Nr. 2, 1. Satz", url: "/clementi/clementi-sonatine-opus-36-nr-2-1-satz" },
+    { title: "Clementi: Sonatine Opus 36 Nr. 2, 2. Satz", url: "/clementi/clementi-sonatine-opus-36-nr-2-2-satz" },
+    { title: "Clementi: Sonatine Opus 36 Nr. 2, 3. Satz", url: "/clementi/clementi-sonatine-opus-36-nr-2-3-satz" },
+    { title: "Clementi: Sonatine Opus 36 Nr. 3, 1. Satz", url: "/clementi/clementi-sonatine-opus-36-nr-3-1-satz" },
+    { title: "Clementi: Sonatine Opus 36 Nr. 3, 2. Satz", url: "/clementi/clementi-sonatine-opus-36-nr-3-2-satz" },
+    { title: "Clementi: Sonatine Opus 36 Nr. 3, 3. Satz", url: "/clementi/clementi-sonatine-opus-36-nr-3-3-satz" },
+    { title: "Clementi: Sonatine Opus 36 Nr. 4, 1. Satz", url: "/clementi/clementi-sonatine-opus-36-nr-4-1-satz" },
+    { title: "Clementi: Sonatine Opus 36 Nr. 4, 2. Satz", url: "/clementi/clementi-sonatine-opus-36-nr-4-2-satz" },
+    { title: "Clementi: Sonatine Opus 36 Nr. 4, 3. Satz", url: "/clementi/clementi-sonatine-opus-36-nr-4-3-satz" },
+    { title: "Clementi: Sonatine Opus 36 Nr. 5, 1. Satz", url: "/clementi/clementi-sonatine-opus-36-nr-5-1-satz" },
+    { title: "Clementi: Sonatine Opus 36 Nr. 6, 1. Satz", url: "/clementi/clementi-sonatine-opus-36-nr-6-1-satz" },
+    { title: "Romdo", url: "/clementi/romdo" },
+    { title: "Rondo", url: "/clementi/rondo" }
+  ],
+  "Debussy": [
+    { title: "Childrens Corner 5", url: "/debussy/childrens-corner-5" },
+    { title: "Childrens Corner 6", url: "/debussy/childrens-corner-6" },
+    { title: "Clair de Lune", url: "/debussy/clair-de-lune" },
+    { title: "Doctor Gradus ad Parnassum", url: "/debussy/doctor-gradus-ad-parnassum" },
+    { title: "Jimbo's Lullaby", url: "/debussy/jimbo-s-lullaby" },
+    { title: "Menuet", url: "/debussy/menuet" },
+    { title: "Passepied", url: "/debussy/passepied" },
+    { title: "Prelude", url: "/debussy/prelude" },
+    { title: "Serenade of the Doll", url: "/debussy/serenade-of-the-doll" },
+    { title: "The snow is dancing", url: "/debussy/the-snow-is-dancing" }
+  ],
+  "Godowsky": [
+    { title: "Etüde Opus 10 No. 5", url: "/godowsky/etude-opus-10-no-5" },
+    { title: "Tango", url: "/godowsky/tango" }
+  ],
+  "Granados": [
+    { title: "Danza Espanola No. 3", url: "/granados/danza-espanola-no-3" },
+    { title: "Oriental", url: "/granados/oriental" },
+    { title: "Villanesca", url: "/granados/villanesca" }
+  ],
+  "Grieg": [
+    { title: "Grieg: Berceuse Opus 38 Nr. 1", url: "/grieg/grieg-berceuse-opus-38-nr-1" },
+    { title: "Grieg: Lyrische Stücke, Albumblatt, Opus 42 Nr. 2", url: "/grieg/grieg-lyrische-stucke-albumblatt-opus-42-nr-2" },
+    { title: "Grieg: Lyrische Stücke, Bächlein, Opus 62 Nr. 4", url: "/grieg/grieg-lyrische-stucke-bachlein-opus-62-nr-4" },
+    { title: "Grieg: Lyrische Stücke, Es war einmal, Opus 71 Nr. 1", url: "/grieg/grieg-lyrische-stucke-es-war-einmal-opus-71-nr-1" },
+    { title: "Grieg: Lyrische Stücke, Norwegischer Bauernmarsch, Opus 54 Nr. 2", url: "/grieg/grieg-lyrische-stucke-norwegischer-bauernmarsch-opus-54-nr-2" },
+    { title: "Grieg: Lyrische Stücke Op. 12 Nr. 4 Elfentanz", url: "/grieg/grieg-lyrische-stucke-op-12-nr-4-elfentanz" },
+    { title: "Grieg: Lyrische Stücke Op. 43 No. 1 - Schmetterling", url: "/grieg/grieg-lyrische-stucke-op-43-no-1-schmetterling" },
+    { title: "Grieg: Lyrische Stücke Op. 43 Nr. 2 - Einsamer Wanderer", url: "/grieg/grieg-lyrische-stucke-op-43-nr-2-einsamer-wanderer" },
+    { title: "Grieg: Lyrische Stücke Op. 43 Nr. 6 - An den Frühling", url: "/grieg/grieg-lyrische-stucke-op-43-nr-6-an-den-fruhling" },
+    { title: "Hochzeitstag auf Troldhaugen Op 65, No. 6", url: "/grieg/hochzeitstag-auf-troldhaugen-op-65-no-6" },
+    { title: "Kobold Op 71, No. 3", url: "/grieg/kobold-op-71-no-3" },
+    { title: "Lyric Pieces Op. 12 No. 12 Valse", url: "/grieg/lyric-pieces-op-12-no-12-valse" },
+    { title: "Norwegischer Tanz", url: "/grieg/norwegischer-tanz" },
+    { title: "Vöglein Op 43, No. 4", url: "/grieg/voglein-op-43-no-4" },
+    { title: "Wächterlied Op12, No. 3", url: "/grieg/wachterlied-op12-no-3" },
+    { title: "Zug der Zwerge Op 54, No. 3", url: "/grieg/zug-der-zwerge-op-54-no-3" }
+  ],
+  "Haydn": [
+    { title: "1. Satz", url: "/haydn/1-satz" },
+    { title: "2. Satz", url: "/haydn/2-satz" },
+    { title: "Divertimento", url: "/haydn/divertimento" },
+    { title: "Finale", url: "/haydn/finale" },
+    { title: "Klaviersonate Hob. XVI:7, 2. Satz", url: "/haydn/klaviersonate-hob-xvi-7-2-satz" },
+    { title: "Klaviersonate Hoboken XVI: 33 1. Satz", url: "/haydn/klaviersonate-hoboken-xvi-33-1-satz" },
+    { title: "Klaviersonate Hoboken XVI: 33 2. Satz", url: "/haydn/klaviersonate-hoboken-xvi-33-2-satz" },
+    { title: "Klaviersonate Hoboken XVI: 33 3. Satz", url: "/haydn/klaviersonate-hoboken-xvi-33-3-satz" },
+    { title: "Klaviersonate Hoboken XVI: 43 1. Satz", url: "/haydn/klaviersonate-hoboken-xvi-43-1-satz" },
+    { title: "Klaviersonate Hoboken XVI: 43 2. Satz", url: "/haydn/klaviersonate-hoboken-xvi-43-2-satz" },
+    { title: "Klaviersonate Hoboken XVI: 43 3. Satz", url: "/haydn/klaviersonate-hoboken-xvi-43-3-satz" },
+    { title: "Menuet", url: "/haydn/menuet" },
+    { title: "Scherzo", url: "/haydn/scherzo" },
+    { title: "Sonata Hoboken XVI:8 2. Satz", url: "/haydn/sonata-hoboken-xvi-8-2-satz" },
+    { title: "Sonate Hoboken XVI:8 1. Satz", url: "/haydn/sonate-hoboken-xvi-8-1-satz" },
+    { title: "Sonate Hoboken XVI:8 3. Satz", url: "/haydn/sonate-hoboken-xvi-8-3-satz" },
+    { title: "Sonate Hoboken XVI:8 4. Satz", url: "/haydn/sonate-hoboken-xvi-8-4-satz" },
+    { title: "Sonate XVI:35 1. Satz", url: "/haydn/sonate-xvi-35-1-satz" },
+    { title: "Sonate XVI:35 2. Satz", url: "/haydn/sonate-xvi-35-2-satz" },
+    { title: "Sonate XVI:35 3. Satz", url: "/haydn/sonate-xvi-35-3-satz" }
+  ],
+  "Klaus Badelt": [
+    { title: "He's a Pirate", url: "/klaus-badelt/he-s-a-pirate" },
+    { title: "He's a Pirate", url: "/klaus-badelt/hes-a-pirate" }
+  ],
+  "Klaviersonate A": [
+    { title: "Klaviersonate a-Moll, Opus 143 2. Satz", url: "/klaviersonate-a/klaviersonate-a-moll-opus-143-2-satz" },
+    { title: "Klaviersonate a-Moll, Opus 143 3. Satz", url: "/klaviersonate-a/klaviersonate-a-moll-opus-143-3-satz" }
+  ],
+  "Klaviersonate In G": [
+    { title: "1. Satz", url: "/klaviersonate-in-g/1-satz" },
+    { title: "2. Satz", url: "/klaviersonate-in-g/2-satz" }
+  ],
+  "Liszt": [
+    { title: "Etude No. 1 aus Grandes Etudes de Paganini", url: "/liszt/etude-no-1-aus-grandes-etudes-de-paganini" },
+    { title: "Etude No. 2 aus Grandes Etudes de Paganini", url: "/liszt/etude-no-2-aus-grandes-etudes-de-paganini" },
+    { title: "Etude No. 4 aus Grandes Etudes de Paganini", url: "/liszt/etude-no-4-aus-grandes-etudes-de-paganini" },
+    { title: "Etude No. 5 aus Grandes Etudes de Paganini", url: "/liszt/etude-no-5-aus-grandes-etudes-de-paganini" },
+    { title: "Etude No. 6 aus Grandes Etudes de Paganini", url: "/liszt/etude-no-6-aus-grandes-etudes-de-paganini" },
+    { title: "Feux Follets (Irrlichter)", url: "/liszt/feux-follets-irrlichter" },
+    { title: "La Campanella", url: "/liszt/la-campanella" },
+    { title: "Liebestraum Nr. 3", url: "/liszt/liebestraum-nr-3" },
+    { title: "Mazeppa", url: "/liszt/mazeppa" },
+    { title: "Reminiscnenes do Don Juan", url: "/liszt/reminiscnenes-do-don-juan" },
+    { title: "Rhapsodie Nr. 10", url: "/liszt/rhapsodie-nr-10" },
+    { title: "Rhapsodie Nr. 12", url: "/liszt/rhapsodie-nr-12" },
+    { title: "Rhapsodie Nr. 15", url: "/liszt/rhapsodie-nr-15" },
+    { title: "Rhapsodie Nr. 9 - Pesther Karneval", url: "/liszt/rhapsodie-nr-9-pesther-karneval" },
+    { title: "Ungarische Rhapsodie Nr. 2", url: "/liszt/ungarische-rhapsodie-nr-2" },
+    { title: "Wilde Jagd", url: "/liszt/wilde-jagd" }
+  ],
+  "Mendelssohn": [
+    { title: "Jägerlied", url: "/mendelssohn/jagerlied" },
+    { title: "Lieder ohne Worte Op. 30 No. 1", url: "/mendelssohn/lieder-ohne-worte-op-30-no-1" },
+    { title: "Mendelssohn: Lieder ohne Worte Opus 19 Nr. 1", url: "/mendelssohn/mendelssohn-lieder-ohne-worte-opus-19-nr-1" },
+    { title: "Mendelssohn: Lieder ohne Worte Opus 19 Nr. 2", url: "/mendelssohn/mendelssohn-lieder-ohne-worte-opus-19-nr-2" },
+    { title: "Mendelssohn: Lieder ohne Worte Opus 19 Nr. 4", url: "/mendelssohn/mendelssohn-lieder-ohne-worte-opus-19-nr-4" },
+    { title: "Mendelssohn: Lieder ohne Worte Opus 19 Nr. 5", url: "/mendelssohn/mendelssohn-lieder-ohne-worte-opus-19-nr-5" },
+    { title: "Mendelssohn: Lieder ohne Worte Opus 30 Nr. 2", url: "/mendelssohn/mendelssohn-lieder-ohne-worte-opus-30-nr-2" },
+    { title: "Mendelssohn: Lieder ohne Worte Opus 30 Nr. 3", url: "/mendelssohn/mendelssohn-lieder-ohne-worte-opus-30-nr-3" },
+    { title: "Mendelssohn: Lieder ohne Worte Opus 30 Nr. 4", url: "/mendelssohn/mendelssohn-lieder-ohne-worte-opus-30-nr-4" },
+    { title: "Mendelssohn: Lieder ohne Worte Opus 30 Nr. 5", url: "/mendelssohn/mendelssohn-lieder-ohne-worte-opus-30-nr-5" },
+    { title: "Morgenlied", url: "/mendelssohn/morgenlied" },
+    { title: "Trauermarsch", url: "/mendelssohn/trauermarsch" },
+    { title: "Venetianisches Gondellied", url: "/mendelssohn/venetianisches-gondellied" },
+    { title: "Volkslied", url: "/mendelssohn/volkslied" }
+  ],
+  "Miroirs": [
+    { title: "Miroirs - Noctuelles", url: "/miroirs/miroirs-noctuelles" }
+  ],
+  "Moszkowski": [
+    { title: "Etincelles Opus 36, No. 6", url: "/moszkowski/etincelles-opus-36-no-6" }
+  ],
+  "Mozart": [
+    { title: "1. Satz", url: "/mozart/1-satz" },
+    { title: "2. Satz", url: "/mozart/2-satz" },
+    { title: "3. Satz", url: "/mozart/3-satz" },
+    { title: "Klaviersonate KV 545 2. Satz", url: "/mozart/klaviersonate-kv-545-2-satz" },
+    { title: "Klaviersonate KV 545 3. Satz", url: "/mozart/klaviersonate-kv-545-3-satz" },
+    { title: "Klaviersonate KV 570 1. Satz", url: "/mozart/klaviersonate-kv-570-1-satz" },
+    { title: "Klaviersonate KV 570 2.. Satz", url: "/mozart/klaviersonate-kv-570-2-satz" },
+    { title: "Klaviersonate Nr. 11 KV 331 2. Satz", url: "/mozart/klaviersonate-nr-11-kv-331-2-satz" },
+    { title: "Klaviersonate Nr. 11 KV 331 3. Satz", url: "/mozart/klaviersonate-nr-11-kv-331-3-satz" },
+    { title: "Klaviersonate Nr. 11 KV 331", url: "/mozart/klaviersonate-nr-11-kv-331" },
+    { title: "Klaviersonate Nr. 12 KV 332 1. Satz", url: "/mozart/klaviersonate-nr-12-kv-332-1-satz" },
+    { title: "Klaviersonate Nr. 12 KV 332 2. Satz", url: "/mozart/klaviersonate-nr-12-kv-332-2-satz" },
+    { title: "Klaviersonate Nr. 12 KV 332 No. 3", url: "/mozart/klaviersonate-nr-12-kv-332-no-3" },
+    { title: "Klaviersonate Nr. 8 KV 311 1. Satz", url: "/mozart/klaviersonate-nr-8-kv-311-1-satz" },
+    { title: "Klaviersonate Nr. 8 KV 311 2. Satz", url: "/mozart/klaviersonate-nr-8-kv-311-2-satz" },
+    { title: "Klaviersonate Nr. 8 KV 311 3. Satz", url: "/mozart/klaviersonate-nr-8-kv-311-3-satz" },
+    { title: "Sonate KV 545 1. Satz", url: "/mozart/sonate-kv-545-1-satz" },
+    { title: "Sonate KV 570 3. Satz", url: "/mozart/sonate-kv-570-3-satz" }
+  ],
+  "Mussorgsky": [
+    { title: "Baba-Yaga - Das große Tor von Kiew", url: "/mussorgsky/baba-yaga-das-gro-e-tor-von-kiew" },
+    { title: "Bydlo", url: "/mussorgsky/bydlo" },
+    { title: "Promenade - Ballett der Küchlein in ihren Eierschalen", url: "/mussorgsky/promenade-ballett-der-kuchlein-in-ihren-eierschalen" },
+    { title: "Promenade - Der Markt von Limoges- Catacombae - Con mortuis in lingua mortua", url: "/mussorgsky/promenade-der-markt-von-limoges-catacombae-con-mortuis-in-lingua-mortua" },
+    { title: "Promenade - Die Tuilerien (3)", url: "/mussorgsky/promenade-die-tuilerien-3" },
+    { title: "Promenade - Gnomus (1)", url: "/mussorgsky/promenade-gnomus-1" },
+    { title: "Promenade - Il vecchio Castello (2)", url: "/mussorgsky/promenade-il-vecchio-castello-2" },
+    { title: "Samuel Goldenberg und Schmuyle", url: "/mussorgsky/samuel-goldenberg-und-schmuyle" }
+  ],
+  "Rachmaninoff": [
+    { title: "Allegro con fuoco", url: "/rachmaninoff/allegro-con-fuoco" },
+    { title: "Grave", url: "/rachmaninoff/grave" },
+    { title: "Non allegro - Presto", url: "/rachmaninoff/non-allegro-presto" },
+    { title: "Prelude No. 2 Op. 23", url: "/rachmaninoff/prelude-no-2-op-23" },
+    { title: "Prelude No.5 in Es-Dur, Op. 23", url: "/rachmaninoff/prelude-no-5-in-es-dur-op-23" },
+    { title: "Prelude Opus 23 Nr. 3", url: "/rachmaninoff/prelude-opus-23-nr-3" },
+    { title: "Prelude Opus 23 Nr. 7", url: "/rachmaninoff/prelude-opus-23-nr-7" },
+    { title: "Prelude Opus 3 No.2", url: "/rachmaninoff/prelude-opus-3-no-2" },
+    { title: "Prelude Opus 32 No. 1", url: "/rachmaninoff/prelude-opus-32-no-1" },
+    { title: "Prelude Opus 32 No. 13", url: "/rachmaninoff/prelude-opus-32-no-13" }
+  ],
+  "Ravel": [
+    { title: "Jeux d'eau", url: "/ravel/jeux-d-eau" },
+    { title: "Le Gibet", url: "/ravel/le-gibet" },
+    { title: "Miroirs - Noctuelles", url: "/ravel/miroirs-noctuelles" },
+    { title: "Ondine", url: "/ravel/ondine" },
+    { title: "Scarbo", url: "/ravel/scarbo" }
+  ],
+  "Rhapsodie Nr 9": [
+    { title: "Rhapsodie Nr. 9 - Pesther Karneval", url: "/rhapsodie-nr-9/rhapsodie-nr-9-pesther-karneval" }
+  ],
+  "Schubert": [
+    { title: "Allegretto", url: "/schubert/allegretto" },
+    { title: "Impromptu D 935 No. 1", url: "/schubert/impromptu-d-935-no-1" },
+    { title: "Impromptu D 935 No. 3", url: "/schubert/impromptu-d-935-no-3" },
+    { title: "Impromptu D 935 Nr. 4", url: "/schubert/impromptu-d-935-nr-4" },
+    { title: "Impromptu Nr. 1 c-Moll", url: "/schubert/impromptu-nr-1-c-moll" },
+    { title: "Impromptu Nr. 2 As-Dur", url: "/schubert/impromptu-nr-2-as-dur" },
+    { title: "Impromptu Nr. 2 Es-Dur", url: "/schubert/impromptu-nr-2-es-dur" },
+    { title: "Impromptu Nr. 3 Ges-Dur", url: "/schubert/impromptu-nr-3-ges-dur" },
+    { title: "Impromptu Nr. 4 As Dur", url: "/schubert/impromptu-nr-4-as-dur" },
+    { title: "Klaviersonate a-Moll, Opus 143 2. Satz", url: "/schubert/klaviersonate-a-moll-opus-143-2-satz" },
+    { title: "Klaviersonate a-Moll, Opus 143 3. Satz", url: "/schubert/klaviersonate-a-moll-opus-143-3-satz" },
+    { title: "Klaviersonate a-Moll, Opus 143", url: "/schubert/klaviersonate-a-moll-opus-143" },
+    { title: "Nr. 1 in C-Dur", url: "/schubert/nr-1-in-c-dur" },
+    { title: "Nr. 2 in As-Dur", url: "/schubert/nr-2-in-as-dur" },
+    { title: "Nr. 3 f-moll", url: "/schubert/nr-3-f-moll" },
+    { title: "Nr. 4 cis-moll", url: "/schubert/nr-4-cis-moll" },
+    { title: "Nr. 5 in f-moll", url: "/schubert/nr-5-in-f-moll" },
+    { title: "Sonata D850, 1. movement", url: "/schubert/sonata-d850-1-movement" },
+    { title: "Sonata D850, 2. movement", url: "/schubert/sonata-d850-2-movement" },
+    { title: "Sonata D850, 3. movement", url: "/schubert/sonata-d850-3-movement" },
+    { title: "Sonata D850, 4. movement", url: "/schubert/sonata-d850-4-movement" },
+    { title: "Sonate D960, 1. Satz", url: "/schubert/sonate-d960-1-satz" },
+    { title: "Sonate D960, 2. Satz", url: "/schubert/sonate-d960-2-satz" },
+    { title: "Sonate D960, 3. Satz", url: "/schubert/sonate-d960-3-satz" },
+    { title: "Sonate D960, 4. Satz", url: "/schubert/sonate-d960-4-satz" },
+    { title: "Wandererfantasie D760, 1. Satz", url: "/schubert/wandererfantasie-d760-1-satz" },
+    { title: "Wandererfantasie D760, 2. Satz", url: "/schubert/wandererfantasie-d760-2-satz" },
+    { title: "Wandererfantasie D760, 3 Satz", url: "/schubert/wandererfantasie-d760-3-satz" },
+    { title: "Wandererfantasie D760, 4 Satz", url: "/schubert/wandererfantasie-d760-4-satz" }
+  ],
+  "Schumann": [
+    { title: "Abegg-Variationen", url: "/schumann/abegg-variationen" },
+    { title: "Am Kamin", url: "/schumann/am-kamin" },
+    { title: "aus Album für die Jugend Opus 68, Nr. 10", url: "/schumann/aus-album-f-r-die-jugend-opus-68-nr-10" },
+    { title: "aus Album für die Jugend Opus 68, Nr. 10", url: "/schumann/aus-album-fur-die-jugend-opus-68-nr-10" },
+    { title: "Der Dichter spricht", url: "/schumann/der-dichter-spricht" },
+    { title: "Fürchtenmachen", url: "/schumann/f-rchtenmachen" },
+    { title: "Fantasien", url: "/schumann/fantasien" },
+    { title: "Fast zu ernst", url: "/schumann/fast-zu-ernst" },
+    { title: "Fürchtenmachen", url: "/schumann/furchtenmachen" },
+    { title: "Glückes genug", url: "/schumann/gl-ckes-genug" },
+    { title: "Glückes genug", url: "/schumann/gluckes-genug" },
+    { title: "Hasche-Mann", url: "/schumann/hasche-mann" },
+    { title: "Kind im Einschlummern", url: "/schumann/kind-im-einschlummern" },
+    { title: "Kinderszenen Opus 15", url: "/schumann/kinderszenen-opus-15" },
+    { title: "Knecht Ruprecht aus Album für die Jugend Opus 68", url: "/schumann/knecht-ruprecht-aus-album-f-r-die-jugend-opus-68" },
+    { title: "Knecht Ruprecht aus Album für die Jugend Opus 68", url: "/schumann/knecht-ruprecht-aus-album-fur-die-jugend-opus-68" },
+    { title: "Kreisleriana 3", url: "/schumann/kreisleriana-3" },
+    { title: "Kreisleriana No. 4", url: "/schumann/kreisleriana-no-4" },
+    { title: "Kreisleriana No. 7", url: "/schumann/kreisleriana-no-7" },
+    { title: "Kreisleriana Teil 5", url: "/schumann/kreisleriana-teil-5" },
+    { title: "Kreisleriana Teil 8", url: "/schumann/kreisleriana-teil-8" },
+    { title: "Kuriose Geschichte", url: "/schumann/kuriose-geschichte" },
+    { title: "Ritter vom Steckenpferd", url: "/schumann/ritter-vom-steckenpferd" },
+    { title: "Sehr langsam", url: "/schumann/sehr-langsam" },
+    { title: "Träumerei", url: "/schumann/tr-umerei" },
+    { title: "Träumerei", url: "/schumann/traumerei" },
+    { title: "Von fremden Ländern und Menschen", url: "/schumann/von-fremden-l-ndern-und-menschen" },
+    { title: "Von fremden Ländern und Menschen", url: "/schumann/von-fremden-landern-und-menschen" },
+    { title: "Wichtige Begebenheit", url: "/schumann/wichtige-begebenheit" }
+  ],
+  "Sinding": [
+    { title: "Agitato", url: "/sinding/agitato" }
+  ],
+  "Tchaikovsky": [
+    { title: "April", url: "/tchaikovsky/april" },
+    { title: "August", url: "/tchaikovsky/august" },
+    { title: "Dezember", url: "/tchaikovsky/dezember" },
+    { title: "Februar", url: "/tchaikovsky/februar" },
+    { title: "Januar", url: "/tchaikovsky/januar" },
+    { title: "Juli", url: "/tchaikovsky/juli" },
+    { title: "Juni", url: "/tchaikovsky/juni" },
+    { title: "Maerz", url: "/tchaikovsky/maerz" },
+    { title: "Mai", url: "/tchaikovsky/mai" },
+    { title: "November", url: "/tchaikovsky/november" },
+    { title: "Oktober", url: "/tchaikovsky/oktober" },
+    { title: "September", url: "/tchaikovsky/september" }
+  ]
+};
 
-  // Include all composers in regular layout, with Pirate (Sparrow) last
+  // Include all composers in regular layout
   const regularComposers = Object.entries(allPieces).sort(([a], [b]) => {
-    if (a === 'Pirate') return 1;
-    if (b === 'Pirate') return -1;
     return a.localeCompare(b);
   });
 
@@ -133,20 +478,21 @@ export default function Index() {
 
   const renderComposer = (composer: string, pieces: { title: string; url: string }[]) => {
     const composerSlug = slugify(composer);
-    const composerDisplay = composer === 'Pirate' ? 'Jack Sparrow' : composer;
     return (
       <div key={composer} className="mb-12">
         {/* Composer Header */}
         <div className="flex flex-col md:flex-row mb-6">
-          {composerImages[composer] && (
+          {composerImages[composer] ? (
             <img 
               src={composerImages[composer]} 
               alt={composer}
               className="w-56 h-64 object-cover mb-4 md:mb-0 md:mr-6 flex-shrink-0 mx-auto md:mx-0"
             />
+          ) : (
+            <div className="w-56 h-64 bg-white mb-4 md:mb-0 md:mr-6 flex-shrink-0 mx-auto md:mx-0" />
           )}
           <div className="ml-4 md:ml-0">
-            <h2 className="text-2xl font-bold font-garamond text-gray-800 mb-4 underline">{composerDisplay}</h2>
+            <h2 className="text-2xl font-bold font-garamond text-gray-800 mb-4 underline">{composer}</h2>
             
             {/* Pieces List */}
             <div>
