@@ -46,14 +46,12 @@ const allPieces: Record<string, { title: string; url: string }[]> = {
   "Bach": [
     { title: "I - Praeludium und Fuge 1 in C-Dur BWV 846", url: "/bach/i-praeludium-und-fuge-1-in-c-dur-bwv-846" },
     { title: "Präludium und Fuge in D-Dur, BWV 850", url: "/bach/pr-ludium-und-fuge-in-d-dur-bwv-850" },
-    { title: "Präludium und Fuge in D-Dur, BWV 850", url: "/bach/praludium-und-fuge-in-d-dur-bwv-850" },
     { title: "Prelude and Fugue in C major, BWV 846", url: "/bach/prelude-and-fugue-in-c-major-bwv-846" },
     { title: "Prelude and Fugue in C minor, BWV 847", url: "/bach/prelude-and-fugue-in-c-minor-bwv-847" },
     { title: ", : Prelude and Fugue No. 1 in C major, BWV 846", url: "/bach/prelude-and-fugue-no-1-in-c-major-bwv-846" },
-    { title: "Prelude and Fugue in C major, BWV 846", url: "/bach/prelude-fugue-in-c-major-bwv-846" },
     { title: "Prelude & Fugue No. 1 in C major, BWV 846", url: "/bach/wtc-i-prelude-fugue-1-c-major-bwv846" }
   ],
-  "Badelt": [
+  "Klaus Badelt": [
     { title: "He's a Pirate", url: "/badelt/hes-a-pirate" }
   ],
   "Balakirew": [
@@ -65,7 +63,6 @@ const allPieces: Record<string, { title: string; url: string }[]> = {
     { title: "3. Movement", url: "/beethoven/3-movement" },
     { title: "Appassionata", url: "/beethoven/appassionata" },
     { title: "Für Elise", url: "/beethoven/f-r-elise" },
-    { title: "Für Elise", url: "/beethoven/fur-elise" },
     { title: "Grande Sonata Opus 22 1. movement", url: "/beethoven/grande-sonata-opus-22-1-movement" },
     { title: "Grande Sonata Opus 22 2. movement", url: "/beethoven/grande-sonata-opus-22-2-movement" },
     { title: "Grande Sonata Opus 22 3. movement", url: "/beethoven/grande-sonata-opus-22-3-movement" },
@@ -76,7 +73,6 @@ const allPieces: Record<string, { title: string; url: string }[]> = {
     { title: "Hammerklaviersonate 4. Satz", url: "/beethoven/hammerklaviersonate-4-satz" },
     { title: "Klaviersonate No. 5 - 1. Satz", url: "/beethoven/klaviersonate-no-5-1-satz" },
     { title: "Mondscheinsonate; der Gräfin Giulietta Guiccardi gewidmet", url: "/beethoven/mondscheinsonate-der-gr-fin-giulietta-guiccardi-gewidmet" },
-    { title: "Mondscheinsonate; der Gräfin Giulietta Guiccardi gewidmet", url: "/beethoven/mondscheinsonate-der-grafin-giulietta-guiccardi-gewidmet" },
     { title: "Piano Sonata No. 23 in F minor, Op. 57 \"Appassionata\": I. Allegro assai", url: "/beethoven/piano-sonata-no-23-op-57-in-f-minor-i" },
     { title: "Sonata No. 14 in C# minor – 1st movement", url: "/beethoven/sonata-no-14-c-sharp-minor-1-movement" },
     { title: "Sonata No. 5 in C minor – 1st movement", url: "/beethoven/sonata-no-5-c-minor-1-movement" },
@@ -160,24 +156,17 @@ const allPieces: Record<string, { title: string; url: string }[]> = {
     { title: "Chopin Prelude No. 9", url: "/chopin/chopin-prelude-no-9" },
     { title: "Etüde Nr. 12", url: "/chopin/et-de-nr-12" },
     { title: "Etüde Opus 10 No. 5", url: "/chopin/et-de-opus-10-no-5" },
-    { title: "Etüde Opus 10 No. 5", url: "/chopin/etude-no-5-black-key" },
-    { title: "Etüde Nr. 12", url: "/chopin/etude-nr-12" },
-    { title: "Etüde Opus 10 No. 5", url: "/chopin/etude-opus-10-no-5" },
     { title: "Grand Valse Brillante in Es-Dur Opus 18", url: "/chopin/grand-valse-brillante-in-es-dur-opus-18" },
     { title: "Impromptu in C# minor Opus 66", url: "/chopin/impromptu-in-c-minor-opus-66" },
-    { title: "Chopin Mazurka Opus 7 No. 1", url: "/chopin/mazurka-no-1" },
     { title: "Prelude No. 10", url: "/chopin/prelude-no-10" },
     { title: "Prelude No. 11", url: "/chopin/prelude-no-11" },
-    { title: "Chopin Prelude No. 15, Opus 28", url: "/chopin/prelude-no-15-raindrop" },
     { title: "Prelude No. 8", url: "/chopin/prelude-no-8" },
     { title: "Scherzo in b-moll Opus 31", url: "/chopin/scherzo-in-b-moll-opus-31" },
     { title: "Schwarze-Tasten-Etüde", url: "/chopin/schwarze-tasten-et-de" },
-    { title: "Schwarze-Tasten-Etüde", url: "/chopin/schwarze-tasten-etude" },
     { title: "Sonate opus 35, 1. Satz", url: "/chopin/sonate-opus-35-1-satz" },
     { title: "Sonate opus 35, 2. Satz", url: "/chopin/sonate-opus-35-2-satz" },
     { title: "Sonate opus 35, 4. Satz", url: "/chopin/sonate-opus-35-4-satz" },
     { title: "Sturmetüde", url: "/chopin/sturmet-de" },
-    { title: "Sturmetüde", url: "/chopin/sturmetude" },
     { title: "Trauermarsch", url: "/chopin/trauermarsch" }
   ],
   "Christfreuden": [
@@ -187,7 +176,6 @@ const allPieces: Record<string, { title: string; url: string }[]> = {
     { title: "Christfreuden - Weihnachtsfantasie", url: "/christmas/christfreuden-weihnachtsfantasie" },
     { title: "Fantasie über \"Stille Nacht, heilige Nacht\"", url: "/christmas/fantasie-uber-stille-nacht-heilige-nacht" },
     { title: "Weihnachts-Fantasie", url: "/christmas/weihnachts-fantasie" },
-    { title: "Weihnachtsfantasie", url: "/christmas/weihnachtsfantasie" },
     { title: "Zu Weihnachten - Fantasie", url: "/christmas/zu-weihnachten-fantasie" }
   ],
   "Clementi": [
@@ -269,10 +257,6 @@ const allPieces: Record<string, { title: string; url: string }[]> = {
     { title: "Sonate XVI:35 1. Satz", url: "/haydn/sonate-xvi-35-1-satz" },
     { title: "Sonate XVI:35 2. Satz", url: "/haydn/sonate-xvi-35-2-satz" },
     { title: "Sonate XVI:35 3. Satz", url: "/haydn/sonate-xvi-35-3-satz" }
-  ],
-  "Klaus Badelt": [
-    { title: "He's a Pirate", url: "/klaus-badelt/he-s-a-pirate" },
-    { title: "He's a Pirate", url: "/klaus-badelt/hes-a-pirate" }
   ],
   "Klaviersonate A": [
     { title: "Klaviersonate a-Moll, Opus 143 2. Satz", url: "/klaviersonate-a/klaviersonate-a-moll-opus-143-2-satz" },
@@ -409,19 +393,15 @@ const allPieces: Record<string, { title: string; url: string }[]> = {
     { title: "Abegg-Variationen", url: "/schumann/abegg-variationen" },
     { title: "Am Kamin", url: "/schumann/am-kamin" },
     { title: "aus Album für die Jugend Opus 68, Nr. 10", url: "/schumann/aus-album-f-r-die-jugend-opus-68-nr-10" },
-    { title: "aus Album für die Jugend Opus 68, Nr. 10", url: "/schumann/aus-album-fur-die-jugend-opus-68-nr-10" },
     { title: "Der Dichter spricht", url: "/schumann/der-dichter-spricht" },
     { title: "Fürchtenmachen", url: "/schumann/f-rchtenmachen" },
     { title: "Fantasien", url: "/schumann/fantasien" },
     { title: "Fast zu ernst", url: "/schumann/fast-zu-ernst" },
-    { title: "Fürchtenmachen", url: "/schumann/furchtenmachen" },
     { title: "Glückes genug", url: "/schumann/gl-ckes-genug" },
-    { title: "Glückes genug", url: "/schumann/gluckes-genug" },
     { title: "Hasche-Mann", url: "/schumann/hasche-mann" },
     { title: "Kind im Einschlummern", url: "/schumann/kind-im-einschlummern" },
     { title: "Kinderszenen Opus 15", url: "/schumann/kinderszenen-opus-15" },
     { title: "Knecht Ruprecht aus Album für die Jugend Opus 68", url: "/schumann/knecht-ruprecht-aus-album-f-r-die-jugend-opus-68" },
-    { title: "Knecht Ruprecht aus Album für die Jugend Opus 68", url: "/schumann/knecht-ruprecht-aus-album-fur-die-jugend-opus-68" },
     { title: "Kreisleriana 3", url: "/schumann/kreisleriana-3" },
     { title: "Kreisleriana No. 4", url: "/schumann/kreisleriana-no-4" },
     { title: "Kreisleriana No. 7", url: "/schumann/kreisleriana-no-7" },
@@ -431,9 +411,7 @@ const allPieces: Record<string, { title: string; url: string }[]> = {
     { title: "Ritter vom Steckenpferd", url: "/schumann/ritter-vom-steckenpferd" },
     { title: "Sehr langsam", url: "/schumann/sehr-langsam" },
     { title: "Träumerei", url: "/schumann/tr-umerei" },
-    { title: "Träumerei", url: "/schumann/traumerei" },
     { title: "Von fremden Ländern und Menschen", url: "/schumann/von-fremden-l-ndern-und-menschen" },
-    { title: "Von fremden Ländern und Menschen", url: "/schumann/von-fremden-landern-und-menschen" },
     { title: "Wichtige Begebenheit", url: "/schumann/wichtige-begebenheit" }
   ],
   "Sinding": [
