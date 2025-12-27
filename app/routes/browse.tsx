@@ -457,7 +457,7 @@ const allPieces: Record<string, { title: string; url: string }[]> = {
   const renderComposer = (composer: string, pieces: { title: string; url: string }[]) => {
     const composerSlug = slugify(composer);
     return (
-      <div key={composer} className="mb-12">
+      <div key={composer} id={composerSlug} className="mb-12">
         {/* Composer Header */}
         <div className="flex flex-col md:flex-row mb-6">
           {composerImages[composer] ? (

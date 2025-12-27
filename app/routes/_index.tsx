@@ -161,7 +161,7 @@ const App = () => {
                         </Link>
                       ))}
                       <Link
-                        to={`/browse/${composerSlug}`}
+                        to={`/browse#${composerSlug}`}
                         className="mt-4 inline-flex text-base font-garamond text-blue-700 underline hover:text-blue-500"
                       >
                         more…
