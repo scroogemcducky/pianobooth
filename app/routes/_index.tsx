@@ -11,31 +11,6 @@ export const meta: MetaFunction = () => {
   ];
 };
 
-const composerSlugOverrides: Record<string, string> = {
-  Pirate: 'klaus-badelt',
-};
-
-const normalizeKey = (value: string) => (
-  (value || '')
-    .toLowerCase()
-    .replace(/['’]/g, '')
-    .replace(/[#♯]/g, '-sharp')
-    .replace(/[♭]/g, '-flat')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-)
-
-const composerSongSlugOverrides: Record<string, Record<string, string>> = {
-  beethoven: {
-    'sonata-no-5-c-minor-1-movement': 'sonata-no-5-c-minor-1-movement',
-    'sonata-no-14-c-sharp-minor-1-movement': 'sonata-no-14-c-sharp-minor-1-movement',
-  },
-  'klaus-badelt': {
-    'hes-a-pirate': 'hes-a-pirate',
-    'he-s-a-pirate': 'hes-a-pirate',
-  },
-}
-
 const App = () => {
   const [isClient, setIsClient] = useState(false);
   const [file, setFile] = useState(null);
@@ -125,26 +100,6 @@ const App = () => {
     if (b === 'Pirate') return -1;
     return a.localeCompare(b);
   });
-
-  const getStaticUrlForPiece = (composer: string, song?: string, album?: string) => {
-    const artistSlug = composerSlugOverrides[composer] ?? slugify(composer || 'composer');
-    const composerKey = normalizeKey(artistSlug);
-    const normalizedSong = normalizeKey(song || '');
-    const normalizedAlbum = normalizeKey(album || '');
-    const normalizedCombined = normalizeKey([album, song].filter(Boolean).join(' ').trim());
-    const overrideCandidates = [normalizedCombined, normalizedSong, normalizedAlbum].filter(Boolean);
-    let overrideSlug: string | undefined;
-    for (const key of overrideCandidates) {
-      const candidate = composerSongSlugOverrides[composerKey]?.[key];
-      if (candidate) {
-        overrideSlug = candidate;
-        break;
-      }
-    }
-    const slugInput = song || album || 'untitled';
-    const songSlug = overrideSlug ?? slugify(slugInput);
-    return `/${artistSlug}/${songSlug}`;
-  };
 
   return (
     <main
