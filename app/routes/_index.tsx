@@ -1,8 +1,7 @@
 import { useRef, useState, useEffect} from 'react';
-import { Link, useLoaderData, useNavigate } from "@remix-run/react"; 
+import { Link, useNavigate } from "@remix-run/react"; 
 import  useMidiStore  from '../store/midiStore'
-import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
-import { createClient } from "~/utils/supabase.server";
+import type { MetaFunction } from "@remix-run/node";
 import { slugify } from "~/utils/slugify";
 
 export const meta: MetaFunction = () => {
@@ -11,22 +10,6 @@ export const meta: MetaFunction = () => {
     { name: "description", content: "Learn piano with interactive MIDI playback. Upload your MIDI files or browse classical pieces from Bach, Beethoven, Chopin, and more." }
   ];
 };
-
-export async function loader({ request, context }: LoaderFunctionArgs) {
-  try {
-    const supabaseUrl = (context as any)?.cloudflare?.env?.SUPABASE_URL;
-    const supabaseKey = (context as any)?.cloudflare?.env?.SUPABASE_KEY;
-    if (!supabaseUrl || !supabaseKey) {
-      return { todos: [] };
-    }
-    const supabase = createClient(request, { SUPABASE_URL: supabaseUrl, SUPABASE_ANON_KEY: supabaseKey });
-    const { data: todos } = await (supabase as any).from('Midi').select();
-    return { todos: todos ?? [] };
-  } catch (error) {
-    console.error('Error loading MIDI catalog:', error);
-    return { todos: [] };
-  };
-}
 
 const composerSlugOverrides: Record<string, string> = {
   Pirate: 'klaus-badelt',
@@ -54,11 +37,9 @@ const composerSongSlugOverrides: Record<string, Record<string, string>> = {
 }
 
 const App = () => {
-  const { todos } = useLoaderData<typeof loader>() as { todos: any[] };
   const [isClient, setIsClient] = useState(false);
   const [file, setFile] = useState(null);
   const MidiFileRef = useRef<HTMLInputElement>(null)
-  // const navigate = useNavigate(); // Create navigate function using the useNavigate hook
   const setMidiStore = useMidiStore((state) => state.setMidiFile)
   const navigate = useNavigate();
 
@@ -99,14 +80,6 @@ const App = () => {
     event.preventDefault();
   };
 
-  // Group pieces by composer
-  const groupedByComposer = (todos || []).reduce((acc: Record<string, any[]>, todo: any) => {
-    const composer = todo.Artist;
-    if (!acc[composer]) acc[composer] = [];
-    acc[composer].push(todo);
-    return acc;
-  }, {} as Record<string, any[]>);
-
   // Composer images mapping
   const composerImages: Record<string, string> = {
     'Bach': '/images/Bach2.jpg',
@@ -121,6 +94,7 @@ const App = () => {
       { title: 'Prelude & Fugue No. 1 in C major, BWV 846', url: '/bach/prelude-and-fugue-in-c-major-bwv-846' },
       { title: 'Prelude & Fugue No. 2 in C minor, BWV 847', url: '/bach/prelude-and-fugue-in-c-minor-bwv-847' },
       { title: 'Prelude & Fugue in D major, BWV 850', url: '/bach/pr-ludium-und-fuge-in-d-dur-bwv-850' },
+      { title: 'Prelude & Fugue No. 4 in C# minor, BWV 849', url: '/bach/prelude-and-fugue-no-4-in-c-sharp-minor-bwv-849' },
     ],
     Beethoven: [
       { title: 'Piano Sonata No. 23 "Appassionata" I', url: '/beethoven/piano-sonata-no-23-op-57-in-f-minor-i' },
@@ -145,8 +119,8 @@ const App = () => {
     ],
   }
 
-  // Include all composers in regular layout, with Pirate (Sparrow) last
-  const regularComposers = Object.entries(groupedByComposer).sort(([a], [b]) => {
+  // Get composers from featuredStaticPieces, with Pirate (Sparrow) last
+  const regularComposers = Object.entries(featuredStaticPieces).sort(([a], [b]) => {
     if (a === 'Pirate') return 1;
     if (b === 'Pirate') return -1;
     return a.localeCompare(b);
@@ -204,40 +178,9 @@ const App = () => {
       <section className="container mx-auto px-6 md:px-8 lg:px-10 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
           {regularComposers.map(([composer, pieces]) => {
-            const previewPieces = pieces.slice(0, 4);
             const composerSlug = slugify(composer);
-            const additionalStatic = featuredStaticPieces[composer] || [];
-            const normalizeTitle = (str: string) => normalizeKey(str)
-            const dynamicLabels = composer === 'Pirate'
-              ? []
-              : previewPieces.map((piece: any) => (piece.Album ? `${piece.Album} - ${piece.Song}` : piece.Song));
-            const dynamicLinks = composer === 'Pirate'
-              ? []
-              : previewPieces.map((piece: any, idx: number) => (
-                <Link
-                  key={`dynamic-${piece.id}`}
-                  to={getStaticUrlForPiece(composer, piece.Song, piece.Album)}
-                  className="block text-left w-full mb-2 text-xl font-garamond text-gray-800 hover:text-blue-600 transition-colors"
-                >
-                  {dynamicLabels[idx]}
-                </Link>
-              ));
-            const neededExtras = Math.max(0, 4 - dynamicLinks.length);
-            const existingTitles = new Set(
-              (composer === 'Pirate' ? [] : previewPieces).map((piece: any) => normalizeTitle(piece.Song || piece.Album || ''))
-            );
-            const staticLinks = additionalStatic
-              .filter((piece) => !existingTitles.has(normalizeTitle(piece.title)))
-              .slice(0, neededExtras)
-              .map((piece, index) => (
-                <Link
-                  key={`static-${composer}-${index}`}
-                to={piece.url}
-                className="block text-left w-full mb-2 text-xl font-garamond text-gray-800 hover:text-blue-600 transition-colors"
-              >
-                {piece.title}
-              </Link>
-            ));
+            const displayPieces = pieces.slice(0, 4);
+            
             return (
               <div key={composer} className="mb-8">
                 <div className="flex flex-col md:flex-row mb-6">
@@ -253,8 +196,15 @@ const App = () => {
                       {composer === 'Pirate' ? 'Jack Sparrow' : composer}
                     </h2>
                     <div>
-                      {dynamicLinks}
-                      {staticLinks}
+                      {displayPieces.map((piece, index) => (
+                        <Link
+                          key={`${composer}-${index}`}
+                          to={piece.url}
+                          className="block text-left w-full mb-2 text-xl font-garamond text-gray-800 hover:text-blue-600 transition-colors"
+                        >
+                          {piece.title}
+                        </Link>
+                      ))}
                       <Link
                         to={`/browse/${composerSlug}`}
                         className="mt-4 inline-flex text-base font-garamond text-blue-700 underline hover:text-blue-500"
