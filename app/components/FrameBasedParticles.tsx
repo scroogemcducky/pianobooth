@@ -441,12 +441,12 @@ const FrameBasedParticles = forwardRef<FrameBasedParticlesHandle, FrameBasedPart
     // Pre-compute note timing data for efficient frame lookups
     const noteTimingData = useMemo(() => {
       if (!midiObject) return []
-      // Key press is delayed by lookahead seconds so it syncs with notes reaching keyboard
-      const keyPressDelayMs = lookahead * 1000
       return midiObject.map((note) => {
         const noteStartMs = Math.floor(note.Delta / 1000)
         const noteDurationMs = (note.Duration / 1000000) * 1000
         const noteEndMs = noteStartMs + noteDurationMs
+        // Particles emit when keys are pressed (after lookahead delay)
+        const keyPressDelayMs = lookahead * 1000
         const keyPressStartMs = noteStartMs + keyPressDelayMs
         const keyPressEndMs = noteEndMs + keyPressDelayMs
         return {

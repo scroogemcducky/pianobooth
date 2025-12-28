@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo, useRef, forwardRef, useImperativeHandle } from 'react'
 import * as THREE from 'three'
 import { extend, useThree } from '@react-three/fiber'
-import { speed, black_width, white_width, BLACK_KEY_COLOR, WHITE_KEY_COLOR } from '../utils/constants'
+import { factor, speed, black_width, white_width, BLACK_KEY_COLOR, WHITE_KEY_COLOR } from '../utils/constants'
 import { calculateHeight, isBlack, scalingFactor } from '../utils/functions.js'
 import {
   type PianoLayout,
@@ -110,6 +110,8 @@ const FrameBasedInstances = forwardRef<FrameBasedInstancesHandle, FrameBasedInst
   useImperativeHandle(ref, () => ({
     setTime: (currentTimeMs: number) => {
       if (!materialRef.current) return
+      // Fall speed adjusted for desired fall duration
+      // Blocks should fall 'distance' units in 'lookahead' seconds
       const speedAdjusted = speed * distance / lookahead
       const accumValue = (currentTimeMs / 1000) * speedAdjusted
       materialRef.current.uniforms.uAccum.value = accumValue
@@ -228,11 +230,20 @@ const FrameBasedShaderBlocks = forwardRef<FrameBasedShaderBlocksHandle, FrameBas
   useEffect(() => {
     if (midiObject) {
       const newBlocks = midiObject.map((note) => {
+        // Block height is inversely proportional to lookahead
+        // When blocks fall slower (higher lookahead), they need to be shorter
+        // so they cover the keyboard for the same visual duration
         const height = calculateHeight(note.Duration, distance) / lookahead
         const deltaMs = Math.floor(note.Delta / 1000)
         const xPosition = getNoteXPosition(note.NoteNumber, activeLayout)
+        // At time=deltaMs, block should be 'lookahead' seconds worth of falling away from keyboard
+        // Fall speed = distance / lookahead
+        // At T=deltaMs: initial_Y - (deltaMs/1000) * (distance/lookahead) = half_screen
+        // Therefore: initial_Y = height/2 + half_screen + (distance * deltaMs) / (1000 * lookahead)
         const yPosition = height / 2 + half_screen + (distance * deltaMs) / (1000 * lookahead)
-        const blockWidth = isBlack(note.NoteNumber) ? black_width : white_width - 0.1
+        const isBlackKey = isBlack(note.NoteNumber)
+        const zPosition = isBlackKey ? -0.05 : -0.07
+        const blockWidth = isBlackKey ? black_width : white_width - 0.1
         return {
           noteNumber: note.NoteNumber,
           soundDuration: note.SoundDuration,
@@ -240,8 +251,8 @@ const FrameBasedShaderBlocks = forwardRef<FrameBasedShaderBlocksHandle, FrameBas
           duration: note.Duration / 1000000,
           height,
           width: blockWidth,
-          position: [xPosition, yPosition, -0.05] as [number, number, number],
-          isBlack: isBlack(note.NoteNumber),
+          position: [xPosition, yPosition, zPosition] as [number, number, number],
+          isBlack: isBlackKey,
         }
       })
 

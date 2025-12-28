@@ -29,8 +29,6 @@ const FrameBasedKeyController = forwardRef<FrameBasedKeyControllerHandle, Props>
       if (!midiObject) return
 
       const currentTimeMs = adjustedFrame * FRAME_DURATION_MS
-      // Key press is delayed by lookahead seconds so it syncs with notes reaching keyboard
-      const keyPressDelayMs = lookahead * 1000
 
       // Calculate which notes should be active
       const newActiveNotes = new Set<number>()
@@ -40,6 +38,8 @@ const FrameBasedKeyController = forwardRef<FrameBasedKeyControllerHandle, Props>
         const noteDurationMs = note.Duration / 1000000 * 1000
         const noteEndMs = noteStartMs + noteDurationMs
 
+        // Keys light up after blocks have fallen for 'lookahead' seconds
+        const keyPressDelayMs = lookahead * 1000
         const keyPressStartMs = noteStartMs + keyPressDelayMs
         const keyPressEndMs = noteEndMs + keyPressDelayMs
 
@@ -65,7 +65,7 @@ const FrameBasedKeyController = forwardRef<FrameBasedKeyControllerHandle, Props>
 
       activeNotesRef.current = newActiveNotes
     }
-  }), [midiObject, lookahead])
+  }), [midiObject])
 
   return null
 })

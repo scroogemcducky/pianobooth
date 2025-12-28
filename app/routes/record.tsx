@@ -2,6 +2,7 @@
 // Renders MIDI piano visualization offline for video creation
 
 import React, { useState, useEffect, useRef } from 'react'
+import { flushSync } from 'react-dom'
 import { Canvas, useThree } from '@react-three/fiber'
 import midiParser from '../utils/MidiParser'
 import useMidiStore from '../store/midiStore'
@@ -15,6 +16,8 @@ import { ActionFunctionArgs, json } from '@remix-run/cloudflare'
 import { useFetcher } from '@remix-run/react'
 import soundFont, { Player } from 'soundfont-player'
 import { computePianoLayout, DEFAULT_PIANO_LAYOUT, type PianoLayout } from '../utils/pianoLayout'
+import { FALL_DURATION_SECONDS, setFallDuration } from '../utils/recordingConstants'
+import { useSearchParams } from '@remix-run/react'
 
 const KNOWN_COMPOSERS = /(bach|beethoven|chopin|debussy|mozart|liszt|schubert|schumann|rachmaninoff|handel|haydn|tchaikovsky|gershwin|albeniz)/i
 
@@ -104,12 +107,8 @@ interface FetcherData {
 
 // Frame recording configuration
 const FPS = 60
-// Visual intro delay before notes start appearing
+// Keep the recorded audio/visuals 0.5 seconds behind the original MIDI timing
 const NOTE_START_DELAY_SECONDS = 0.5
-// Time for notes to fall from top to keyboard (must match lookahead prop in frame-based components)
-const LOOKAHEAD_SECONDS = 3
-// Audio plays when keys press (intro delay + lookahead for notes to reach keyboard)
-const AUDIO_PLAYBACK_DELAY_SECONDS = NOTE_START_DELAY_SECONDS + LOOKAHEAD_SECONDS  
 const NOTE_START_DELAY_FRAMES = Math.round(NOTE_START_DELAY_SECONDS * FPS)
 const FRAME_DURATION_MS = 1000 / FPS
 const CANVAS_WIDTH = 1920
@@ -121,21 +120,75 @@ const VIDEO_POLL_MAX_ATTEMPTS = 100
 const sanitizeFileName = (s: string): string => s.replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, ' ').trim()
 
 // Calculate total duration and frames needed
-function calculateTotalFrames(midiObject: MidiNote[]): number {
+function calculateTotalFrames(midiObject: MidiNote[], fallDurationSeconds: number): number {
   if (!midiObject || midiObject.length === 0) return 0
-
-  // Find the last note end time (in MIDI time)
-  const lastNoteEnd = Math.max(...midiObject.map((note: MidiNote) =>
-    Math.floor(note.Delta / 1000) + (note.Duration / 1000000 * 1000)
-  ))
-
-  // Total duration includes:
-  // - lastNoteEnd: when the last note finishes in MIDI time
-  // - LOOKAHEAD_SECONDS * 1000: time for that note to fall from top to keyboard
-  // - 2000: tail padding after last note finishes
-  const totalDurationMs = lastNoteEnd + (LOOKAHEAD_SECONDS * 1000) + 2000
-
-  return Math.ceil(totalDurationMs / FRAME_DURATION_MS)
+  
+  // Step 1: Find when the last MIDI note ends (in original MIDI time)
+  let lastMidiEndMs = 0
+  let lastNote: MidiNote | null = null
+  
+  midiObject.forEach((note: MidiNote) => {
+    const noteDeltaMs = Math.floor(note.Delta / 1000)
+    const noteDurationMs = note.Duration / 1000000 * 1000
+    const noteEndMs = noteDeltaMs + noteDurationMs
+    
+    if (noteEndMs > lastMidiEndMs) {
+      lastMidiEndMs = noteEndMs
+      lastNote = note
+    }
+  })
+  
+  // Step 2: Convert to video timeline
+  // In MIDI: note ends at lastMidiEndMs
+  // In video (adjusted timeline):
+  //   - Block appears and starts falling at time = note.Delta
+  //   - Block falls for fallDurationSeconds
+  //   - Key presses at time = note.Delta + fallDurationSeconds*1000
+  //   - Key stays pressed for note.Duration (no scaling)
+  //   - Key finishes at time = note.Delta + fallDurationSeconds*1000 + note.Duration
+  
+  if (!lastNote) return 0
+  
+  const lastNoteDeltaMs = Math.floor(lastNote.Delta / 1000)
+  const lastNoteDurationMs = lastNote.Duration / 1000000 * 1000
+  const keyPressStartMs = lastNoteDeltaMs + (fallDurationSeconds * 1000)
+  const keyPressEndMs = keyPressStartMs + lastNoteDurationMs
+  
+  // Step 3: Add padding for particles to settle
+  const totalDurationMs = keyPressEndMs + 2000
+  
+  // Step 4: Convert to frames
+  const totalFrames = Math.ceil(totalDurationMs / FRAME_DURATION_MS)
+  
+  // Debug logging to file
+  const debugInfo = {
+    timestamp: new Date().toISOString(),
+    lastMidiEndMs,
+    lastNoteDeltaMs,
+    lastNoteDurationMs,
+    noteNumber: lastNote.NoteNumber,
+    keyPressStartMs,
+    keyPressEndMs,
+    totalDurationMs,
+    totalAdjustedFrames: totalFrames,
+    totalRawFrames: totalFrames + NOTE_START_DELAY_FRAMES,
+    fallDurationSeconds: fallDurationSeconds,
+    noteStartDelayFrames: NOTE_START_DELAY_FRAMES,
+    fps: FPS,
+  }
+  
+  // Write to debug file
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('video_debug', JSON.stringify(debugInfo, null, 2))
+    console.log('📊 Video debug info saved to localStorage["video_debug"]')
+  }
+  
+  console.log('📊 Video Duration Calculation:')
+  console.log(`  Last MIDI note ends at: ${lastMidiEndMs}ms (Delta=${lastNoteDeltaMs}ms + Duration=${lastNoteDurationMs}ms)`)
+  console.log(`  Note number: ${lastNote.NoteNumber}`)
+  console.log(`  Total raw frames to render: ${totalFrames + NOTE_START_DELAY_FRAMES}`)
+  
+  return totalFrames
 }
 
 // Convert AudioBuffer to WAV blob
@@ -238,6 +291,7 @@ function DeterministicRecorder({
       console.log('✅ Title text ready, starting frame capture')
     }
 
+    let framesRendered = 0
     for (let i = 0; i < totalFrames; i++) {
       if (!isRecordingRef.current) break
 
@@ -256,11 +310,19 @@ function DeterministicRecorder({
 
       // Capture and send
       await captureFramePayload(i)
+      framesRendered++
     }
 
     if (isRecordingRef.current) {
       setIsRecording(false)
-      console.log('Recording complete! Finalizing...')
+      console.log(`Recording complete! Rendered ${framesRendered}/${totalFrames} frames. Finalizing...`)
+      
+      // Update debug info with actual rendered count
+      const debugInfo = JSON.parse(localStorage.getItem('video_debug') || '{}')
+      debugInfo.framesActuallyRendered = framesRendered
+      debugInfo.framesExpected = totalFrames
+      localStorage.setItem('video_debug', JSON.stringify(debugInfo, null, 2))
+      
       setTimeout(() => onComplete(), 2000)
     }
   }
@@ -350,7 +412,7 @@ export async function action({ request }: ActionFunctionArgs) {
     }
     
     // Generate video with ffmpeg (with or without audio)
-    const outputPath = path.join(process.cwd(), 'public', `piano_video_${Date.now()}.mp4`)
+    const outputPath = path.join(process.cwd(), 'videos', `piano_video_${Date.now()}.mp4`)
     
     return new Promise((resolve) => {
       const ffmpegArgs = [
@@ -403,9 +465,9 @@ export async function action({ request }: ActionFunctionArgs) {
         if (code === 0) {
           const videoFileName = path.basename(outputPath)
           const audioType = audioPath ? ' with audio' : ''
-          resolve(json({ 
-            success: true, 
-            videoUrl: `/${videoFileName}`,
+          resolve(json({
+            success: true,
+            videoUrl: `/videos/${videoFileName}`,
             message: `Video generated${audioType}: ${videoFileName}`
           }))
         } else {
@@ -420,7 +482,34 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 }
 
-function Record() {
+export default function Record() {
+  // Read fall duration from localStorage or use default
+  const initialFallDuration = (() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('fallDuration')
+      console.log('🔍 localStorage.fallDuration:', stored)
+      if (stored) {
+        const duration = parseFloat(stored)
+        console.log('🔍 Parsed fall duration:', duration)
+        if (!isNaN(duration) && duration > 0) {
+          console.log(`✅ Using fall duration from localStorage: ${duration} seconds`)
+          return duration
+        }
+      }
+    }
+    console.log(`⚠️ Using default fall duration: ${FALL_DURATION_SECONDS} seconds`)
+    return FALL_DURATION_SECONDS
+  })()
+  
+  // Local state for fall duration (lookahead time)
+  const [fallDuration, setFallDurationState] = useState(initialFallDuration)
+  
+  // Update global variable for backwards compatibility
+  useEffect(() => {
+    setFallDuration(fallDuration)
+    console.log(`🎬 Fall duration set to ${fallDuration} seconds`)
+  }, [fallDuration])
+  
   const [midiObject, setMidiObject] = useState<MidiNote[] | null>(null)
   const [pianoLayout, setPianoLayout] = useState<PianoLayout>(DEFAULT_PIANO_LAYOUT)
   const [isRecording, setIsRecording] = useState(false)
@@ -497,13 +586,13 @@ function Record() {
     const poll = async () => {
       attempts++
       try {
-        const res = await fetch(`/${videoFileName}`, { method: 'HEAD', cache: 'no-cache' })
+        const res = await fetch(`/videos/${videoFileName}`, { method: 'HEAD', cache: 'no-cache' })
         if (res.ok) {
           if (videoPollingRef.current) {
             clearInterval(videoPollingRef.current)
             videoPollingRef.current = null
           }
-          const videoUrl = `/${videoFileName}`
+          const videoUrl = `/videos/${videoFileName}`
           console.log(`✅ Video ready (polled): ${videoUrl}`)
           handleVideoReady(videoUrl)
           return
@@ -552,39 +641,23 @@ function Record() {
 
   // Initialize WebSocket connection with simple auto-reconnect
   useEffect(() => {
-    let isCleanedUp = false  // Track if this effect has been cleaned up
+    let websocket: WebSocket | null = null
 
     const connect = () => {
-      // Don't reconnect if this effect has been cleaned up (Strict Mode double-invocation)
-      if (isCleanedUp) {
-        console.log('⏭️ Skipping WebSocket connection (effect cleaned up)')
+      if (websocket && (websocket.readyState === WebSocket.OPEN || websocket.readyState === WebSocket.CONNECTING)) {
         return
       }
 
-      // Check if there's already a valid WebSocket connection (prevents duplicates in Strict Mode)
-      const existing = wsRef.current
-      if (existing && (existing.readyState === WebSocket.OPEN || existing.readyState === WebSocket.CONNECTING)) {
-        console.log('⏭️ WebSocket already exists and is connecting/connected')
-        setWs(existing)
-        setWsConnected(existing.readyState === WebSocket.OPEN)
-        return
-      }
-
-      console.log('🔄 Creating WebSocket connection...')
-      const websocket = new WebSocket('ws://localhost:5173/ws/frames')
+      websocket = new WebSocket('ws://localhost:5173/ws/frames')
       wsRef.current = websocket
       setWs(websocket)
 
       websocket.onopen = () => {
-        if (!isCleanedUp) {
-          console.log('✅ WebSocket connected')
-          setWsConnected(true)
-        }
+        console.log('✅ WebSocket connected')
+        setWsConnected(true)
       }
 
       websocket.onmessage = (event) => {
-        if (isCleanedUp) return
-
         try {
           const message = JSON.parse(event.data)
 
@@ -616,28 +689,23 @@ function Record() {
       }
 
       websocket.onerror = (error) => {
-        if (!isCleanedUp) {
-          console.error('❌ WebSocket error:', error)
-          setWsConnected(false)
-        }
+        console.error('❌ WebSocket error:', error)
+        setWsConnected(false)
       }
 
       websocket.onclose = () => {
-        if (!isCleanedUp) {
-          console.log('🔌 WebSocket disconnected')
-          setWsConnected(false)
-          setWs(null)
-          wsRef.current = null
-          if (recordingSessionIdRef.current && uploadedFrameCountRef.current > 0) {
-            startVideoPolling()
-          }
-          // Only reconnect if not cleaned up (prevents reconnect during Strict Mode cleanup)
-          if (!reconnectTimeoutRef.current) {
-            reconnectTimeoutRef.current = window.setTimeout(() => {
-              reconnectTimeoutRef.current = null
-              connect()
-            }, 750)
-          }
+        console.log('🔌 WebSocket disconnected')
+        setWsConnected(false)
+        setWs(null)
+        wsRef.current = null
+        if (recordingSessionIdRef.current && uploadedFrameCountRef.current > 0) {
+          startVideoPolling()
+        }
+        if (!reconnectTimeoutRef.current) {
+          reconnectTimeoutRef.current = window.setTimeout(() => {
+            reconnectTimeoutRef.current = null
+            connect()
+          }, 750)
         }
       }
     }
@@ -647,28 +715,14 @@ function Record() {
 
     // Cleanup on unmount
     return () => {
-      console.log('🧹 Cleaning up WebSocket effect...')
-      isCleanedUp = true  // Mark as cleaned up to prevent reconnection
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current)
         reconnectTimeoutRef.current = null
       }
-      const websocket = wsRef.current
-      if (websocket) {
-        // Only close if OPEN - let CONNECTING websockets finish their handshake
-        // This prevents Strict Mode from breaking the connection during double-invocation
-        if (websocket.readyState === WebSocket.OPEN) {
-          console.log('🔌 Closing WebSocket (cleanup)')
-          websocket.close()
-          wsRef.current = null
-        } else if (websocket.readyState === WebSocket.CONNECTING) {
-          console.log('⏸️ WebSocket still connecting, keeping it open')
-          // Don't close - let it finish connecting for the next effect iteration
-        } else {
-          // CLOSING or CLOSED state
-          wsRef.current = null
-        }
+      if (websocket && websocket.readyState === WebSocket.OPEN) {
+        websocket.close()
       }
+      wsRef.current = null
     }
   }, [])
 
@@ -722,18 +776,22 @@ function Record() {
           const parsedData = JSON.parse(storedData);
           console.log('Loaded from localStorage:', parsedData);
           const storedMeta = localStorage.getItem('midiMeta')
-          if (storedMeta) {
-            try {
-              const parsedMeta = normalizeMeta(JSON.parse(storedMeta) as MidiMeta)
-              setTitle(parsedMeta.title || '')
-              setArtist(parsedMeta.artist || '')
-              updateMidiState(parsedData as MidiNote[], parsedMeta)
-            } catch {
+
+          // Use flushSync to ensure state updates complete synchronously for automated recording
+          flushSync(() => {
+            if (storedMeta) {
+              try {
+                const parsedMeta = normalizeMeta(JSON.parse(storedMeta) as MidiMeta)
+                setTitle(parsedMeta.title || '')
+                setArtist(parsedMeta.artist || '')
+                updateMidiState(parsedData as MidiNote[], parsedMeta)
+              } catch {
+                updateMidiState(parsedData as MidiNote[])
+              }
+            } else {
               updateMidiState(parsedData as MidiNote[])
             }
-          } else {
-            updateMidiState(parsedData as MidiNote[])
-          }
+          })
         } catch (error) {
           console.error('Error loading from localStorage:', error);
           localStorage.removeItem('processedMidiData');
@@ -751,7 +809,7 @@ function Record() {
     }
   }, [midiFile])
 
-  const midiFrameCount = midiObject ? calculateTotalFrames(midiObject) : 0
+  const midiFrameCount = midiObject ? calculateTotalFrames(midiObject, fallDuration) : 0
   const totalFrames = midiFrameCount + NOTE_START_DELAY_FRAMES
   const keyboardScaleOptions = {
     multiplier: 1.2,
@@ -766,43 +824,70 @@ function Record() {
       return null
     }
 
-    console.log(`🎵 Generating audio from MIDI for ${midiObject.length} notes...`)
+    const noteCount = midiObject.length
+    console.log(`🎵 Generating audio from MIDI for ${noteCount} notes...`)
 
-    // Calculate total duration:
-    // - 5 second intro delay (2s visual intro + 3s lookahead for notes to reach keyboard)
-    // - MIDI duration
-    // - 2 second tail padding
-    const introDelayMs = AUDIO_PLAYBACK_DELAY_SECONDS * 1000  // 5000ms (matches when keys light up)
-    const lastNoteEndMs = Math.max(...midiObject.map(note =>
-      Math.floor(note.Delta / 1000) + (note.Duration / 1000000 * 1000)
-    ))
-    const tailPaddingMs = 2000
-    const totalDurationMs = introDelayMs + lastNoteEndMs + tailPaddingMs
+    // Calculate total duration to match video length:
+    // Audio must be at least as long as the video to avoid ffmpeg cutting it short with -shortest flag
+
+    // Find the last note's VISUAL end time (same calculation as video frames)
+    let lastNoteVisualEndMs = 0
+    midiObject.forEach(note => {
+      const noteDeltaMs = Math.floor(note.Delta / 1000)
+      const noteDurationMs = note.Duration / 1000000 * 1000
+      const keyPressStartMs = noteDeltaMs + (fallDuration * 1000)
+      const keyPressEndMs = keyPressStartMs + noteDurationMs
+      if (keyPressEndMs > lastNoteVisualEndMs) {
+        lastNoteVisualEndMs = keyPressEndMs
+      }
+    })
+
+    // Audio starts after NOTE_START_DELAY (0.5s) and includes the full visual duration
+    const introDelayMs = NOTE_START_DELAY_SECONDS * 1000  // 500ms visual intro
+    const tailPaddingMs = 2000  // Extra padding for reverb/sustain
+    const totalDurationMs = introDelayMs + lastNoteVisualEndMs + tailPaddingMs
     const totalDurationSec = totalDurationMs / 1000
 
     console.log(`   Intro delay: ${introDelayMs}ms`)
-    console.log(`   MIDI duration: ${lastNoteEndMs}ms (last note ends at ${(lastNoteEndMs/1000).toFixed(2)}s)`)
+    console.log(`   Last visual key press ends at: ${lastNoteVisualEndMs}ms`)
     console.log(`   Tail padding: ${tailPaddingMs}ms`)
     console.log(`   Total audio duration: ${totalDurationSec.toFixed(2)}s`)
 
     // Create offline audio context for rendering
     const sampleRate = 44100  // Standard CD quality
     const totalSamples = Math.floor(totalDurationSec * sampleRate)
-    console.log(`   Creating OfflineAudioContext: ${totalSamples} samples at ${sampleRate}Hz`)
+    const estimatedMemoryMB = (totalSamples * 4 / 1024 / 1024).toFixed(1)
+    console.log(`   Creating OfflineAudioContext: ${totalSamples} samples at ${sampleRate}Hz (~${estimatedMemoryMB}MB)`)
+
+    // Warn if this is a very large audio file
+    if (totalDurationSec > 300) {
+      console.warn(`   ⚠️ WARNING: Audio duration is ${(totalDurationSec / 60).toFixed(1)} minutes - this may take a long time or fail!`)
+    }
+    if (noteCount > 5000) {
+      console.warn(`   ⚠️ WARNING: ${noteCount} notes - high note count may cause memory issues!`)
+    }
+
+    let offlineContext: OfflineAudioContext | null = null
+    let offlineInstrument: any = null
 
     try {
-      const offlineContext = new OfflineAudioContext(1, totalSamples, sampleRate)
+      console.log('   [DEBUG] Creating OfflineAudioContext...')
+      offlineContext = new OfflineAudioContext(1, totalSamples, sampleRate)
+      console.log('   [DEBUG] OfflineAudioContext created successfully')
 
       // Load instrument for offline context
       console.log('   Loading soundfont instrument for offline context...')
       // @ts-expect-error - soundfont-player accepts OfflineAudioContext despite type definition
-      const offlineInstrument = await soundFont.instrument(offlineContext, 'acoustic_grand_piano')
+      offlineInstrument = await soundFont.instrument(offlineContext, 'acoustic_grand_piano')
       console.log('   ✅ Offline instrument loaded')
 
       // Schedule all notes with delay to match when keys light up
-      // (2s visual intro + 3s lookahead for notes to reach keyboard)
+      // (NOTE_START_DELAY_SECONDS visual intro + fallDuration lookahead)
       let scheduledNotes = 0
-      const delaySeconds = AUDIO_PLAYBACK_DELAY_SECONDS  // 5 seconds to sync with key activation
+      const delaySeconds = NOTE_START_DELAY_SECONDS + fallDuration  // Total delay to sync with key activation
+
+      console.log(`   [DEBUG] Starting to schedule ${noteCount} notes...`)
+      const scheduleStart = Date.now()
 
       for (const note of midiObject) {
         const noteTimeSeconds = Math.floor(note.Delta / 1000) / 1000
@@ -827,14 +912,51 @@ function Record() {
         }
       }
 
-      console.log(`   Scheduled ${scheduledNotes}/${midiObject.length} notes (first note at ${delaySeconds}s)`)
+      const scheduleDuration = ((Date.now() - scheduleStart) / 1000).toFixed(2)
+      console.log(`   Scheduled ${scheduledNotes}/${noteCount} notes in ${scheduleDuration}s (first note at ${delaySeconds}s)`)
 
-      // Render audio
-      console.log('   Rendering audio...')
-      const audioBuffer = await offlineContext.startRendering()
-      console.log(`   ✅ Rendering complete: ${audioBuffer.duration.toFixed(2)}s`)
+      // Render audio - THIS IS WHERE IT HANGS FOR LARGE FILES
+      console.log('   Rendering audio... (this may take a while)')
+      console.log(`   [DEBUG] Calling offlineContext.startRendering() at ${new Date().toISOString()}`)
+
+      const renderStart = Date.now()
+
+      // Add timeout wrapper for very long renders
+      const renderWithTimeout = async (timeout: number): Promise<AudioBuffer> => {
+        return new Promise((resolve, reject) => {
+          const timeoutId = setTimeout(() => {
+            reject(new Error(`Audio rendering timed out after ${timeout / 1000}s`))
+          }, timeout)
+
+          offlineContext!.startRendering()
+            .then((buffer) => {
+              clearTimeout(timeoutId)
+              resolve(buffer)
+            })
+            .catch((error) => {
+              clearTimeout(timeoutId)
+              reject(error)
+            })
+        })
+      }
+
+      // 5 minute timeout for rendering (generous for long pieces)
+      const RENDER_TIMEOUT_MS = 5 * 60 * 1000
+      let audioBuffer: AudioBuffer
+
+      try {
+        audioBuffer = await renderWithTimeout(RENDER_TIMEOUT_MS)
+      } catch (renderError) {
+        console.error(`   ❌ Render failed or timed out: ${renderError}`)
+        return null
+      }
+
+      const renderDuration = ((Date.now() - renderStart) / 1000).toFixed(1)
+      console.log(`   [DEBUG] startRendering() completed at ${new Date().toISOString()}`)
+      console.log(`   ✅ Rendering complete in ${renderDuration}s: ${audioBuffer.duration.toFixed(2)}s of audio`)
 
       // Check if audio was actually generated
+      console.log('   [DEBUG] Checking audio buffer amplitude...')
       const channelData = audioBuffer.getChannelData(0)
       let maxAmplitude = 0
       let minAmplitude = 0
@@ -854,31 +976,39 @@ function Record() {
       }
 
       // Convert to WAV blob
+      console.log('   [DEBUG] Converting to WAV blob...')
       const wavBlob = audioBufferToWav(audioBuffer)
       console.log(`   ✅ WAV blob created: ${(wavBlob.size / 1024).toFixed(1)} KB`)
       return wavBlob
     } catch (error) {
       console.error('❌ Audio generation failed:', error)
+      console.error('   [DEBUG] Error details:', error instanceof Error ? error.stack : String(error))
       return null
     }
   }
 
   // Finalize recording and send audio
   const finalizeRecording = async () => {
-    if (!ws || !recordingSessionId) {
-      console.warn('Finalize requested but missing WebSocket or session id; starting video polling fallback.')
-      startVideoPolling()
-      return
-    }
+    console.log('📤 [FINALIZE] Starting finalizeRecording()...')
+    console.log(`   [FINALIZE] WebSocket exists: ${!!ws}, readyState: ${ws?.readyState}`)
+    console.log(`   [FINALIZE] Session ID: ${recordingSessionId}`)
+    console.log(`   [FINALIZE] MIDI object exists: ${!!midiObject}, notes: ${midiObject?.length || 0}`)
 
-    if (ws.readyState !== WebSocket.OPEN) {
-      console.warn('WebSocket not open during finalize; starting video polling fallback.')
-      startVideoPolling()
-      return
-    }
+    try {
+      if (!ws || !recordingSessionId) {
+        console.warn('[FINALIZE] Missing WebSocket or session id; starting video polling fallback.')
+        startVideoPolling()
+        return
+      }
 
-    setIsProcessingVideo(true)
-    console.log('📤 Finalizing recording...')
+      if (ws.readyState !== WebSocket.OPEN) {
+        console.warn(`[FINALIZE] WebSocket not open (state: ${ws.readyState}); starting video polling fallback.`)
+        startVideoPolling()
+        return
+      }
+
+      setIsProcessingVideo(true)
+      console.log('📤 [FINALIZE] WebSocket is open, proceeding with audio generation...')
 
     const blobToBase64 = (blob: Blob): Promise<string> => {
       return new Promise((resolve, reject) => {
@@ -918,53 +1048,88 @@ function Record() {
       })
     }
 
-    // Send audio if available and wait for acknowledgment
-    let audioSent = false
-    try {
-      if (audioFile) {
-        console.log(`📎 Sending uploaded audio file: ${audioFile.size} bytes`)
-        const audioBase64 = await blobToBase64(audioFile)
-        ws.send(JSON.stringify({
-          type: 'audio',
-          sessionId: recordingSessionId,
-          audioData: audioBase64
-        }))
-        audioSent = true
-      } else if (midiObject) {
-        console.log('🎵 Generating MIDI audio...')
-        const audioBlob = await generateAudioFromMIDI()
-        if (audioBlob) {
-          console.log(`📤 Sending audio: ${(audioBlob.size / 1024).toFixed(1)} KB`)
-          const audioBase64 = await blobToBase64(audioBlob)
+      // Send audio if available and wait for acknowledgment
+      let audioSent = false
+      const audioGenStart = Date.now()
+
+      // Check if we have pre-generated audio from the server-side script
+      const preGeneratedAudioPath = localStorage.getItem('preGeneratedAudioPath')
+      const skipBrowserAudio = localStorage.getItem('skipBrowserAudio') === 'true'
+
+      try {
+        if (preGeneratedAudioPath && skipBrowserAudio) {
+          // Use pre-generated audio from FluidSynth (server-side)
+          console.log(`🎵 [FINALIZE] Using pre-generated audio: ${preGeneratedAudioPath}`)
+          ws.send(JSON.stringify({
+            type: 'audio-path',
+            sessionId: recordingSessionId,
+            audioPath: preGeneratedAudioPath
+          }))
+          console.log('✅ [FINALIZE] Audio path sent to server')
+          audioSent = true
+        } else if (audioFile) {
+          console.log(`📎 [FINALIZE] Sending uploaded audio file: ${audioFile.size} bytes`)
+          const audioBase64 = await blobToBase64(audioFile)
           ws.send(JSON.stringify({
             type: 'audio',
             sessionId: recordingSessionId,
             audioData: audioBase64
           }))
-          console.log('✅ Audio sent, waiting for server acknowledgment...')
           audioSent = true
+        } else if (midiObject) {
+          console.log('🎵 [FINALIZE] Generating MIDI audio in browser (may be slow for long pieces)...')
+          console.log(`   [FINALIZE] Audio gen start: ${new Date().toISOString()}`)
+          const audioBlob = await generateAudioFromMIDI()
+          const audioGenDuration = ((Date.now() - audioGenStart) / 1000).toFixed(1)
+          console.log(`   [FINALIZE] Audio gen end: ${new Date().toISOString()} (took ${audioGenDuration}s)`)
+
+          if (audioBlob) {
+            console.log(`📤 [FINALIZE] Sending audio: ${(audioBlob.size / 1024).toFixed(1)} KB`)
+            const audioBase64 = await blobToBase64(audioBlob)
+            console.log(`   [FINALIZE] Base64 conversion complete, length: ${audioBase64.length} chars`)
+            ws.send(JSON.stringify({
+              type: 'audio',
+              sessionId: recordingSessionId,
+              audioData: audioBase64
+            }))
+            console.log('✅ [FINALIZE] Audio sent, waiting for server acknowledgment...')
+            audioSent = true
+          } else {
+            console.warn('⚠️ [FINALIZE] Audio generation returned null - video will have no audio!')
+          }
         } else {
-          console.warn('⚠️ Audio generation returned null')
+          console.warn('⚠️ [FINALIZE] No MIDI data available for audio generation')
         }
-      } else {
-        console.warn('⚠️ No MIDI data available for audio generation')
+      } catch (error) {
+        console.error('❌ [FINALIZE] Failed to generate/send audio:', error)
+        console.error('   [FINALIZE] Error stack:', error instanceof Error ? error.stack : String(error))
       }
+
+      // Wait for audio to be processed before finalizing
+      if (audioSent) {
+        console.log('   [FINALIZE] Waiting for audio-ack from server...')
+        await waitForAudioAck()
+        console.log('   [FINALIZE] Audio acknowledged!')
+      } else {
+        console.warn('   [FINALIZE] No audio was sent - proceeding without audio')
+      }
+
+      // Send finalize message
+      console.log('   [FINALIZE] Sending finalize message...')
+      ws.send(JSON.stringify({
+        type: 'finalize',
+        sessionId: recordingSessionId
+      }))
+
+      console.log('✅ [FINALIZE] Finalize message sent, waiting for video generation...')
     } catch (error) {
-      console.error('❌ Failed to generate/send audio:', error)
+      console.error('❌ [FINALIZE] Finalization error:', error)
+      console.error('   [FINALIZE] Error stack:', error instanceof Error ? error.stack : String(error))
+    } finally {
+      // Always set flag to unblock automation, even if there were errors
+      console.log('🏁 [FINALIZE] Setting __FINALIZATION_COMPLETE__ = true')
+      ;(window as any).__FINALIZATION_COMPLETE__ = true
     }
-
-    // Wait for audio to be processed before finalizing
-    if (audioSent) {
-      await waitForAudioAck()
-    }
-
-    // Send finalize message
-    ws.send(JSON.stringify({
-      type: 'finalize',
-      sessionId: recordingSessionId
-    }))
-
-    console.log('✅ Finalize message sent, waiting for video generation...')
   }
 
   // OLD: Process frames into video using server action (DEPRECATED)
@@ -1061,10 +1226,12 @@ function Record() {
       return
     }
 
-    // Generate unique session ID
+    // Generate unique session ID and update state synchronously
     const sessionId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    setRecordingSessionId(sessionId)
-    setUploadedFrameCount(0)
+    flushSync(() => {
+      setRecordingSessionId(sessionId)
+      setUploadedFrameCount(0)
+    })
 
     // Send init message to server
     socket.send(JSON.stringify({
@@ -1256,6 +1423,7 @@ function Record() {
         <FrameBasedKeyController
           ref={keysRef}
           midiObject={midiObject}
+          lookahead={fallDuration}
         />
 
         {midiObject && (
@@ -1266,6 +1434,7 @@ function Record() {
             scaleMultiplier={keyboardScaleOptions.multiplier}
             scaleFillRatio={keyboardScaleOptions.fillRatio}
             scaleMax={keyboardScaleOptions.max}
+            lookahead={fallDuration}
           />
         )}
 
@@ -1277,6 +1446,7 @@ function Record() {
             scaleMultiplier={keyboardScaleOptions.multiplier}
             scaleFillRatio={keyboardScaleOptions.fillRatio}
             scaleMax={keyboardScaleOptions.max}
+            lookahead={fallDuration}
           />
         )}
         <DeterministicRecorder
@@ -1296,6 +1466,3 @@ function Record() {
     </div>
   )
 }
-
-// Export without StrictMode wrapper to prevent WebSocket double-invocation issues
-export default Record

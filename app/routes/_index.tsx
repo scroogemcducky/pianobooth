@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect} from 'react';
-import { Link, useLoaderData, useNavigate } from "@remix-run/react";
+import { Link, useNavigate } from "@remix-run/react"; 
 import  useMidiStore  from '../store/midiStore'
-import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
+import type { MetaFunction } from "@remix-run/node";
 import { slugify } from "~/utils/slugify";
 
 export const meta: MetaFunction = () => {
@@ -11,80 +11,10 @@ export const meta: MetaFunction = () => {
   ];
 };
 
-export async function loader({ request, context }: LoaderFunctionArgs) {
-  try {
-    const fs = await import('node:fs/promises');
-    const path = await import('node:path');
-
-    // Only show composers we have images for
-    const allowedComposers = ['Bach', 'Beethoven', 'Chopin', 'Debussy', 'Klaus Badelt'];
-
-    // Read the static catalog manifest
-    const manifestPath = path.join(process.cwd(), 'catalog/public.jsonl');
-    const content = await fs.readFile(manifestPath, 'utf-8');
-
-    // Parse JSONL format (one JSON object per line)
-    const todos = content
-      .split('\n')
-      .filter(line => line.trim())
-      .map(line => {
-        try {
-          const entry = JSON.parse(line);
-          // Transform to match the expected format
-          return {
-            Artist: entry.artist,
-            Song: entry.title,
-            Album: null, // Not in manifest
-            id: `${entry.artistSlug}-${entry.songSlug}`,
-            artistSlug: entry.artistSlug,
-            songSlug: entry.songSlug,
-            url: entry.url
-          };
-        } catch {
-          return null;
-        }
-      })
-      .filter(Boolean)
-      .filter(todo => allowedComposers.includes(todo.Artist));
-
-    return { todos };
-  } catch (error) {
-    console.error('Error loading MIDI catalog:', error);
-    return { todos: [] };
-  };
-}
-
-const composerSlugOverrides: Record<string, string> = {
-  Pirate: 'klaus-badelt',
-};
-
-const normalizeKey = (value: string) => (
-  (value || '')
-    .toLowerCase()
-    .replace(/['’]/g, '')
-    .replace(/[#♯]/g, '-sharp')
-    .replace(/[♭]/g, '-flat')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-)
-
-const composerSongSlugOverrides: Record<string, Record<string, string>> = {
-  beethoven: {
-    'sonata-no-5-c-minor-1-movement': 'sonata-no-5-c-minor-1-movement',
-    'sonata-no-14-c-sharp-minor-1-movement': 'sonata-no-14-c-sharp-minor-1-movement',
-  },
-  'klaus-badelt': {
-    'hes-a-pirate': 'hes-a-pirate',
-    'he-s-a-pirate': 'hes-a-pirate',
-  },
-}
-
 const App = () => {
-  const { todos } = useLoaderData<typeof loader>() as { todos: any[] };
   const [isClient, setIsClient] = useState(false);
   const [file, setFile] = useState(null);
   const MidiFileRef = useRef<HTMLInputElement>(null)
-  // const navigate = useNavigate(); // Create navigate function using the useNavigate hook
   const setMidiStore = useMidiStore((state) => state.setMidiFile)
   const navigate = useNavigate();
 
@@ -125,22 +55,13 @@ const App = () => {
     event.preventDefault();
   };
 
-  // Group pieces by composer
-  const groupedByComposer = (todos || []).reduce((acc: Record<string, any[]>, todo: any) => {
-    // Map Klaus Badelt to Pirate for display
-    const composer = todo.Artist === 'Klaus Badelt' ? 'Pirate' : todo.Artist;
-    if (!acc[composer]) acc[composer] = [];
-    acc[composer].push(todo);
-    return acc;
-  }, {} as Record<string, any[]>);
-
   // Composer images mapping
   const composerImages: Record<string, string> = {
     'Bach': '/images/Bach2.jpg',
     'Beethoven': '/images/Beethoven4.jpg',
     'Chopin': '/images/Chopin3.jpg',
     'Debussy': '/images/Debussy3.jpg',
-    'Pirate': '/images/Sparrow3.jpg'
+    'Jack Sparrow': '/images/Sparrow3.jpg'
   };
 
   const featuredStaticPieces: Record<string, { title: string; url: string }[]> = {
@@ -167,37 +88,17 @@ const App = () => {
       { title: "Jimbo's Lullaby", url: '/debussy/jimbo-s-lullaby' },
       { title: 'Passepied', url: '/debussy/passepied' },
     ],
-    Pirate: [
-      { title: "He's a Pirate", url: '/klaus-badelt/hes-a-pirate' },
+    'Jack Sparrow': [
+      { title: "He's a Pirate", url: '/jack-sparrow/hes-a-pirate' },
     ],
   }
 
-  // Include all composers in regular layout, with Pirate (Sparrow) last
-  const regularComposers = Object.entries(groupedByComposer).sort(([a], [b]) => {
-    if (a === 'Pirate') return 1;
-    if (b === 'Pirate') return -1;
+  // Get composers from featuredStaticPieces, with Jack Sparrow last
+  const regularComposers = Object.entries(featuredStaticPieces).sort(([a], [b]) => {
+    if (a === 'Jack Sparrow') return 1;
+    if (b === 'Jack Sparrow') return -1;
     return a.localeCompare(b);
   });
-
-  const getStaticUrlForPiece = (composer: string, song?: string, album?: string) => {
-    const artistSlug = composerSlugOverrides[composer] ?? slugify(composer || 'composer');
-    const composerKey = normalizeKey(artistSlug);
-    const normalizedSong = normalizeKey(song || '');
-    const normalizedAlbum = normalizeKey(album || '');
-    const normalizedCombined = normalizeKey([album, song].filter(Boolean).join(' ').trim());
-    const overrideCandidates = [normalizedCombined, normalizedSong, normalizedAlbum].filter(Boolean);
-    let overrideSlug: string | undefined;
-    for (const key of overrideCandidates) {
-      const candidate = composerSongSlugOverrides[composerKey]?.[key];
-      if (candidate) {
-        overrideSlug = candidate;
-        break;
-      }
-    }
-    const slugInput = song || album || 'untitled';
-    const songSlug = overrideSlug ?? slugify(slugInput);
-    return `/${artistSlug}/${songSlug}`;
-  };
 
   return (
     <main
@@ -231,36 +132,9 @@ const App = () => {
       <section className="container mx-auto px-6 md:px-8 lg:px-10 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
           {regularComposers.map(([composer, pieces]) => {
-            const previewPieces = pieces.slice(0, 4);
             const composerSlug = slugify(composer);
-            const additionalStatic = featuredStaticPieces[composer] || [];
-            const normalizeTitle = (str: string) => normalizeKey(str)
-            const dynamicLabels = previewPieces.map((piece: any) => (piece.Album ? `${piece.Album} - ${piece.Song}` : piece.Song));
-            const dynamicLinks = previewPieces.map((piece: any, idx: number) => (
-              <Link
-                key={`dynamic-${piece.id}`}
-                to={piece.url || `/${piece.artistSlug}/${piece.songSlug}`}
-                className="block text-left w-full mb-2 text-xl font-garamond text-gray-800 hover:text-blue-600 transition-colors"
-              >
-                {dynamicLabels[idx]}
-              </Link>
-            ));
-            const neededExtras = Math.max(0, 4 - dynamicLinks.length);
-            const existingTitles = new Set(
-              previewPieces.map((piece: any) => normalizeTitle(piece.Song || piece.Album || ''))
-            );
-            const staticLinks = additionalStatic
-              .filter((piece) => !existingTitles.has(normalizeTitle(piece.title)))
-              .slice(0, neededExtras)
-              .map((piece, index) => (
-                <Link
-                  key={`static-${composer}-${index}`}
-                to={piece.url}
-                className="block text-left w-full mb-2 text-xl font-garamond text-gray-800 hover:text-blue-600 transition-colors"
-              >
-                {piece.title}
-              </Link>
-            ));
+            const displayPieces = pieces.slice(0, 4);
+            
             return (
               <div key={composer} className="mb-8">
                 <div className="flex flex-col md:flex-row mb-6">
@@ -273,14 +147,21 @@ const App = () => {
                   )}
                   <div className="ml-4 md:ml-0">
                     <h2 className="text-2xl font-bold font-garamond text-gray-800 mb-4 underline">
-                      {composer === 'Pirate' ? 'Jack Sparrow' : composer}
+                      {composer}
                     </h2>
                     <div>
-                      {dynamicLinks}
-                      {staticLinks}
+                      {displayPieces.map((piece, index) => (
+                        <Link
+                          key={`${composer}-${index}`}
+                          to={piece.url}
+                          className="block text-left w-full mb-2 text-xl font-garamond text-gray-800 hover:text-blue-600 transition-colors"
+                        >
+                          {piece.title}
+                        </Link>
+                      ))}
                       <Link
-                        to={`/browse/${composerSlug}`}
-                        className="mt-4 inline-flex text-base font-garamond text-blue-700 underline hover:text-blue-500"
+                        to={`/browse#${composerSlug}`}
+                        className="mt-4 inline-flex text-base font-garamond text-gray-400 underline hover:text-gray-600"
                       >
                         more…
                       </Link>
