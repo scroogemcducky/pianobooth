@@ -2,7 +2,6 @@
 // Renders MIDI piano visualization offline for video creation
 
 import React, { useState, useEffect, useRef } from 'react'
-import { flushSync } from 'react-dom'
 import { Canvas, useThree } from '@react-three/fiber'
 import midiParser from '../utils/MidiParser'
 import useMidiStore from '../store/midiStore'
@@ -777,8 +776,8 @@ export default function Record() {
           console.log('Loaded from localStorage:', parsedData);
           const storedMeta = localStorage.getItem('midiMeta')
 
-          // Use flushSync to ensure state updates complete synchronously for automated recording
-          flushSync(() => {
+          // Defer state updates outside useEffect lifecycle to prevent R3F Canvas crashes
+          queueMicrotask(() => {
             if (storedMeta) {
               try {
                 const parsedMeta = normalizeMeta(JSON.parse(storedMeta) as MidiMeta)
@@ -1226,12 +1225,12 @@ export default function Record() {
       return
     }
 
-    // Generate unique session ID and update state synchronously
+    // Generate unique session ID and update refs + state
     const sessionId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    flushSync(() => {
-      setRecordingSessionId(sessionId)
-      setUploadedFrameCount(0)
-    })
+    recordingSessionIdRef.current = sessionId
+    uploadedFrameCountRef.current = 0
+    setRecordingSessionId(sessionId)
+    setUploadedFrameCount(0)
 
     // Send init message to server
     socket.send(JSON.stringify({

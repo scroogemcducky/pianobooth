@@ -459,6 +459,9 @@ export async function processOneVideo(opts: Options, videoNumber?: number): Prom
   try {
     // Vite/Remix dev servers keep HMR connections open; avoid networkidle here
     await page.goto(recordUrl, { waitUntil: 'domcontentloaded', timeout: 120_000 })
+    // Force a full page reload to clear any stale HMR/module state from dev server
+    // This prevents R3F Canvas suspension errors on subsequent recordings
+    await page.reload({ waitUntil: 'domcontentloaded', timeout: 120_000 })
   } catch (error) {
     console.error(`${prefix}Failed to load page:`, error)
     throw error
