@@ -241,7 +241,9 @@ const FrameBasedShaderBlocks = forwardRef<FrameBasedShaderBlocksHandle, FrameBas
         // At T=deltaMs: initial_Y - (deltaMs/1000) * (distance/lookahead) = half_screen
         // Therefore: initial_Y = height/2 + half_screen + (distance * deltaMs) / (1000 * lookahead)
         const yPosition = height / 2 + half_screen + (distance * deltaMs) / (1000 * lookahead)
-        const blockWidth = isBlack(note.NoteNumber) ? black_width : white_width - 0.1
+        const isBlackKey = isBlack(note.NoteNumber)
+        const zPosition = isBlackKey ? -0.05 : -0.07
+        const blockWidth = isBlackKey ? black_width : white_width - 0.1
         return {
           noteNumber: note.NoteNumber,
           soundDuration: note.SoundDuration,
@@ -249,8 +251,8 @@ const FrameBasedShaderBlocks = forwardRef<FrameBasedShaderBlocksHandle, FrameBas
           duration: note.Duration / 1000000,
           height,
           width: blockWidth,
-          position: [xPosition, yPosition, -0.05] as [number, number, number],
-          isBlack: isBlack(note.NoteNumber),
+          position: [xPosition, yPosition, zPosition] as [number, number, number],
+          isBlack: isBlackKey,
         }
       })
 

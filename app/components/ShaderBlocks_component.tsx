@@ -55,8 +55,10 @@ export default function ShaderBlocks_component({
       const deltaMs = parseInt(note.Delta / 1000)
       const xPosition = getNoteXPosition(note.NoteNumber, activeLayout)
       const yPosition = height / 2 + half_screen + (distance * deltaMs) / (1000 * lookahead)
-      const position = [xPosition, yPosition, -0.05]
-      const blockWidth = isBlack(note.NoteNumber) ? black_width : white_width - 0.1
+      const isBlackKey = isBlack(note.NoteNumber)
+      const zPosition = isBlackKey ? -0.05 : -0.07
+      const position = [xPosition, yPosition, zPosition]
+      const blockWidth = isBlackKey ? black_width : white_width - 0.1
       return {
         id: `${index}`,
         noteNumber: note.NoteNumber,

@@ -11,7 +11,7 @@ import { chromium } from 'playwright'
 
 import { parseMidiFilePath, type MidiNote } from './parse_midi_to_json'
 
-type Options = {
+export type Options = {
   queueDir: string
   publicDir: string
   outDir: string
@@ -28,7 +28,7 @@ type Options = {
   fallDuration: number
 }
 
-const DEFAULTS: Options = {
+export const DEFAULTS: Options = {
   queueDir: 'midi/video_queue',
   publicDir: 'videos', // Changed from 'public' - videos now save directly to videos/
   outDir: 'videos',
@@ -252,7 +252,7 @@ async function pickNextMidi(queueDir: string): Promise<string | null> {
   return files.length ? files[0].path : null
 }
 
-async function processOneVideo(opts: Options, videoNumber?: number): Promise<boolean> {
+export async function processOneVideo(opts: Options, videoNumber?: number): Promise<boolean> {
   const prefix = videoNumber !== undefined ? `[${videoNumber}] ` : ''
 
   // Pick next MIDI (support dev override)
@@ -326,8 +326,16 @@ async function processOneVideo(opts: Options, videoNumber?: number): Promise<boo
   page.on('pageerror', (error) => {
     console.error(`${prefix}[PAGE ERROR]`, error.message)
   })
-  page.on('console', (msg) => {
+  // Log all console messages to file for debugging
+  const logFile = path.join(process.cwd(), 'logs', `recording-${Date.now()}.log`)
+  await fs.mkdir(path.join(process.cwd(), 'logs'), { recursive: true })
+  
+  page.on('console', async (msg) => {
     const text = msg.text()
+    const logLine = `[${new Date().toISOString()}] ${text}\n`
+    await fs.appendFile(logFile, logLine).catch(() => {})
+    
+    // Only show errors in console
     if (text.includes('Error') || text.includes('error') || text.includes('Failed')) {
       console.log(`${prefix}[CONSOLE]`, text)
     }
@@ -364,14 +372,25 @@ async function processOneVideo(opts: Options, videoNumber?: number): Promise<boo
   console.log(`${prefix}Starting recording...`)
   await page.click('#record-button')
 
-  // Wait for new mp4 file in public directory to stabilize
-  const newVideoPath = await waitForNewVideo(opts.publicDir, since, opts.timeoutMs)
-  console.log(`${prefix}New video detected: ${path.basename(newVideoPath)}`)
+  // Wait for finalization to complete
+  // The page sets window.__FINALIZATION_COMPLETE__ when audio has been generated and sent
+  console.log(`${prefix}Waiting for recording and finalization to complete...`)
+  await page.waitForFunction(() => {
+    return (window as any).__FINALIZATION_COMPLETE__ === true
+  }, undefined, { timeout: opts.timeoutMs })
 
-  // Close browser
+  console.log(`${prefix}Finalization complete, closing browser...`)
+
+  // Close browser - this triggers the WebSocket disconnect which generates the video
   await page.close()
   await context.close()
   await browser.close()
+
+  console.log(`${prefix}Waiting for video generation...`)
+
+  // Wait for new mp4 file in videos directory to stabilize
+  const newVideoPath = await waitForNewVideo(opts.publicDir, since, opts.timeoutMs)
+  console.log(`${prefix}New video detected: ${path.basename(newVideoPath)}`)
 
   // Move/rename into videos directory (only if paths differ)
   if (path.resolve(newVideoPath) !== path.resolve(targetPath)) {

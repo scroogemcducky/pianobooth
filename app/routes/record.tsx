@@ -824,11 +824,12 @@ export default function Record() {
       return null
     }
 
-    console.log(`🎵 Generating audio from MIDI for ${midiObject.length} notes...`)
+    const noteCount = midiObject.length
+    console.log(`🎵 Generating audio from MIDI for ${noteCount} notes...`)
 
     // Calculate total duration to match video length:
     // Audio must be at least as long as the video to avoid ffmpeg cutting it short with -shortest flag
-    
+
     // Find the last note's VISUAL end time (same calculation as video frames)
     let lastNoteVisualEndMs = 0
     midiObject.forEach(note => {
@@ -840,7 +841,7 @@ export default function Record() {
         lastNoteVisualEndMs = keyPressEndMs
       }
     })
-    
+
     // Audio starts after NOTE_START_DELAY (0.5s) and includes the full visual duration
     const introDelayMs = NOTE_START_DELAY_SECONDS * 1000  // 500ms visual intro
     const tailPaddingMs = 2000  // Extra padding for reverb/sustain
@@ -855,21 +856,38 @@ export default function Record() {
     // Create offline audio context for rendering
     const sampleRate = 44100  // Standard CD quality
     const totalSamples = Math.floor(totalDurationSec * sampleRate)
-    console.log(`   Creating OfflineAudioContext: ${totalSamples} samples at ${sampleRate}Hz`)
+    const estimatedMemoryMB = (totalSamples * 4 / 1024 / 1024).toFixed(1)
+    console.log(`   Creating OfflineAudioContext: ${totalSamples} samples at ${sampleRate}Hz (~${estimatedMemoryMB}MB)`)
+
+    // Warn if this is a very large audio file
+    if (totalDurationSec > 300) {
+      console.warn(`   ⚠️ WARNING: Audio duration is ${(totalDurationSec / 60).toFixed(1)} minutes - this may take a long time or fail!`)
+    }
+    if (noteCount > 5000) {
+      console.warn(`   ⚠️ WARNING: ${noteCount} notes - high note count may cause memory issues!`)
+    }
+
+    let offlineContext: OfflineAudioContext | null = null
+    let offlineInstrument: any = null
 
     try {
-      const offlineContext = new OfflineAudioContext(1, totalSamples, sampleRate)
+      console.log('   [DEBUG] Creating OfflineAudioContext...')
+      offlineContext = new OfflineAudioContext(1, totalSamples, sampleRate)
+      console.log('   [DEBUG] OfflineAudioContext created successfully')
 
       // Load instrument for offline context
       console.log('   Loading soundfont instrument for offline context...')
       // @ts-expect-error - soundfont-player accepts OfflineAudioContext despite type definition
-      const offlineInstrument = await soundFont.instrument(offlineContext, 'acoustic_grand_piano')
+      offlineInstrument = await soundFont.instrument(offlineContext, 'acoustic_grand_piano')
       console.log('   ✅ Offline instrument loaded')
 
       // Schedule all notes with delay to match when keys light up
       // (NOTE_START_DELAY_SECONDS visual intro + fallDuration lookahead)
       let scheduledNotes = 0
       const delaySeconds = NOTE_START_DELAY_SECONDS + fallDuration  // Total delay to sync with key activation
+
+      console.log(`   [DEBUG] Starting to schedule ${noteCount} notes...`)
+      const scheduleStart = Date.now()
 
       for (const note of midiObject) {
         const noteTimeSeconds = Math.floor(note.Delta / 1000) / 1000
@@ -894,14 +912,51 @@ export default function Record() {
         }
       }
 
-      console.log(`   Scheduled ${scheduledNotes}/${midiObject.length} notes (first note at ${delaySeconds}s)`)
+      const scheduleDuration = ((Date.now() - scheduleStart) / 1000).toFixed(2)
+      console.log(`   Scheduled ${scheduledNotes}/${noteCount} notes in ${scheduleDuration}s (first note at ${delaySeconds}s)`)
 
-      // Render audio
-      console.log('   Rendering audio...')
-      const audioBuffer = await offlineContext.startRendering()
-      console.log(`   ✅ Rendering complete: ${audioBuffer.duration.toFixed(2)}s`)
+      // Render audio - THIS IS WHERE IT HANGS FOR LARGE FILES
+      console.log('   Rendering audio... (this may take a while)')
+      console.log(`   [DEBUG] Calling offlineContext.startRendering() at ${new Date().toISOString()}`)
+
+      const renderStart = Date.now()
+
+      // Add timeout wrapper for very long renders
+      const renderWithTimeout = async (timeout: number): Promise<AudioBuffer> => {
+        return new Promise((resolve, reject) => {
+          const timeoutId = setTimeout(() => {
+            reject(new Error(`Audio rendering timed out after ${timeout / 1000}s`))
+          }, timeout)
+
+          offlineContext!.startRendering()
+            .then((buffer) => {
+              clearTimeout(timeoutId)
+              resolve(buffer)
+            })
+            .catch((error) => {
+              clearTimeout(timeoutId)
+              reject(error)
+            })
+        })
+      }
+
+      // 5 minute timeout for rendering (generous for long pieces)
+      const RENDER_TIMEOUT_MS = 5 * 60 * 1000
+      let audioBuffer: AudioBuffer
+
+      try {
+        audioBuffer = await renderWithTimeout(RENDER_TIMEOUT_MS)
+      } catch (renderError) {
+        console.error(`   ❌ Render failed or timed out: ${renderError}`)
+        return null
+      }
+
+      const renderDuration = ((Date.now() - renderStart) / 1000).toFixed(1)
+      console.log(`   [DEBUG] startRendering() completed at ${new Date().toISOString()}`)
+      console.log(`   ✅ Rendering complete in ${renderDuration}s: ${audioBuffer.duration.toFixed(2)}s of audio`)
 
       // Check if audio was actually generated
+      console.log('   [DEBUG] Checking audio buffer amplitude...')
       const channelData = audioBuffer.getChannelData(0)
       let maxAmplitude = 0
       let minAmplitude = 0
@@ -921,31 +976,39 @@ export default function Record() {
       }
 
       // Convert to WAV blob
+      console.log('   [DEBUG] Converting to WAV blob...')
       const wavBlob = audioBufferToWav(audioBuffer)
       console.log(`   ✅ WAV blob created: ${(wavBlob.size / 1024).toFixed(1)} KB`)
       return wavBlob
     } catch (error) {
       console.error('❌ Audio generation failed:', error)
+      console.error('   [DEBUG] Error details:', error instanceof Error ? error.stack : String(error))
       return null
     }
   }
 
   // Finalize recording and send audio
   const finalizeRecording = async () => {
-    if (!ws || !recordingSessionId) {
-      console.warn('Finalize requested but missing WebSocket or session id; starting video polling fallback.')
-      startVideoPolling()
-      return
-    }
+    console.log('📤 [FINALIZE] Starting finalizeRecording()...')
+    console.log(`   [FINALIZE] WebSocket exists: ${!!ws}, readyState: ${ws?.readyState}`)
+    console.log(`   [FINALIZE] Session ID: ${recordingSessionId}`)
+    console.log(`   [FINALIZE] MIDI object exists: ${!!midiObject}, notes: ${midiObject?.length || 0}`)
 
-    if (ws.readyState !== WebSocket.OPEN) {
-      console.warn('WebSocket not open during finalize; starting video polling fallback.')
-      startVideoPolling()
-      return
-    }
+    try {
+      if (!ws || !recordingSessionId) {
+        console.warn('[FINALIZE] Missing WebSocket or session id; starting video polling fallback.')
+        startVideoPolling()
+        return
+      }
 
-    setIsProcessingVideo(true)
-    console.log('📤 Finalizing recording...')
+      if (ws.readyState !== WebSocket.OPEN) {
+        console.warn(`[FINALIZE] WebSocket not open (state: ${ws.readyState}); starting video polling fallback.`)
+        startVideoPolling()
+        return
+      }
+
+      setIsProcessingVideo(true)
+      console.log('📤 [FINALIZE] WebSocket is open, proceeding with audio generation...')
 
     const blobToBase64 = (blob: Blob): Promise<string> => {
       return new Promise((resolve, reject) => {
@@ -985,53 +1048,73 @@ export default function Record() {
       })
     }
 
-    // Send audio if available and wait for acknowledgment
-    let audioSent = false
-    try {
-      if (audioFile) {
-        console.log(`📎 Sending uploaded audio file: ${audioFile.size} bytes`)
-        const audioBase64 = await blobToBase64(audioFile)
-        ws.send(JSON.stringify({
-          type: 'audio',
-          sessionId: recordingSessionId,
-          audioData: audioBase64
-        }))
-        audioSent = true
-      } else if (midiObject) {
-        console.log('🎵 Generating MIDI audio...')
-        const audioBlob = await generateAudioFromMIDI()
-        if (audioBlob) {
-          console.log(`📤 Sending audio: ${(audioBlob.size / 1024).toFixed(1)} KB`)
-          const audioBase64 = await blobToBase64(audioBlob)
+      // Send audio if available and wait for acknowledgment
+      let audioSent = false
+      const audioGenStart = Date.now()
+      try {
+        if (audioFile) {
+          console.log(`📎 [FINALIZE] Sending uploaded audio file: ${audioFile.size} bytes`)
+          const audioBase64 = await blobToBase64(audioFile)
           ws.send(JSON.stringify({
             type: 'audio',
             sessionId: recordingSessionId,
             audioData: audioBase64
           }))
-          console.log('✅ Audio sent, waiting for server acknowledgment...')
           audioSent = true
+        } else if (midiObject) {
+          console.log('🎵 [FINALIZE] Generating MIDI audio...')
+          console.log(`   [FINALIZE] Audio gen start: ${new Date().toISOString()}`)
+          const audioBlob = await generateAudioFromMIDI()
+          const audioGenDuration = ((Date.now() - audioGenStart) / 1000).toFixed(1)
+          console.log(`   [FINALIZE] Audio gen end: ${new Date().toISOString()} (took ${audioGenDuration}s)`)
+
+          if (audioBlob) {
+            console.log(`📤 [FINALIZE] Sending audio: ${(audioBlob.size / 1024).toFixed(1)} KB`)
+            const audioBase64 = await blobToBase64(audioBlob)
+            console.log(`   [FINALIZE] Base64 conversion complete, length: ${audioBase64.length} chars`)
+            ws.send(JSON.stringify({
+              type: 'audio',
+              sessionId: recordingSessionId,
+              audioData: audioBase64
+            }))
+            console.log('✅ [FINALIZE] Audio sent, waiting for server acknowledgment...')
+            audioSent = true
+          } else {
+            console.warn('⚠️ [FINALIZE] Audio generation returned null - video will have no audio!')
+          }
         } else {
-          console.warn('⚠️ Audio generation returned null')
+          console.warn('⚠️ [FINALIZE] No MIDI data available for audio generation')
         }
-      } else {
-        console.warn('⚠️ No MIDI data available for audio generation')
+      } catch (error) {
+        console.error('❌ [FINALIZE] Failed to generate/send audio:', error)
+        console.error('   [FINALIZE] Error stack:', error instanceof Error ? error.stack : String(error))
       }
+
+      // Wait for audio to be processed before finalizing
+      if (audioSent) {
+        console.log('   [FINALIZE] Waiting for audio-ack from server...')
+        await waitForAudioAck()
+        console.log('   [FINALIZE] Audio acknowledged!')
+      } else {
+        console.warn('   [FINALIZE] No audio was sent - proceeding without audio')
+      }
+
+      // Send finalize message
+      console.log('   [FINALIZE] Sending finalize message...')
+      ws.send(JSON.stringify({
+        type: 'finalize',
+        sessionId: recordingSessionId
+      }))
+
+      console.log('✅ [FINALIZE] Finalize message sent, waiting for video generation...')
     } catch (error) {
-      console.error('❌ Failed to generate/send audio:', error)
+      console.error('❌ [FINALIZE] Finalization error:', error)
+      console.error('   [FINALIZE] Error stack:', error instanceof Error ? error.stack : String(error))
+    } finally {
+      // Always set flag to unblock automation, even if there were errors
+      console.log('🏁 [FINALIZE] Setting __FINALIZATION_COMPLETE__ = true')
+      ;(window as any).__FINALIZATION_COMPLETE__ = true
     }
-
-    // Wait for audio to be processed before finalizing
-    if (audioSent) {
-      await waitForAudioAck()
-    }
-
-    // Send finalize message
-    ws.send(JSON.stringify({
-      type: 'finalize',
-      sessionId: recordingSessionId
-    }))
-
-    console.log('✅ Finalize message sent, waiting for video generation...')
   }
 
   // OLD: Process frames into video using server action (DEPRECATED)
