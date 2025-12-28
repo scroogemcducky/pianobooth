@@ -457,11 +457,11 @@ export async function processOneVideo(opts: Options, videoNumber?: number): Prom
   console.log(`${prefix}Opening ${recordUrl} ...`)
 
   try {
-    // Vite/Remix dev servers keep HMR connections open; avoid networkidle here
-    await page.goto(recordUrl, { waitUntil: 'domcontentloaded', timeout: 120_000 })
-    // Force a full page reload to clear any stale HMR/module state from dev server
+    // Navigate to home first to fully unload any cached route state
     // This prevents R3F Canvas suspension errors on subsequent recordings
-    await page.reload({ waitUntil: 'domcontentloaded', timeout: 120_000 })
+    await page.goto(opts.baseUrl, { waitUntil: 'domcontentloaded', timeout: 30_000 })
+    // Now navigate to /record with a fresh route load
+    await page.goto(recordUrl, { waitUntil: 'domcontentloaded', timeout: 120_000 })
   } catch (error) {
     console.error(`${prefix}Failed to load page:`, error)
     throw error
@@ -481,6 +481,11 @@ export async function processOneVideo(opts: Options, videoNumber?: number): Prom
     const btn = document.querySelector('#record-button') as HTMLButtonElement | null
     return !!btn && !btn.disabled
   }, undefined, { timeout: 120_000 })
+
+  // Wait for Canvas/Three.js to fully initialize before clicking
+  // The Canvas needs time to set up WebGL context and load fonts
+  await page.waitForTimeout(1000)
+
   console.log(`${prefix}Starting recording...`)
   await page.click('#record-button')
 
