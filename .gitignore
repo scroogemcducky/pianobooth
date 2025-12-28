@@ -60,3 +60,7 @@ main.py
 # Temporary files
 temp_frames/
 *.mp4
+
+# Offline recording / large files
+soundfonts/
+temp_audio/
