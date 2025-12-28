@@ -69,7 +69,6 @@ const App = () => {
       { title: 'Prelude & Fugue No. 1 in C major, BWV 846', url: '/bach/prelude-and-fugue-in-c-major-bwv-846' },
       { title: 'Prelude & Fugue No. 2 in C minor, BWV 847', url: '/bach/prelude-and-fugue-in-c-minor-bwv-847' },
       { title: 'Prelude & Fugue in D major, BWV 850', url: '/bach/pr-ludium-und-fuge-in-d-dur-bwv-850' },
-      { title: 'Prelude & Fugue No. 4 in C# minor, BWV 849', url: '/bach/prelude-and-fugue-no-4-in-c-sharp-minor-bwv-849' },
     ],
     Beethoven: [
       { title: 'Piano Sonata No. 23 "Appassionata" I', url: '/beethoven/piano-sonata-no-23-op-57-in-f-minor-i' },
