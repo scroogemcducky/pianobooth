@@ -251,7 +251,39 @@ export function setupWebSocketServer(server: any) {
           }
           }
 
-          // Handle audio data
+          // Handle pre-generated audio file path (from server-side FluidSynth)
+          else if (message.type === 'audio-path') {
+            console.log(`🎵 [WS] Received audio-path message for session ${message.sessionId}`)
+            const session = activeSessions.get(message.sessionId)
+            if (session) {
+              const audioPath = message.audioPath
+              console.log(`   [WS] Pre-generated audio path: ${audioPath}`)
+
+              // Verify the file exists
+              try {
+                await fs.access(audioPath)
+                const stat = await fs.stat(audioPath)
+                console.log(`   [WS] Audio file exists: ${(stat.size / 1024).toFixed(1)} KB`)
+                session.audioPath = audioPath
+
+                ws.send(JSON.stringify({
+                  type: 'audio-ack',
+                  sessionId: message.sessionId
+                }))
+                console.log(`   [WS] Audio-ack sent to client`)
+              } catch (error) {
+                console.error(`   [WS] ❌ Audio file not found: ${audioPath}`)
+                ws.send(JSON.stringify({
+                  type: 'error',
+                  error: `Audio file not found: ${audioPath}`
+                }))
+              }
+            } else {
+              console.error(`   [WS] ❌ Session not found for audio-path: ${message.sessionId}`)
+            }
+          }
+
+          // Handle audio data (base64 from browser)
           else if (message.type === 'audio') {
             console.log(`🎵 [WS] Received audio message for session ${message.sessionId}`)
             const session = activeSessions.get(message.sessionId)

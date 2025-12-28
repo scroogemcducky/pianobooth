@@ -1051,8 +1051,23 @@ export default function Record() {
       // Send audio if available and wait for acknowledgment
       let audioSent = false
       const audioGenStart = Date.now()
+
+      // Check if we have pre-generated audio from the server-side script
+      const preGeneratedAudioPath = localStorage.getItem('preGeneratedAudioPath')
+      const skipBrowserAudio = localStorage.getItem('skipBrowserAudio') === 'true'
+
       try {
-        if (audioFile) {
+        if (preGeneratedAudioPath && skipBrowserAudio) {
+          // Use pre-generated audio from FluidSynth (server-side)
+          console.log(`🎵 [FINALIZE] Using pre-generated audio: ${preGeneratedAudioPath}`)
+          ws.send(JSON.stringify({
+            type: 'audio-path',
+            sessionId: recordingSessionId,
+            audioPath: preGeneratedAudioPath
+          }))
+          console.log('✅ [FINALIZE] Audio path sent to server')
+          audioSent = true
+        } else if (audioFile) {
           console.log(`📎 [FINALIZE] Sending uploaded audio file: ${audioFile.size} bytes`)
           const audioBase64 = await blobToBase64(audioFile)
           ws.send(JSON.stringify({
@@ -1062,7 +1077,7 @@ export default function Record() {
           }))
           audioSent = true
         } else if (midiObject) {
-          console.log('🎵 [FINALIZE] Generating MIDI audio...')
+          console.log('🎵 [FINALIZE] Generating MIDI audio in browser (may be slow for long pieces)...')
           console.log(`   [FINALIZE] Audio gen start: ${new Date().toISOString()}`)
           const audioBlob = await generateAudioFromMIDI()
           const audioGenDuration = ((Date.now() - audioGenStart) / 1000).toFixed(1)

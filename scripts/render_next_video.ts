@@ -8,8 +8,43 @@ import path from 'node:path'
 import fs from 'node:fs/promises'
 import { createHash } from 'node:crypto'
 import { chromium } from 'playwright'
+import { spawn } from 'node:child_process'
 
 import { parseMidiFilePath, type MidiNote } from './parse_midi_to_json'
+import { createNormalizedMidi } from './normalize_midi'
+
+// Generate audio from MIDI using FluidSynth (via Python script)
+// audioDelay = seconds of silence to prepend (NOTE_START_DELAY + fallDuration)
+async function generateAudioFromMidi(midiPath: string, outputPath: string, audioDelay: number): Promise<boolean> {
+  console.log(`🎵 Generating audio from MIDI: ${path.basename(midiPath)}`)
+  console.log(`   Audio delay: ${audioDelay}s`)
+
+  return new Promise((resolve) => {
+    const proc = spawn('uv', ['run', 'scripts/generate_audio.py', midiPath, outputPath, '--delay', String(audioDelay)], {
+      cwd: process.cwd(),
+      stdio: ['ignore', 'pipe', 'pipe'],
+    })
+
+    let stderr = ''
+    proc.stdout.on('data', (data) => console.log(`   ${data.toString().trim()}`))
+    proc.stderr.on('data', (data) => { stderr += data.toString() })
+
+    proc.on('close', (code) => {
+      if (code === 0) {
+        console.log(`✅ Audio generated successfully`)
+        resolve(true)
+      } else {
+        console.error(`❌ Audio generation failed (exit ${code}): ${stderr}`)
+        resolve(false)
+      }
+    })
+
+    proc.on('error', (error) => {
+      console.error(`❌ Failed to spawn audio generator: ${error.message}`)
+      resolve(false)
+    })
+  })
+}
 
 export type Options = {
   queueDir: string
@@ -196,6 +231,30 @@ function sanitizeFileName(s: string): string {
   return s.replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, ' ').trim()
 }
 
+async function getUniqueFilePath(dir: string, baseName: string, ext: string): Promise<string> {
+  // Check if base file exists
+  const basePath = path.join(dir, `${baseName}${ext}`)
+  try {
+    await fs.access(basePath)
+  } catch {
+    // File doesn't exist, use base name
+    return basePath
+  }
+
+  // File exists, find next available number
+  let counter = 2
+  while (true) {
+    const numberedPath = path.join(dir, `${baseName}_${counter}${ext}`)
+    try {
+      await fs.access(numberedPath)
+      counter++
+    } catch {
+      // This numbered path doesn't exist, use it
+      return numberedPath
+    }
+  }
+}
+
 async function listMp4(dir: string): Promise<{ name: string; path: string; mtimeMs: number; size: number }[]> {
   let entries: any[] = []
   try {
@@ -296,10 +355,50 @@ export async function processOneVideo(opts: Options, videoNumber?: number): Prom
 
   const fileTitle = refined?.title_short ? refined.title_short : simplifyTitle(title)
   const displayName = sanitizeFileName(`${artist} - ${fileTitle}`)
-  const targetName = `${displayName}.mp4`
-  const targetPath = path.join(opts.outDir, targetName)
 
   await fs.mkdir(opts.outDir, { recursive: true })
+
+  // Get unique file path (increments _2, _3, etc. if file exists)
+  const targetPath = await getUniqueFilePath(opts.outDir, displayName, '.mp4')
+  const targetName = path.basename(targetPath)
+  console.log(`${prefix}Output will be: ${targetName}`)
+
+  // Generate audio from MIDI using FluidSynth (server-side, much faster than browser)
+  // Audio delay = intro delay (before notes start falling) + fall duration (time to reach keys)
+  const NOTE_START_DELAY_SECONDS = 0.5  // Must match record.tsx
+  const audioDelay = NOTE_START_DELAY_SECONDS + opts.fallDuration
+
+  const tempAudioDir = path.join(process.cwd(), 'temp_audio')
+  await fs.mkdir(tempAudioDir, { recursive: true })
+  const audioBaseName = path.basename(targetPath, '.mp4')  // Use same name as video (with _2, _3 etc.)
+  const audioPath = path.join(tempAudioDir, `${audioBaseName}.wav`)
+
+  // Create normalized MIDI to fix tempo interpretation drift between @tonejs/midi and FluidSynth
+  // This ensures audio timing matches video timing exactly, even for complex pieces with many tempo changes
+  const normalizedMidiPath = path.join(tempAudioDir, `${audioBaseName}_normalized.mid`)
+  console.log(`${prefix}Creating normalized MIDI for audio sync...`)
+  try {
+    const normResult = await createNormalizedMidi(midiPath, normalizedMidiPath)
+    console.log(`${prefix}  Normalized ${normResult.noteCount} notes (duration: ${normResult.normalizedDuration.toFixed(2)}s)`)
+  } catch (error) {
+    console.warn(`${prefix}⚠️ Failed to create normalized MIDI, using original:`, error)
+  }
+
+  // Use normalized MIDI for audio if it exists, otherwise fall back to original
+  let midiForAudio = midiPath
+  try {
+    await fs.access(normalizedMidiPath)
+    midiForAudio = normalizedMidiPath
+    console.log(`${prefix}Using normalized MIDI for audio generation`)
+  } catch {
+    console.log(`${prefix}Using original MIDI for audio generation`)
+  }
+
+  const audioGenerated = await generateAudioFromMidi(midiForAudio, audioPath, audioDelay)
+
+  if (!audioGenerated) {
+    console.warn(`${prefix}⚠️ Audio generation failed - video will be silent`)
+  }
 
   // Launch browser and preload localStorage
   const browser = await chromium.launch({ headless: opts.headless, slowMo: opts.slowMo, devtools: opts.devtools })
@@ -309,16 +408,26 @@ export async function processOneVideo(opts: Options, videoNumber?: number): Prom
   await context.addInitScript((payload) => {
     try { window.localStorage.setItem('processedMidiData', payload.data as string) } catch {}
     try { window.localStorage.setItem('midiMeta', payload.meta as string) } catch {}
-    try { 
+    try {
       window.localStorage.setItem('fallDuration', payload.fallDuration as string)
       console.log('✅ localStorage.fallDuration set to:', payload.fallDuration)
     } catch (e) {
       console.error('❌ Failed to set fallDuration:', e)
     }
+    // Tell browser to skip audio generation - we have pre-generated audio
+    try {
+      window.localStorage.setItem('preGeneratedAudioPath', payload.audioPath as string)
+      window.localStorage.setItem('skipBrowserAudio', payload.skipBrowserAudio as string)
+      console.log('✅ Pre-generated audio path set:', payload.audioPath)
+    } catch (e) {
+      console.error('❌ Failed to set audio path:', e)
+    }
   }, {
     data: JSON.stringify(midiObject),
     meta: JSON.stringify({ title: fileTitle, artist }),
     fallDuration: String(opts.fallDuration),
+    audioPath: audioGenerated ? audioPath : '',
+    skipBrowserAudio: audioGenerated ? 'true' : 'false',
   })
   const page = await context.newPage()
 
