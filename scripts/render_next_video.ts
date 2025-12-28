@@ -12,6 +12,23 @@ import { spawn } from 'node:child_process'
 
 import { parseMidiFilePath, type MidiNote } from './parse_midi_to_json'
 import { createNormalizedMidi } from './normalize_midi'
+import { generateThumbnail } from './generate_thumbnail'
+
+// Slugify function for generating URL-safe slugs (matches app/utils/slugify.ts)
+function slugify(value: string): string {
+  const base = (value || '')
+    .toLowerCase()
+    .replace(/['']/g, '')
+    .replace(/[#♯]/g, '-sharp')
+    .replace(/[♭]/g, '-flat')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+
+  return base
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    || 'composer'
+}
 
 // Generate audio from MIDI using FluidSynth (via Python script)
 // audioDelay = seconds of silence to prepend (NOTE_START_DELAY + fallDuration)
@@ -515,6 +532,22 @@ export async function processOneVideo(opts: Options, videoNumber?: number): Prom
     console.log(`${prefix}Saved video: ${targetPath}`)
   } else {
     console.log(`${prefix}Video already in correct location: ${targetPath}`)
+  }
+
+  // Generate thumbnail for the video
+  const artistSlug = slugify(artist)
+  const songSlug = slugify(fileTitle)
+  const thumbnailPath = targetPath.replace('.mp4', '.jpg')
+
+  console.log(`${prefix}Generating thumbnail...`)
+  const thumbnailResult = await generateThumbnail(artistSlug, songSlug, thumbnailPath, {
+    baseUrl: opts.baseUrl,
+  })
+
+  if (thumbnailResult.success) {
+    console.log(`${prefix}Thumbnail saved: ${thumbnailPath}`)
+  } else {
+    console.warn(`${prefix}⚠️ Thumbnail generation failed: ${thumbnailResult.error}`)
   }
 
   // Delete MIDI from queue if requested (default)
