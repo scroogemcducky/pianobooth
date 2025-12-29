@@ -34,6 +34,9 @@ interface FrameBasedParticlesProps {
   scaleFillRatio?: number
   scaleMax?: number
   lookahead?: number
+  blackKeyColor?: number[]
+  whiteKeyColor?: number[]
+  settings?: ParticleSettings
 }
 
 const WHITE_KEY_Z = 2.2
@@ -409,12 +412,14 @@ const FrameBasedParticleStream = forwardRef<FrameBasedParticleStreamHandle, Fram
 
 const FrameBasedParticles = forwardRef<FrameBasedParticlesHandle, FrameBasedParticlesProps>(
   function FrameBasedParticles(
-    { midiObject, layout, scaleMultiplier = 1, scaleFillRatio, scaleMax, lookahead = 3 },
+    { midiObject, layout, scaleMultiplier = 1, scaleFillRatio, scaleMax, lookahead = 3, blackKeyColor, whiteKeyColor, settings: settingsProp },
     ref
   ) {
     const { viewport } = useThree()
     const totalKeyboardWidth = getKeyboardWidth(layout)
-    const settings = useParticleSettingsStore((state) => state.settings)
+    const storeSettings = useParticleSettingsStore((state) => state.settings)
+    // Use prop settings if provided, otherwise fall back to store
+    const settings = settingsProp ?? storeSettings
     const scaleFactor = scalingFactor(viewport.width, totalKeyboardWidth, {
       multiplier: scaleMultiplier,
       fillRatio: scaleFillRatio,
@@ -508,16 +513,20 @@ const FrameBasedParticles = forwardRef<FrameBasedParticlesHandle, FrameBasedPart
       const uniqueNotes = new Set<number>()
       midiObject.forEach((note) => uniqueNotes.add(note.NoteNumber))
 
+      // Use provided colors or fall back to constants
+      const effectiveBlackKeyColor = blackKeyColor ?? BLACK_KEY_COLOR
+      const effectiveWhiteKeyColor = whiteKeyColor ?? WHITE_KEY_COLOR
+
       return Array.from(uniqueNotes).map((noteNumber) => {
         const keyIsBlack = isBlack(noteNumber)
-        const keyColor = (keyIsBlack ? BLACK_KEY_COLOR : WHITE_KEY_COLOR) as [number, number, number]
+        const keyColor = (keyIsBlack ? effectiveBlackKeyColor : effectiveWhiteKeyColor) as [number, number, number]
         return {
           noteNumber,
           isBlack: keyIsBlack,
           color: keyColor,
         }
       })
-    }, [midiObject])
+    }, [midiObject, blackKeyColor, whiteKeyColor])
 
     // Use a fixed particle count per stream to match real-time intensity
     // In real-time, single notes get full settings.count (4000 default)

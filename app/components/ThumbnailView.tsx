@@ -21,6 +21,7 @@ type Props = {
   artist: string
   timePositionMs: number
   artistImagePath: string | null
+  fontFamily?: string
 }
 
 // Thumbnail visualization for YouTube thumbnails (1280x720)
@@ -31,6 +32,7 @@ export default function ThumbnailView({
   artist,
   timePositionMs,
   artistImagePath,
+  fontFamily = 'EB Garamond',
 }: Props) {
   const [isReady, setIsReady] = useState(false)
   const [pianoLayout, setPianoLayout] = useState<PianoLayout>(DEFAULT_PIANO_LAYOUT)
@@ -92,11 +94,11 @@ export default function ThumbnailView({
       position: 'relative',
       width: '100%',
       height: '100%',
-      fontFamily: `'EB Garamond', serif`,
+      fontFamily: `'${fontFamily}', serif`,
       WebkitFontSmoothing: 'antialiased',
       MozOsxFontSmoothing: 'grayscale',
     }),
-    []
+    [fontFamily]
   )
 
   return (

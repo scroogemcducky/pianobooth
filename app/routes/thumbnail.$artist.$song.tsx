@@ -31,6 +31,7 @@ type LoaderData = {
   midiObject: MidiNote[]
   timePositionMs: number
   artistImagePath: string | null
+  fontFamily: string
 }
 
 // Constants for random position calculation
@@ -47,6 +48,9 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   if (!artistSlug || !songSlug) throw new Response('Not Found', { status: 404 })
 
   const url = new URL(request.url)
+
+  // Get font from query parameter (default to EB Garamond)
+  const fontFamily = url.searchParams.get('font') || 'EB Garamond'
 
   // Load MIDI data
   const jsonUrl = `${url.origin}/public_midi_json/${encodeURIComponent(artistSlug)}/${encodeURIComponent(songSlug)}.json`
@@ -85,6 +89,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
     midiObject: data.midiObject,
     timePositionMs,
     artistImagePath,
+    fontFamily,
   })
 }
 
@@ -108,6 +113,7 @@ export default function ThumbnailRoute() {
         artist={data.artist}
         timePositionMs={data.timePositionMs}
         artistImagePath={data.artistImagePath}
+        fontFamily={data.fontFamily}
       />
     </div>
   )

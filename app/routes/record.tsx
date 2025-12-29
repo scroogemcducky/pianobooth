@@ -106,8 +106,8 @@ interface FetcherData {
 
 // Frame recording configuration
 const FPS = 60
-// Keep the recorded audio/visuals 0.5 seconds behind the original MIDI timing
-const NOTE_START_DELAY_SECONDS = 0.5
+// Delay before notes start (0 = immediate start)
+const NOTE_START_DELAY_SECONDS = 0
 const NOTE_START_DELAY_FRAMES = Math.round(NOTE_START_DELAY_SECONDS * FPS)
 const FRAME_DURATION_MS = 1000 / FPS
 const CANVAS_WIDTH = 1920
@@ -537,6 +537,41 @@ export default function Record() {
   const [directionalX, setDirectionalX] = useState(10.5)
   const [directionalY, setDirectionalY] = useState(-5.5)
   const [directionalZ, setDirectionalZ] = useState(107.5)
+
+  // Color presets - randomly selected on mount (client-side only)
+  const COLOR_PRESETS = [
+    {
+      name: 'Original',
+      whiteKeyColor: [0.94, 0.075, 0.28],
+      blackKeyColor: [0.47, 0.04, 0.004],
+      glow: 0,
+    },
+    {
+      name: 'Deep Red',
+      whiteKeyColor: [0.392, 0.208, 0.251],
+      blackKeyColor: [0.208, 0.067, 0.055],
+      glow: 1.5,
+    },
+    {
+      name: 'Coral',
+      whiteKeyColor: [1.0, 0.478, 0.6],
+      blackKeyColor: [0.369, 0.188, 0.173],
+      glow: 0,
+    },
+  ]
+  const [colorPreset, setColorPreset] = useState(COLOR_PRESETS[0])
+
+  // Randomize color on client mount to avoid SSR hydration issues
+  useEffect(() => {
+    const randomIndex = Math.floor(Math.random() * COLOR_PRESETS.length)
+    const preset = COLOR_PRESETS[randomIndex]
+    console.log(`🎨 Color preset selected: ${preset.name}`)
+    setColorPreset(preset)
+  }, [])
+
+  const blackKeyColor = colorPreset.blackKeyColor.map(c => c * (1 + colorPreset.glow))
+  const whiteKeyColor = colorPreset.whiteKeyColor.map(c => c * (1 + colorPreset.glow))
+
   const fetcher = useFetcher<FetcherData>()
   const wsRef = useRef<WebSocket | null>(null)
   const connectWebSocketRef = useRef<() => void>(() => {})
@@ -1417,6 +1452,8 @@ export default function Record() {
           scaleMultiplier={keyboardScaleOptions.multiplier}
           scaleFillRatio={keyboardScaleOptions.fillRatio}
           scaleMax={keyboardScaleOptions.max}
+          blackKeyColor={blackKeyColor}
+          whiteKeyColor={whiteKeyColor}
         />
 
         <FrameBasedKeyController
@@ -1434,6 +1471,8 @@ export default function Record() {
             scaleFillRatio={keyboardScaleOptions.fillRatio}
             scaleMax={keyboardScaleOptions.max}
             lookahead={fallDuration}
+            blackKeyColor={blackKeyColor}
+            whiteKeyColor={whiteKeyColor}
           />
         )}
 
@@ -1446,6 +1485,8 @@ export default function Record() {
             scaleFillRatio={keyboardScaleOptions.fillRatio}
             scaleMax={keyboardScaleOptions.max}
             lookahead={fallDuration}
+            blackKeyColor={blackKeyColor}
+            whiteKeyColor={whiteKeyColor}
           />
         )}
         <DeterministicRecorder

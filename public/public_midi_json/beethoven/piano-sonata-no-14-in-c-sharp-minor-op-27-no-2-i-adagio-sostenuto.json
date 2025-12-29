@@ -1,0 +1,8016 @@
+{
+  "title": "Piano Sonata No. 14 in C-sharp minor, Op. 27 No. 2: I. Adagio sostenuto",
+  "artist": "Beethoven",
+  "durationMs": 361983.9022166668,
+  "midiSha256": "4c79323f96c9b69a8df4dd6936ba0fea230b2b303224e97ab9ce189fc34c935d",
+  "midiObject": [
+    {
+      "NoteNumber": 56,
+      "Velocity": 33,
+      "Duration": 404122,
+      "SoundDuration": 404122,
+      "Delta": 0
+    },
+    {
+      "NoteNumber": 37,
+      "Velocity": 35,
+      "Duration": 4719806,
+      "SoundDuration": 4719806,
+      "Delta": 0
+    },
+    {
+      "NoteNumber": 49,
+      "Velocity": 35,
+      "Duration": 4719806,
+      "SoundDuration": 4719806,
+      "Delta": 0
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 26,
+      "Duration": 404122,
+      "SoundDuration": 404122,
+      "Delta": 404122
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 26,
+      "Duration": 404122,
+      "SoundDuration": 404122,
+      "Delta": 808244
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 33,
+      "Duration": 397859,
+      "SoundDuration": 397859,
+      "Delta": 1212366
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 26,
+      "Duration": 392783,
+      "SoundDuration": 392783,
+      "Delta": 1610225
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 26,
+      "Duration": 387829,
+      "SoundDuration": 387829,
+      "Delta": 2003008
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 32,
+      "Duration": 382995,
+      "SoundDuration": 382995,
+      "Delta": 2390838
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 26,
+      "Duration": 382994,
+      "SoundDuration": 382994,
+      "Delta": 2773833
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 26,
+      "Duration": 382994,
+      "SoundDuration": 382994,
+      "Delta": 3156828
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 35,
+      "Duration": 382995,
+      "SoundDuration": 382995,
+      "Delta": 3539823
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 26,
+      "Duration": 382994,
+      "SoundDuration": 382994,
+      "Delta": 3922818
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 26,
+      "Duration": 413993,
+      "SoundDuration": 413993,
+      "Delta": 4305813
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 33,
+      "Duration": 393004,
+      "SoundDuration": 393004,
+      "Delta": 4719806
+    },
+    {
+      "NoteNumber": 35,
+      "Velocity": 35,
+      "Duration": 4668132,
+      "SoundDuration": 4668132,
+      "Delta": 4719806
+    },
+    {
+      "NoteNumber": 47,
+      "Velocity": 35,
+      "Duration": 4668132,
+      "SoundDuration": 4668132,
+      "Delta": 4719806
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 26,
+      "Duration": 393004,
+      "SoundDuration": 393004,
+      "Delta": 5112811
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 23,
+      "Duration": 393004,
+      "SoundDuration": 393004,
+      "Delta": 5505815
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 30,
+      "Duration": 386324,
+      "SoundDuration": 386324,
+      "Delta": 5898820
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 26,
+      "Duration": 383638,
+      "SoundDuration": 383638,
+      "Delta": 6285144
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 23,
+      "Duration": 380952,
+      "SoundDuration": 380952,
+      "Delta": 6668782
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 33,
+      "Duration": 392157,
+      "SoundDuration": 392157,
+      "Delta": 7049734
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 26,
+      "Duration": 377358,
+      "SoundDuration": 377358,
+      "Delta": 7441891
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 23,
+      "Duration": 377358,
+      "SoundDuration": 377358,
+      "Delta": 7819250
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 32,
+      "Duration": 388349,
+      "SoundDuration": 388349,
+      "Delta": 8196608
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 26,
+      "Duration": 377358,
+      "SoundDuration": 377358,
+      "Delta": 8584958
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 23,
+      "Duration": 425622,
+      "SoundDuration": 425622,
+      "Delta": 8962316
+    },
+    {
+      "NoteNumber": 57,
+      "Velocity": 45,
+      "Duration": 402540,
+      "SoundDuration": 402540,
+      "Delta": 9387939
+    },
+    {
+      "NoteNumber": 45,
+      "Velocity": 41,
+      "Duration": 2411199,
+      "SoundDuration": 2411199,
+      "Delta": 9387939
+    },
+    {
+      "NoteNumber": 33,
+      "Velocity": 41,
+      "Duration": 2411199,
+      "SoundDuration": 2411199,
+      "Delta": 9387939
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 38,
+      "Duration": 397347,
+      "SoundDuration": 397347,
+      "Delta": 9790479
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 38,
+      "Duration": 392281,
+      "SoundDuration": 392281,
+      "Delta": 10187827
+    },
+    {
+      "NoteNumber": 57,
+      "Velocity": 35,
+      "Duration": 386847,
+      "SoundDuration": 386847,
+      "Delta": 10580109
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 32,
+      "Duration": 386847,
+      "SoundDuration": 386847,
+      "Delta": 10966956
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 32,
+      "Duration": 445335,
+      "SoundDuration": 445335,
+      "Delta": 11353803
+    },
+    {
+      "NoteNumber": 57,
+      "Velocity": 41,
+      "Duration": 403063,
+      "SoundDuration": 403063,
+      "Delta": 11799138
+    },
+    {
+      "NoteNumber": 30,
+      "Velocity": 38,
+      "Duration": 2393436,
+      "SoundDuration": 2393436,
+      "Delta": 11799138
+    },
+    {
+      "NoteNumber": 42,
+      "Velocity": 38,
+      "Duration": 2393436,
+      "SoundDuration": 2393436,
+      "Delta": 11799138
+    },
+    {
+      "NoteNumber": 62,
+      "Velocity": 33,
+      "Duration": 400973,
+      "SoundDuration": 400973,
+      "Delta": 12202202
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 28,
+      "Duration": 392783,
+      "SoundDuration": 392783,
+      "Delta": 12603175
+    },
+    {
+      "NoteNumber": 57,
+      "Velocity": 38,
+      "Duration": 386847,
+      "SoundDuration": 386847,
+      "Delta": 12995958
+    },
+    {
+      "NoteNumber": 62,
+      "Velocity": 33,
+      "Duration": 386847,
+      "SoundDuration": 386847,
+      "Delta": 13382805
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 30,
+      "Duration": 422922,
+      "SoundDuration": 422922,
+      "Delta": 13769653
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 38,
+      "Duration": 407332,
+      "SoundDuration": 407332,
+      "Delta": 14192575
+    },
+    {
+      "NoteNumber": 32,
+      "Velocity": 41,
+      "Duration": 2443992,
+      "SoundDuration": 2443992,
+      "Delta": 14192575
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 41,
+      "Duration": 2443992,
+      "SoundDuration": 2443992,
+      "Delta": 14192575
+    },
+    {
+      "NoteNumber": 60,
+      "Velocity": 31,
+      "Duration": 407332,
+      "SoundDuration": 407332,
+      "Delta": 14599907
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 31,
+      "Duration": 407332,
+      "SoundDuration": 407332,
+      "Delta": 15007239
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 35,
+      "Duration": 407332,
+      "SoundDuration": 407332,
+      "Delta": 15414571
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 30,
+      "Duration": 407332,
+      "SoundDuration": 407332,
+      "Delta": 15821903
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 30,
+      "Duration": 407332,
+      "SoundDuration": 407332,
+      "Delta": 16229235
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 35,
+      "Duration": 417014,
+      "SoundDuration": 417014,
+      "Delta": 16636567
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 35,
+      "Duration": 2618719,
+      "SoundDuration": 2618719,
+      "Delta": 16636567
+    },
+    {
+      "NoteNumber": 32,
+      "Velocity": 35,
+      "Duration": 2618719,
+      "SoundDuration": 2618719,
+      "Delta": 16636567
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 27,
+      "Duration": 417014,
+      "SoundDuration": 417014,
+      "Delta": 17053581
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 25,
+      "Duration": 417014,
+      "SoundDuration": 417014,
+      "Delta": 17470596
+    },
+    {
+      "NoteNumber": 54,
+      "Velocity": 35,
+      "Duration": 455892,
+      "SoundDuration": 455892,
+      "Delta": 17887610
+    },
+    {
+      "NoteNumber": 60,
+      "Velocity": 30,
+      "Duration": 455892,
+      "SoundDuration": 455892,
+      "Delta": 18343502
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 30,
+      "Duration": 455892,
+      "SoundDuration": 455892,
+      "Delta": 18799395
+    },
+    {
+      "NoteNumber": 52,
+      "Velocity": 32,
+      "Duration": 425622,
+      "SoundDuration": 425622,
+      "Delta": 19255287
+    },
+    {
+      "NoteNumber": 37,
+      "Velocity": 35,
+      "Duration": 5309566,
+      "SoundDuration": 5309566,
+      "Delta": 19255287
+    },
+    {
+      "NoteNumber": 49,
+      "Velocity": 35,
+      "Duration": 5309566,
+      "SoundDuration": 5309566,
+      "Delta": 19255287
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 35,
+      "Duration": 5309566,
+      "SoundDuration": 5309566,
+      "Delta": 19255287
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 26,
+      "Duration": 411946,
+      "SoundDuration": 411946,
+      "Delta": 19680909
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 26,
+      "Duration": 411946,
+      "SoundDuration": 411946,
+      "Delta": 20092856
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 32,
+      "Duration": 403063,
+      "SoundDuration": 403063,
+      "Delta": 20504802
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 26,
+      "Duration": 403063,
+      "SoundDuration": 403063,
+      "Delta": 20907865
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 26,
+      "Duration": 403063,
+      "SoundDuration": 403063,
+      "Delta": 21310929
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 31,
+      "Duration": 420875,
+      "SoundDuration": 420875,
+      "Delta": 21713992
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 25,
+      "Duration": 420875,
+      "SoundDuration": 420875,
+      "Delta": 22134867
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 25,
+      "Duration": 420875,
+      "SoundDuration": 420875,
+      "Delta": 22555743
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 56,
+      "Duration": 1147058,
+      "SoundDuration": 1147058,
+      "Delta": 22976618
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 31,
+      "Duration": 500000,
+      "SoundDuration": 500000,
+      "Delta": 22976618
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 25,
+      "Duration": 500000,
+      "SoundDuration": 500000,
+      "Delta": 23476618
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 22,
+      "Duration": 588235,
+      "SoundDuration": 588235,
+      "Delta": 23976618
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 50,
+      "Duration": 441176,
+      "SoundDuration": 441176,
+      "Delta": 24123677
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 50,
+      "Duration": 3606277,
+      "SoundDuration": 3606277,
+      "Delta": 24564853
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 31,
+      "Duration": 434821,
+      "SoundDuration": 434821,
+      "Delta": 24564853
+    },
+    {
+      "NoteNumber": 36,
+      "Velocity": 38,
+      "Duration": 5150347,
+      "SoundDuration": 5150347,
+      "Delta": 24564853
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 38,
+      "Duration": 5150347,
+      "SoundDuration": 5150347,
+      "Delta": 24564853
+    },
+    {
+      "NoteNumber": 48,
+      "Velocity": 38,
+      "Duration": 5150347,
+      "SoundDuration": 5150347,
+      "Delta": 24564853
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 26,
+      "Duration": 419442,
+      "SoundDuration": 419442,
+      "Delta": 24999675
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 23,
+      "Duration": 405617,
+      "SoundDuration": 405617,
+      "Delta": 25419117
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 31,
+      "Duration": 396039,
+      "SoundDuration": 396039,
+      "Delta": 25824735
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 26,
+      "Duration": 382995,
+      "SoundDuration": 382995,
+      "Delta": 26220774
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 25,
+      "Duration": 382995,
+      "SoundDuration": 382995,
+      "Delta": 26603769
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 31,
+      "Duration": 394788,
+      "SoundDuration": 394788,
+      "Delta": 26986764
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 26,
+      "Duration": 394788,
+      "SoundDuration": 394788,
+      "Delta": 27381553
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 25,
+      "Duration": 394788,
+      "SoundDuration": 394788,
+      "Delta": 27776342
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 56,
+      "Duration": 1108909,
+      "SoundDuration": 1108909,
+      "Delta": 28171130
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 31,
+      "Duration": 481927,
+      "SoundDuration": 481927,
+      "Delta": 28171130
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 25,
+      "Duration": 481927,
+      "SoundDuration": 481927,
+      "Delta": 28653058
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 23,
+      "Duration": 580214,
+      "SoundDuration": 580214,
+      "Delta": 29134986
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 53,
+      "Duration": 435160,
+      "SoundDuration": 435160,
+      "Delta": 29280039
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 53,
+      "Duration": 2417961,
+      "SoundDuration": 2417961,
+      "Delta": 29715200
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 31,
+      "Duration": 420875,
+      "SoundDuration": 420875,
+      "Delta": 29715200
+    },
+    {
+      "NoteNumber": 37,
+      "Velocity": 35,
+      "Duration": 2417961,
+      "SoundDuration": 2417961,
+      "Delta": 29715200
+    },
+    {
+      "NoteNumber": 49,
+      "Velocity": 35,
+      "Duration": 2417961,
+      "SoundDuration": 2417961,
+      "Delta": 29715200
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 26,
+      "Duration": 420875,
+      "SoundDuration": 420875,
+      "Delta": 30136076
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 25,
+      "Duration": 398882,
+      "SoundDuration": 398882,
+      "Delta": 30556951
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 31,
+      "Duration": 390777,
+      "SoundDuration": 390777,
+      "Delta": 30955834
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 26,
+      "Duration": 379218,
+      "SoundDuration": 379218,
+      "Delta": 31346612
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 23,
+      "Duration": 407331,
+      "SoundDuration": 407331,
+      "Delta": 31725830
+    },
+    {
+      "NoteNumber": 69,
+      "Velocity": 56,
+      "Duration": 2461798,
+      "SoundDuration": 2461798,
+      "Delta": 32133162
+    },
+    {
+      "NoteNumber": 57,
+      "Velocity": 31,
+      "Duration": 440237,
+      "SoundDuration": 440237,
+      "Delta": 32133162
+    },
+    {
+      "NoteNumber": 42,
+      "Velocity": 32,
+      "Duration": 2461798,
+      "SoundDuration": 2461798,
+      "Delta": 32133162
+    },
+    {
+      "NoteNumber": 30,
+      "Velocity": 32,
+      "Duration": 2461798,
+      "SoundDuration": 2461798,
+      "Delta": 32133162
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 25,
+      "Duration": 420875,
+      "SoundDuration": 420875,
+      "Delta": 32573400
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 25,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 32994275
+    },
+    {
+      "NoteNumber": 57,
+      "Velocity": 27,
+      "Duration": 394788,
+      "SoundDuration": 394788,
+      "Delta": 33410595
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 25,
+      "Duration": 394788,
+      "SoundDuration": 394788,
+      "Delta": 33805384
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 25,
+      "Duration": 394788,
+      "SoundDuration": 394788,
+      "Delta": 34200172
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 56,
+      "Duration": 2507925,
+      "SoundDuration": 2507925,
+      "Delta": 34594961
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 33,
+      "Duration": 435883,
+      "SoundDuration": 435883,
+      "Delta": 34594961
+    },
+    {
+      "NoteNumber": 35,
+      "Velocity": 41,
+      "Duration": 2507925,
+      "SoundDuration": 2507925,
+      "Delta": 34594961
+    },
+    {
+      "NoteNumber": 47,
+      "Velocity": 41,
+      "Duration": 2507925,
+      "SoundDuration": 2507925,
+      "Delta": 34594961
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 23,
+      "Duration": 423263,
+      "SoundDuration": 423263,
+      "Delta": 35030844
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 23,
+      "Duration": 410775,
+      "SoundDuration": 410775,
+      "Delta": 35454107
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 33,
+      "Duration": 398882,
+      "SoundDuration": 398882,
+      "Delta": 35864883
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 26,
+      "Duration": 398883,
+      "SoundDuration": 398883,
+      "Delta": 36263766
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 26,
+      "Duration": 440237,
+      "SoundDuration": 440237,
+      "Delta": 36662649
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 53,
+      "Duration": 1397542,
+      "SoundDuration": 1397542,
+      "Delta": 37102887
+    },
+    {
+      "NoteNumber": 57,
+      "Velocity": 33,
+      "Duration": 461467,
+      "SoundDuration": 461467,
+      "Delta": 37102887
+    },
+    {
+      "NoteNumber": 35,
+      "Velocity": 41,
+      "Duration": 2733547,
+      "SoundDuration": 2733547,
+      "Delta": 37102887
+    },
+    {
+      "NoteNumber": 47,
+      "Velocity": 41,
+      "Duration": 2733547,
+      "SoundDuration": 2733547,
+      "Delta": 37102887
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 27,
+      "Duration": 461467,
+      "SoundDuration": 461467,
+      "Delta": 37564354
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 25,
+      "Duration": 474608,
+      "SoundDuration": 474608,
+      "Delta": 38025822
+    },
+    {
+      "NoteNumber": 71,
+      "Velocity": 50,
+      "Duration": 1336005,
+      "SoundDuration": 1336005,
+      "Delta": 38500430
+    },
+    {
+      "NoteNumber": 57,
+      "Velocity": 30,
+      "Duration": 445335,
+      "SoundDuration": 445335,
+      "Delta": 38500430
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 26,
+      "Duration": 445335,
+      "SoundDuration": 445335,
+      "Delta": 38945765
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 27,
+      "Duration": 445335,
+      "SoundDuration": 445335,
+      "Delta": 39391100
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 47,
+      "Duration": 839258,
+      "SoundDuration": 839258,
+      "Delta": 39836435
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 33,
+      "Duration": 440237,
+      "SoundDuration": 440237,
+      "Delta": 39836435
+    },
+    {
+      "NoteNumber": 52,
+      "Velocity": 35,
+      "Duration": 5087898,
+      "SoundDuration": 5087898,
+      "Delta": 39836435
+    },
+    {
+      "NoteNumber": 40,
+      "Velocity": 35,
+      "Duration": 5087898,
+      "SoundDuration": 5087898,
+      "Delta": 39836435
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 26,
+      "Duration": 425622,
+      "SoundDuration": 425622,
+      "Delta": 40276673
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 26,
+      "Duration": 425622,
+      "SoundDuration": 425622,
+      "Delta": 40702295
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 27,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 41127917
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 26,
+      "Duration": 407331,
+      "SoundDuration": 407331,
+      "Delta": 41544237
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 26,
+      "Duration": 407332,
+      "SoundDuration": 407332,
+      "Delta": 41951569
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 27,
+      "Duration": 407331,
+      "SoundDuration": 407331,
+      "Delta": 42358901
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 26,
+      "Duration": 407332,
+      "SoundDuration": 407332,
+      "Delta": 42766233
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 23,
+      "Duration": 407331,
+      "SoundDuration": 407331,
+      "Delta": 43173565
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 27,
+      "Duration": 435255,
+      "SoundDuration": 435255,
+      "Delta": 43580897
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 26,
+      "Duration": 435255,
+      "SoundDuration": 435255,
+      "Delta": 44016153
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 23,
+      "Duration": 472925,
+      "SoundDuration": 472925,
+      "Delta": 44451408
+    },
+    {
+      "NoteNumber": 55,
+      "Velocity": 32,
+      "Duration": 435255,
+      "SoundDuration": 435255,
+      "Delta": 44924333
+    },
+    {
+      "NoteNumber": 52,
+      "Velocity": 38,
+      "Duration": 5255333,
+      "SoundDuration": 5255333,
+      "Delta": 44924333
+    },
+    {
+      "NoteNumber": 40,
+      "Velocity": 38,
+      "Duration": 5255333,
+      "SoundDuration": 5255333,
+      "Delta": 44924333
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 25,
+      "Duration": 435255,
+      "SoundDuration": 435255,
+      "Delta": 45359589
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 23,
+      "Duration": 435255,
+      "SoundDuration": 435255,
+      "Delta": 45794845
+    },
+    {
+      "NoteNumber": 55,
+      "Velocity": 27,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 46230100
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 26,
+      "Duration": 398882,
+      "SoundDuration": 398882,
+      "Delta": 46646420
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 23,
+      "Duration": 398883,
+      "SoundDuration": 398883,
+      "Delta": 47045303
+    },
+    {
+      "NoteNumber": 55,
+      "Velocity": 27,
+      "Duration": 398882,
+      "SoundDuration": 398882,
+      "Delta": 47444186
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 26,
+      "Duration": 398882,
+      "SoundDuration": 398882,
+      "Delta": 47843069
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 22,
+      "Duration": 398882,
+      "SoundDuration": 398882,
+      "Delta": 48241952
+    },
+    {
+      "NoteNumber": 67,
+      "Velocity": 46,
+      "Duration": 1116415,
+      "SoundDuration": 1116415,
+      "Delta": 48640835
+    },
+    {
+      "NoteNumber": 55,
+      "Velocity": 26,
+      "Duration": 487805,
+      "SoundDuration": 487805,
+      "Delta": 48640835
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 25,
+      "Duration": 487804,
+      "SoundDuration": 487804,
+      "Delta": 49128640
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 21,
+      "Duration": 563221,
+      "SoundDuration": 563221,
+      "Delta": 49616445
+    },
+    {
+      "NoteNumber": 67,
+      "Velocity": 45,
+      "Duration": 422416,
+      "SoundDuration": 422416,
+      "Delta": 49757250
+    },
+    {
+      "NoteNumber": 67,
+      "Velocity": 45,
+      "Duration": 3619472,
+      "SoundDuration": 3619472,
+      "Delta": 50179667
+    },
+    {
+      "NoteNumber": 55,
+      "Velocity": 32,
+      "Duration": 418597,
+      "SoundDuration": 418597,
+      "Delta": 50179667
+    },
+    {
+      "NoteNumber": 38,
+      "Velocity": 35,
+      "Duration": 5130374,
+      "SoundDuration": 5130374,
+      "Delta": 50179667
+    },
+    {
+      "NoteNumber": 50,
+      "Velocity": 35,
+      "Duration": 5130374,
+      "SoundDuration": 5130374,
+      "Delta": 50179667
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 26,
+      "Duration": 409639,
+      "SoundDuration": 409639,
+      "Delta": 50598264
+    },
+    {
+      "NoteNumber": 65,
+      "Velocity": 26,
+      "Duration": 400973,
+      "SoundDuration": 400973,
+      "Delta": 51007903
+    },
+    {
+      "NoteNumber": 55,
+      "Velocity": 32,
+      "Duration": 394788,
+      "SoundDuration": 394788,
+      "Delta": 51408876
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 27,
+      "Duration": 394788,
+      "SoundDuration": 394788,
+      "Delta": 51803665
+    },
+    {
+      "NoteNumber": 65,
+      "Velocity": 25,
+      "Duration": 394788,
+      "SoundDuration": 394788,
+      "Delta": 52198454
+    },
+    {
+      "NoteNumber": 55,
+      "Velocity": 31,
+      "Duration": 394788,
+      "SoundDuration": 394788,
+      "Delta": 52593242
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 27,
+      "Duration": 394788,
+      "SoundDuration": 394788,
+      "Delta": 52988031
+    },
+    {
+      "NoteNumber": 65,
+      "Velocity": 25,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 53382820
+    },
+    {
+      "NoteNumber": 67,
+      "Velocity": 50,
+      "Duration": 1100616,
+      "SoundDuration": 1100616,
+      "Delta": 53799139
+    },
+    {
+      "NoteNumber": 55,
+      "Velocity": 30,
+      "Duration": 481927,
+      "SoundDuration": 481927,
+      "Delta": 53799139
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 25,
+      "Duration": 481927,
+      "SoundDuration": 481927,
+      "Delta": 54281067
+    },
+    {
+      "NoteNumber": 65,
+      "Velocity": 22,
+      "Duration": 547046,
+      "SoundDuration": 547046,
+      "Delta": 54762995
+    },
+    {
+      "NoteNumber": 67,
+      "Velocity": 50,
+      "Duration": 410284,
+      "SoundDuration": 410284,
+      "Delta": 54899756
+    },
+    {
+      "NoteNumber": 67,
+      "Velocity": 57,
+      "Duration": 3879640,
+      "SoundDuration": 3879640,
+      "Delta": 55310041
+    },
+    {
+      "NoteNumber": 55,
+      "Velocity": 33,
+      "Duration": 440237,
+      "SoundDuration": 440237,
+      "Delta": 55310041
+    },
+    {
+      "NoteNumber": 36,
+      "Velocity": 40,
+      "Duration": 1281988,
+      "SoundDuration": 1281988,
+      "Delta": 55310041
+    },
+    {
+      "NoteNumber": 48,
+      "Velocity": 40,
+      "Duration": 1281988,
+      "SoundDuration": 1281988,
+      "Delta": 55310041
+    },
+    {
+      "NoteNumber": 60,
+      "Velocity": 27,
+      "Duration": 420875,
+      "SoundDuration": 420875,
+      "Delta": 55750278
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 27,
+      "Duration": 420875,
+      "SoundDuration": 420875,
+      "Delta": 56171154
+    },
+    {
+      "NoteNumber": 55,
+      "Velocity": 40,
+      "Duration": 445335,
+      "SoundDuration": 445335,
+      "Delta": 56592029
+    },
+    {
+      "NoteNumber": 47,
+      "Velocity": 46,
+      "Duration": 1277974,
+      "SoundDuration": 1277974,
+      "Delta": 56592029
+    },
+    {
+      "NoteNumber": 35,
+      "Velocity": 46,
+      "Duration": 1277974,
+      "SoundDuration": 1277974,
+      "Delta": 56592029
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 33,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 57037364
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 33,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 57453684
+    },
+    {
+      "NoteNumber": 55,
+      "Velocity": 38,
+      "Duration": 455892,
+      "SoundDuration": 455892,
+      "Delta": 57870003
+    },
+    {
+      "NoteNumber": 34,
+      "Velocity": 53,
+      "Duration": 2727307,
+      "SoundDuration": 2727307,
+      "Delta": 57870003
+    },
+    {
+      "NoteNumber": 46,
+      "Velocity": 53,
+      "Duration": 2727307,
+      "SoundDuration": 2727307,
+      "Delta": 57870003
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 42,
+      "Duration": 433492,
+      "SoundDuration": 433492,
+      "Delta": 58325896
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 47,
+      "Duration": 430292,
+      "SoundDuration": 430292,
+      "Delta": 58759388
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 56,
+      "Duration": 1407629,
+      "SoundDuration": 1407629,
+      "Delta": 59189681
+    },
+    {
+      "NoteNumber": 54,
+      "Velocity": 41,
+      "Duration": 478812,
+      "SoundDuration": 478812,
+      "Delta": 59189681
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 35,
+      "Duration": 455892,
+      "SoundDuration": 455892,
+      "Delta": 59668494
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 27,
+      "Duration": 472925,
+      "SoundDuration": 472925,
+      "Delta": 60124386
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 65,
+      "Duration": 2583277,
+      "SoundDuration": 2583277,
+      "Delta": 60597311
+    },
+    {
+      "NoteNumber": 54,
+      "Velocity": 38,
+      "Duration": 461467,
+      "SoundDuration": 461467,
+      "Delta": 60597311
+    },
+    {
+      "NoteNumber": 35,
+      "Velocity": 42,
+      "Duration": 2583277,
+      "SoundDuration": 2583277,
+      "Delta": 60597311
+    },
+    {
+      "NoteNumber": 47,
+      "Velocity": 42,
+      "Duration": 2583277,
+      "SoundDuration": 2583277,
+      "Delta": 60597311
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 32,
+      "Duration": 419309,
+      "SoundDuration": 419309,
+      "Delta": 61058778
+    },
+    {
+      "NoteNumber": 62,
+      "Velocity": 27,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 61478088
+    },
+    {
+      "NoteNumber": 54,
+      "Velocity": 33,
+      "Duration": 450552,
+      "SoundDuration": 450552,
+      "Delta": 61894407
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 27,
+      "Duration": 419309,
+      "SoundDuration": 419309,
+      "Delta": 62344959
+    },
+    {
+      "NoteNumber": 62,
+      "Velocity": 27,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 62764269
+    },
+    {
+      "NoteNumber": 67,
+      "Velocity": 56,
+      "Duration": 1305786,
+      "SoundDuration": 1305786,
+      "Delta": 63180588
+    },
+    {
+      "NoteNumber": 55,
+      "Velocity": 35,
+      "Duration": 430292,
+      "SoundDuration": 430292,
+      "Delta": 63180588
+    },
+    {
+      "NoteNumber": 40,
+      "Velocity": 41,
+      "Duration": 1305786,
+      "SoundDuration": 1305786,
+      "Delta": 63180588
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 27,
+      "Duration": 435255,
+      "SoundDuration": 435255,
+      "Delta": 63610881
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 27,
+      "Duration": 440237,
+      "SoundDuration": 440237,
+      "Delta": 64046137
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 47,
+      "Duration": 1414152,
+      "SoundDuration": 1414152,
+      "Delta": 64486374
+    },
+    {
+      "NoteNumber": 52,
+      "Velocity": 35,
+      "Duration": 445335,
+      "SoundDuration": 445335,
+      "Delta": 64486374
+    },
+    {
+      "NoteNumber": 43,
+      "Velocity": 40,
+      "Duration": 1414152,
+      "SoundDuration": 1414152,
+      "Delta": 64486374
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 27,
+      "Duration": 451219,
+      "SoundDuration": 451219,
+      "Delta": 64931709
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 23,
+      "Duration": 517598,
+      "SoundDuration": 517598,
+      "Delta": 65382929
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 53,
+      "Duration": 2557759,
+      "SoundDuration": 2557759,
+      "Delta": 65900527
+    },
+    {
+      "NoteNumber": 54,
+      "Velocity": 41,
+      "Duration": 455892,
+      "SoundDuration": 455892,
+      "Delta": 65900527
+    },
+    {
+      "NoteNumber": 42,
+      "Velocity": 46,
+      "Duration": 2557759,
+      "SoundDuration": 2557759,
+      "Delta": 65900527
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 35,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 66356420
+    },
+    {
+      "NoteNumber": 62,
+      "Velocity": 32,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 66772739
+    },
+    {
+      "NoteNumber": 54,
+      "Velocity": 38,
+      "Duration": 445335,
+      "SoundDuration": 445335,
+      "Delta": 67189059
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 31,
+      "Duration": 411946,
+      "SoundDuration": 411946,
+      "Delta": 67634394
+    },
+    {
+      "NoteNumber": 62,
+      "Velocity": 28,
+      "Duration": 411946,
+      "SoundDuration": 411946,
+      "Delta": 68046340
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 47,
+      "Duration": 2786989,
+      "SoundDuration": 2786989,
+      "Delta": 68458287
+    },
+    {
+      "NoteNumber": 54,
+      "Velocity": 31,
+      "Duration": 440237,
+      "SoundDuration": 440237,
+      "Delta": 68458287
+    },
+    {
+      "NoteNumber": 30,
+      "Velocity": 35,
+      "Duration": 2786989,
+      "SoundDuration": 2786989,
+      "Delta": 68458287
+    },
+    {
+      "NoteNumber": 42,
+      "Velocity": 35,
+      "Duration": 2786989,
+      "SoundDuration": 2786989,
+      "Delta": 68458287
+    },
+    {
+      "NoteNumber": 58,
+      "Velocity": 26,
+      "Duration": 440237,
+      "SoundDuration": 440237,
+      "Delta": 68898524
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 23,
+      "Duration": 440237,
+      "SoundDuration": 440237,
+      "Delta": 69338762
+    },
+    {
+      "NoteNumber": 54,
+      "Velocity": 31,
+      "Duration": 467180,
+      "SoundDuration": 467180,
+      "Delta": 69779000
+    },
+    {
+      "NoteNumber": 58,
+      "Velocity": 26,
+      "Duration": 467180,
+      "SoundDuration": 467180,
+      "Delta": 70246180
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 23,
+      "Duration": 531914,
+      "SoundDuration": 531914,
+      "Delta": 70713361
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 32,
+      "Duration": 493811,
+      "SoundDuration": 493811,
+      "Delta": 71245276
+    },
+    {
+      "NoteNumber": 35,
+      "Velocity": 35,
+      "Duration": 6369906,
+      "SoundDuration": 6369906,
+      "Delta": 71245276
+    },
+    {
+      "NoteNumber": 47,
+      "Velocity": 35,
+      "Duration": 6369906,
+      "SoundDuration": 6369906,
+      "Delta": 71245276
+    },
+    {
+      "NoteNumber": 62,
+      "Velocity": 27,
+      "Duration": 453605,
+      "SoundDuration": 453605,
+      "Delta": 71739088
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 25,
+      "Duration": 418838,
+      "SoundDuration": 418838,
+      "Delta": 72192693
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 27,
+      "Duration": 398882,
+      "SoundDuration": 398882,
+      "Delta": 72611532
+    },
+    {
+      "NoteNumber": 62,
+      "Velocity": 26,
+      "Duration": 382994,
+      "SoundDuration": 382994,
+      "Delta": 73010415
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 26,
+      "Duration": 382995,
+      "SoundDuration": 382995,
+      "Delta": 73393410
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 41,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 73776405
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 38,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 74192724
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 38,
+      "Duration": 461467,
+      "SoundDuration": 461467,
+      "Delta": 74609044
+    },
+    {
+      "NoteNumber": 71,
+      "Velocity": 56,
+      "Duration": 1312711,
+      "SoundDuration": 1312711,
+      "Delta": 75070511
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 41,
+      "Duration": 425622,
+      "SoundDuration": 425622,
+      "Delta": 75070511
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 38,
+      "Duration": 425622,
+      "SoundDuration": 425622,
+      "Delta": 75496134
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 35,
+      "Duration": 461467,
+      "SoundDuration": 461467,
+      "Delta": 75921756
+    },
+    {
+      "NoteNumber": 72,
+      "Velocity": 63,
+      "Duration": 3676411,
+      "SoundDuration": 3676411,
+      "Delta": 76383223
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 41,
+      "Duration": 419166,
+      "SoundDuration": 419166,
+      "Delta": 76383223
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 41,
+      "Duration": 410762,
+      "SoundDuration": 410762,
+      "Delta": 76802390
+    },
+    {
+      "NoteNumber": 67,
+      "Velocity": 45,
+      "Duration": 402029,
+      "SoundDuration": 402029,
+      "Delta": 77213153
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 47,
+      "Duration": 395300,
+      "SoundDuration": 395300,
+      "Delta": 77615182
+    },
+    {
+      "NoteNumber": 52,
+      "Velocity": 53,
+      "Duration": 1206408,
+      "SoundDuration": 1206408,
+      "Delta": 77615182
+    },
+    {
+      "NoteNumber": 40,
+      "Velocity": 53,
+      "Duration": 1206408,
+      "SoundDuration": 1206408,
+      "Delta": 77615182
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 53,
+      "Duration": 394788,
+      "SoundDuration": 394788,
+      "Delta": 78010483
+    },
+    {
+      "NoteNumber": 67,
+      "Velocity": 56,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 78405271
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 61,
+      "Duration": 430107,
+      "SoundDuration": 430107,
+      "Delta": 78821591
+    },
+    {
+      "NoteNumber": 43,
+      "Velocity": 60,
+      "Duration": 1238044,
+      "SoundDuration": 1238044,
+      "Delta": 78821591
+    },
+    {
+      "NoteNumber": 55,
+      "Velocity": 60,
+      "Duration": 1238044,
+      "SoundDuration": 1238044,
+      "Delta": 78821591
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 60,
+      "Duration": 399928,
+      "SoundDuration": 399928,
+      "Delta": 79251699
+    },
+    {
+      "NoteNumber": 67,
+      "Velocity": 56,
+      "Duration": 408008,
+      "SoundDuration": 408008,
+      "Delta": 79651627
+    },
+    {
+      "NoteNumber": 70,
+      "Velocity": 56,
+      "Duration": 1368778,
+      "SoundDuration": 1368778,
+      "Delta": 80059635
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 52,
+      "Duration": 428502,
+      "SoundDuration": 428502,
+      "Delta": 80059635
+    },
+    {
+      "NoteNumber": 40,
+      "Velocity": 48,
+      "Duration": 1368778,
+      "SoundDuration": 1368778,
+      "Delta": 80059635
+    },
+    {
+      "NoteNumber": 52,
+      "Velocity": 48,
+      "Duration": 1368778,
+      "SoundDuration": 1368778,
+      "Delta": 80059635
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 46,
+      "Duration": 454677,
+      "SoundDuration": 454677,
+      "Delta": 80488137
+    },
+    {
+      "NoteNumber": 67,
+      "Velocity": 31,
+      "Duration": 485598,
+      "SoundDuration": 485598,
+      "Delta": 80942815
+    },
+    {
+      "NoteNumber": 71,
+      "Velocity": 56,
+      "Duration": 3807968,
+      "SoundDuration": 3807968,
+      "Delta": 81428414
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 37,
+      "Duration": 455892,
+      "SoundDuration": 455892,
+      "Delta": 81428414
+    },
+    {
+      "NoteNumber": 47,
+      "Velocity": 42,
+      "Duration": 6523146,
+      "SoundDuration": 6523146,
+      "Delta": 81428414
+    },
+    {
+      "NoteNumber": 35,
+      "Velocity": 42,
+      "Duration": 6523146,
+      "SoundDuration": 6523146,
+      "Delta": 81428414
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 35,
+      "Duration": 420875,
+      "SoundDuration": 420875,
+      "Delta": 81884306
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 35,
+      "Duration": 404040,
+      "SoundDuration": 404040,
+      "Delta": 82305181
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 40,
+      "Duration": 425622,
+      "SoundDuration": 425622,
+      "Delta": 82709222
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 35,
+      "Duration": 394788,
+      "SoundDuration": 394788,
+      "Delta": 83134844
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 35,
+      "Duration": 394788,
+      "SoundDuration": 394788,
+      "Delta": 83529633
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 41,
+      "Duration": 435255,
+      "SoundDuration": 435255,
+      "Delta": 83924421
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 37,
+      "Duration": 407332,
+      "SoundDuration": 407332,
+      "Delta": 84359677
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 33,
+      "Duration": 469373,
+      "SoundDuration": 469373,
+      "Delta": 84767009
+    },
+    {
+      "NoteNumber": 71,
+      "Velocity": 56,
+      "Duration": 1416761,
+      "SoundDuration": 1416761,
+      "Delta": 85236382
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 41,
+      "Duration": 461467,
+      "SoundDuration": 461467,
+      "Delta": 85236382
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 37,
+      "Duration": 461467,
+      "SoundDuration": 461467,
+      "Delta": 85697850
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 37,
+      "Duration": 493826,
+      "SoundDuration": 493826,
+      "Delta": 86159317
+    },
+    {
+      "NoteNumber": 72,
+      "Velocity": 63,
+      "Duration": 3750165,
+      "SoundDuration": 3750165,
+      "Delta": 86653144
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 41,
+      "Duration": 467180,
+      "SoundDuration": 467180,
+      "Delta": 86653144
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 45,
+      "Duration": 422693,
+      "SoundDuration": 422693,
+      "Delta": 87120325
+    },
+    {
+      "NoteNumber": 67,
+      "Velocity": 52,
+      "Duration": 408541,
+      "SoundDuration": 408541,
+      "Delta": 87543018
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 55,
+      "Duration": 398882,
+      "SoundDuration": 398882,
+      "Delta": 87951560
+    },
+    {
+      "NoteNumber": 52,
+      "Velocity": 50,
+      "Duration": 1218641,
+      "SoundDuration": 1218641,
+      "Delta": 87951560
+    },
+    {
+      "NoteNumber": 40,
+      "Velocity": 50,
+      "Duration": 1218641,
+      "SoundDuration": 1218641,
+      "Delta": 87951560
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 56,
+      "Duration": 398883,
+      "SoundDuration": 398883,
+      "Delta": 88350443
+    },
+    {
+      "NoteNumber": 67,
+      "Velocity": 57,
+      "Duration": 420875,
+      "SoundDuration": 420875,
+      "Delta": 88749326
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 60,
+      "Duration": 403063,
+      "SoundDuration": 403063,
+      "Delta": 89170202
+    },
+    {
+      "NoteNumber": 43,
+      "Velocity": 55,
+      "Duration": 1233107,
+      "SoundDuration": 1233107,
+      "Delta": 89170202
+    },
+    {
+      "NoteNumber": 55,
+      "Velocity": 55,
+      "Duration": 1233107,
+      "SoundDuration": 1233107,
+      "Delta": 89170202
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 60,
+      "Duration": 394788,
+      "SoundDuration": 394788,
+      "Delta": 89573265
+    },
+    {
+      "NoteNumber": 67,
+      "Velocity": 56,
+      "Duration": 435255,
+      "SoundDuration": 435255,
+      "Delta": 89968054
+    },
+    {
+      "NoteNumber": 70,
+      "Velocity": 56,
+      "Duration": 1349323,
+      "SoundDuration": 1349323,
+      "Delta": 90403309
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 52,
+      "Duration": 478812,
+      "SoundDuration": 478812,
+      "Delta": 90403309
+    },
+    {
+      "NoteNumber": 52,
+      "Velocity": 41,
+      "Duration": 1349323,
+      "SoundDuration": 1349323,
+      "Delta": 90403309
+    },
+    {
+      "NoteNumber": 40,
+      "Velocity": 41,
+      "Duration": 1349323,
+      "SoundDuration": 1349323,
+      "Delta": 90403309
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 41,
+      "Duration": 435255,
+      "SoundDuration": 435255,
+      "Delta": 90882122
+    },
+    {
+      "NoteNumber": 67,
+      "Velocity": 35,
+      "Duration": 435255,
+      "SoundDuration": 435255,
+      "Delta": 91317378
+    },
+    {
+      "NoteNumber": 71,
+      "Velocity": 56,
+      "Duration": 2580849,
+      "SoundDuration": 2580849,
+      "Delta": 91752633
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 41,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 91752633
+    },
+    {
+      "NoteNumber": 35,
+      "Velocity": 37,
+      "Duration": 2580849,
+      "SoundDuration": 2580849,
+      "Delta": 91752633
+    },
+    {
+      "NoteNumber": 47,
+      "Velocity": 37,
+      "Duration": 2580849,
+      "SoundDuration": 2580849,
+      "Delta": 91752633
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 35,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 92168953
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 33,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 92585273
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 35,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 93001592
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 30,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 93417912
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 30,
+      "Duration": 499250,
+      "SoundDuration": 499250,
+      "Delta": 93834232
+    },
+    {
+      "NoteNumber": 71,
+      "Velocity": 47,
+      "Duration": 2658511,
+      "SoundDuration": 2658511,
+      "Delta": 94333483
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 35,
+      "Duration": 440237,
+      "SoundDuration": 440237,
+      "Delta": 94333483
+    },
+    {
+      "NoteNumber": 32,
+      "Velocity": 35,
+      "Duration": 2658511,
+      "SoundDuration": 2658511,
+      "Delta": 94333483
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 35,
+      "Duration": 2658511,
+      "SoundDuration": 2658511,
+      "Delta": 94333483
+    },
+    {
+      "NoteNumber": 62,
+      "Velocity": 27,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 94773720
+    },
+    {
+      "NoteNumber": 65,
+      "Velocity": 27,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 95190040
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 30,
+      "Duration": 440237,
+      "SoundDuration": 440237,
+      "Delta": 95606360
+    },
+    {
+      "NoteNumber": 62,
+      "Velocity": 25,
+      "Duration": 420875,
+      "SoundDuration": 420875,
+      "Delta": 96046597
+    },
+    {
+      "NoteNumber": 65,
+      "Velocity": 25,
+      "Duration": 524521,
+      "SoundDuration": 524521,
+      "Delta": 96467473
+    },
+    {
+      "NoteNumber": 71,
+      "Velocity": 47,
+      "Duration": 2656799,
+      "SoundDuration": 2656799,
+      "Delta": 96991994
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 30,
+      "Duration": 461467,
+      "SoundDuration": 461467,
+      "Delta": 96991994
+    },
+    {
+      "NoteNumber": 41,
+      "Velocity": 35,
+      "Duration": 2656799,
+      "SoundDuration": 2656799,
+      "Delta": 96991994
+    },
+    {
+      "NoteNumber": 29,
+      "Velocity": 35,
+      "Duration": 2656799,
+      "SoundDuration": 2656799,
+      "Delta": 96991994
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 27,
+      "Duration": 461467,
+      "SoundDuration": 461467,
+      "Delta": 97453461
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 25,
+      "Duration": 461467,
+      "SoundDuration": 461467,
+      "Delta": 97914929
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 30,
+      "Duration": 430292,
+      "SoundDuration": 430292,
+      "Delta": 98376396
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 26,
+      "Duration": 421052,
+      "SoundDuration": 421052,
+      "Delta": 98806689
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 26,
+      "Duration": 421052,
+      "SoundDuration": 421052,
+      "Delta": 99227741
+    },
+    {
+      "NoteNumber": 69,
+      "Velocity": 52,
+      "Duration": 2516484,
+      "SoundDuration": 2516484,
+      "Delta": 99648794
+    },
+    {
+      "NoteNumber": 57,
+      "Velocity": 30,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 99648794
+    },
+    {
+      "NoteNumber": 30,
+      "Velocity": 41,
+      "Duration": 2516484,
+      "SoundDuration": 2516484,
+      "Delta": 99648794
+    },
+    {
+      "NoteNumber": 42,
+      "Velocity": 41,
+      "Duration": 2516484,
+      "SoundDuration": 2516484,
+      "Delta": 99648794
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 26,
+      "Duration": 403063,
+      "SoundDuration": 403063,
+      "Delta": 100065114
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 26,
+      "Duration": 403063,
+      "SoundDuration": 403063,
+      "Delta": 100468177
+    },
+    {
+      "NoteNumber": 57,
+      "Velocity": 35,
+      "Duration": 398882,
+      "SoundDuration": 398882,
+      "Delta": 100871240
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 31,
+      "Duration": 411946,
+      "SoundDuration": 411946,
+      "Delta": 101270123
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 31,
+      "Duration": 483208,
+      "SoundDuration": 483208,
+      "Delta": 101682070
+    },
+    {
+      "NoteNumber": 67,
+      "Velocity": 56,
+      "Duration": 2589224,
+      "SoundDuration": 2589224,
+      "Delta": 102165278
+    },
+    {
+      "NoteNumber": 55,
+      "Velocity": 41,
+      "Duration": 420875,
+      "SoundDuration": 420875,
+      "Delta": 102165278
+    },
+    {
+      "NoteNumber": 47,
+      "Velocity": 41,
+      "Duration": 2589224,
+      "SoundDuration": 2589224,
+      "Delta": 102165278
+    },
+    {
+      "NoteNumber": 35,
+      "Velocity": 41,
+      "Duration": 2589224,
+      "SoundDuration": 2589224,
+      "Delta": 102165278
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 38,
+      "Duration": 420875,
+      "SoundDuration": 420875,
+      "Delta": 102586154
+    },
+    {
+      "NoteNumber": 62,
+      "Velocity": 38,
+      "Duration": 420875,
+      "SoundDuration": 420875,
+      "Delta": 103007029
+    },
+    {
+      "NoteNumber": 55,
+      "Velocity": 41,
+      "Duration": 420875,
+      "SoundDuration": 420875,
+      "Delta": 103427904
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 38,
+      "Duration": 420875,
+      "SoundDuration": 420875,
+      "Delta": 103848780
+    },
+    {
+      "NoteNumber": 62,
+      "Velocity": 38,
+      "Duration": 484848,
+      "SoundDuration": 484848,
+      "Delta": 104269655
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 52,
+      "Duration": 2763669,
+      "SoundDuration": 2763669,
+      "Delta": 104754503
+    },
+    {
+      "NoteNumber": 54,
+      "Velocity": 41,
+      "Duration": 470096,
+      "SoundDuration": 470096,
+      "Delta": 104754503
+    },
+    {
+      "NoteNumber": 36,
+      "Velocity": 45,
+      "Duration": 2763669,
+      "SoundDuration": 2763669,
+      "Delta": 104754503
+    },
+    {
+      "NoteNumber": 48,
+      "Velocity": 45,
+      "Duration": 2763669,
+      "SoundDuration": 2763669,
+      "Delta": 104754503
+    },
+    {
+      "NoteNumber": 57,
+      "Velocity": 38,
+      "Duration": 448004,
+      "SoundDuration": 448004,
+      "Delta": 105224600
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 38,
+      "Duration": 428011,
+      "SoundDuration": 428011,
+      "Delta": 105672604
+    },
+    {
+      "NoteNumber": 54,
+      "Velocity": 35,
+      "Duration": 435255,
+      "SoundDuration": 435255,
+      "Delta": 106100615
+    },
+    {
+      "NoteNumber": 57,
+      "Velocity": 31,
+      "Duration": 435255,
+      "SoundDuration": 435255,
+      "Delta": 106535871
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 26,
+      "Duration": 547045,
+      "SoundDuration": 547045,
+      "Delta": 106971127
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 47,
+      "Duration": 2626883,
+      "SoundDuration": 2626883,
+      "Delta": 107518173
+    },
+    {
+      "NoteNumber": 49,
+      "Velocity": 30,
+      "Duration": 445335,
+      "SoundDuration": 445335,
+      "Delta": 107518173
+    },
+    {
+      "NoteNumber": 37,
+      "Velocity": 35,
+      "Duration": 2626883,
+      "SoundDuration": 2626883,
+      "Delta": 107518173
+    },
+    {
+      "NoteNumber": 54,
+      "Velocity": 27,
+      "Duration": 445335,
+      "SoundDuration": 445335,
+      "Delta": 107963508
+    },
+    {
+      "NoteNumber": 57,
+      "Velocity": 27,
+      "Duration": 445335,
+      "SoundDuration": 445335,
+      "Delta": 108408843
+    },
+    {
+      "NoteNumber": 49,
+      "Velocity": 30,
+      "Duration": 430292,
+      "SoundDuration": 430292,
+      "Delta": 108854178
+    },
+    {
+      "NoteNumber": 54,
+      "Velocity": 27,
+      "Duration": 430292,
+      "SoundDuration": 430292,
+      "Delta": 109284470
+    },
+    {
+      "NoteNumber": 57,
+      "Velocity": 27,
+      "Duration": 430292,
+      "SoundDuration": 430292,
+      "Delta": 109714763
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 47,
+      "Duration": 1398073,
+      "SoundDuration": 1398073,
+      "Delta": 110145056
+    },
+    {
+      "NoteNumber": 49,
+      "Velocity": 30,
+      "Duration": 440237,
+      "SoundDuration": 440237,
+      "Delta": 110145056
+    },
+    {
+      "NoteNumber": 37,
+      "Velocity": 35,
+      "Duration": 3050239,
+      "SoundDuration": 3050239,
+      "Delta": 110145056
+    },
+    {
+      "NoteNumber": 54,
+      "Velocity": 26,
+      "Duration": 440237,
+      "SoundDuration": 440237,
+      "Delta": 110585293
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 26,
+      "Duration": 517598,
+      "SoundDuration": 517598,
+      "Delta": 111025531
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 41,
+      "Duration": 1652165,
+      "SoundDuration": 1652165,
+      "Delta": 111543129
+    },
+    {
+      "NoteNumber": 49,
+      "Velocity": 30,
+      "Duration": 484848,
+      "SoundDuration": 484848,
+      "Delta": 111543129
+    },
+    {
+      "NoteNumber": 53,
+      "Velocity": 26,
+      "Duration": 539374,
+      "SoundDuration": 539374,
+      "Delta": 112027978
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 22,
+      "Duration": 627943,
+      "SoundDuration": 627943,
+      "Delta": 112567352
+    },
+    {
+      "NoteNumber": 54,
+      "Velocity": 32,
+      "Duration": 539374,
+      "SoundDuration": 539374,
+      "Delta": 113195295
+    },
+    {
+      "NoteNumber": 37,
+      "Velocity": 35,
+      "Duration": 5607688,
+      "SoundDuration": 5607688,
+      "Delta": 113195295
+    },
+    {
+      "NoteNumber": 42,
+      "Velocity": 35,
+      "Duration": 5607688,
+      "SoundDuration": 5607688,
+      "Delta": 113195295
+    },
+    {
+      "NoteNumber": 30,
+      "Velocity": 35,
+      "Duration": 5607688,
+      "SoundDuration": 5607688,
+      "Delta": 113195295
+    },
+    {
+      "NoteNumber": 57,
+      "Velocity": 26,
+      "Duration": 497512,
+      "SoundDuration": 497512,
+      "Delta": 113734670
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 26,
+      "Duration": 472924,
+      "SoundDuration": 472924,
+      "Delta": 114232182
+    },
+    {
+      "NoteNumber": 57,
+      "Velocity": 30,
+      "Duration": 430292,
+      "SoundDuration": 430292,
+      "Delta": 114705107
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 26,
+      "Duration": 403063,
+      "SoundDuration": 403063,
+      "Delta": 115135400
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 26,
+      "Duration": 403063,
+      "SoundDuration": 403063,
+      "Delta": 115538463
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 30,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 115941526
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 26,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 116357846
+    },
+    {
+      "NoteNumber": 69,
+      "Velocity": 26,
+      "Duration": 461467,
+      "SoundDuration": 461467,
+      "Delta": 116774166
+    },
+    {
+      "NoteNumber": 73,
+      "Velocity": 56,
+      "Duration": 1155596,
+      "SoundDuration": 1155596,
+      "Delta": 117235633
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 41,
+      "Duration": 506328,
+      "SoundDuration": 506328,
+      "Delta": 117235633
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 33,
+      "Duration": 506329,
+      "SoundDuration": 506329,
+      "Delta": 117741962
+    },
+    {
+      "NoteNumber": 69,
+      "Velocity": 26,
+      "Duration": 554692,
+      "SoundDuration": 554692,
+      "Delta": 118248291
+    },
+    {
+      "NoteNumber": 73,
+      "Velocity": 56,
+      "Duration": 411754,
+      "SoundDuration": 411754,
+      "Delta": 118391230
+    },
+    {
+      "NoteNumber": 73,
+      "Velocity": 61,
+      "Duration": 3725363,
+      "SoundDuration": 3725363,
+      "Delta": 118802984
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 37,
+      "Duration": 430986,
+      "SoundDuration": 430986,
+      "Delta": 118802984
+    },
+    {
+      "NoteNumber": 49,
+      "Velocity": 33,
+      "Duration": 5252440,
+      "SoundDuration": 5252440,
+      "Delta": 118802984
+    },
+    {
+      "NoteNumber": 53,
+      "Velocity": 33,
+      "Duration": 5252440,
+      "SoundDuration": 5252440,
+      "Delta": 118802984
+    },
+    {
+      "NoteNumber": 41,
+      "Velocity": 33,
+      "Duration": 5252440,
+      "SoundDuration": 5252440,
+      "Delta": 118802984
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 32,
+      "Duration": 418644,
+      "SoundDuration": 418644,
+      "Delta": 119233970
+    },
+    {
+      "NoteNumber": 71,
+      "Velocity": 32,
+      "Duration": 406884,
+      "SoundDuration": 406884,
+      "Delta": 119652614
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 41,
+      "Duration": 398882,
+      "SoundDuration": 398882,
+      "Delta": 120059499
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 35,
+      "Duration": 398882,
+      "SoundDuration": 398882,
+      "Delta": 120458382
+    },
+    {
+      "NoteNumber": 71,
+      "Velocity": 35,
+      "Duration": 398882,
+      "SoundDuration": 398882,
+      "Delta": 120857265
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 41,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 121256148
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 35,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 121672468
+    },
+    {
+      "NoteNumber": 71,
+      "Velocity": 35,
+      "Duration": 439560,
+      "SoundDuration": 439560,
+      "Delta": 122088788
+    },
+    {
+      "NoteNumber": 73,
+      "Velocity": 56,
+      "Duration": 1104660,
+      "SoundDuration": 1104660,
+      "Delta": 122528348
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 41,
+      "Duration": 481927,
+      "SoundDuration": 481927,
+      "Delta": 122528348
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 35,
+      "Duration": 481927,
+      "SoundDuration": 481927,
+      "Delta": 123010276
+    },
+    {
+      "NoteNumber": 71,
+      "Velocity": 35,
+      "Duration": 563221,
+      "SoundDuration": 563221,
+      "Delta": 123492203
+    },
+    {
+      "NoteNumber": 73,
+      "Velocity": 56,
+      "Duration": 422416,
+      "SoundDuration": 422416,
+      "Delta": 123633009
+    },
+    {
+      "NoteNumber": 73,
+      "Velocity": 65,
+      "Duration": 2454906,
+      "SoundDuration": 2454906,
+      "Delta": 124055425
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 41,
+      "Duration": 420298,
+      "SoundDuration": 420298,
+      "Delta": 124055425
+    },
+    {
+      "NoteNumber": 54,
+      "Velocity": 40,
+      "Duration": 2454906,
+      "SoundDuration": 2454906,
+      "Delta": 124055425
+    },
+    {
+      "NoteNumber": 42,
+      "Velocity": 40,
+      "Duration": 2454906,
+      "SoundDuration": 2454906,
+      "Delta": 124055425
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 38,
+      "Duration": 411196,
+      "SoundDuration": 411196,
+      "Delta": 124475723
+    },
+    {
+      "NoteNumber": 69,
+      "Velocity": 38,
+      "Duration": 402476,
+      "SoundDuration": 402476,
+      "Delta": 124886920
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 41,
+      "Duration": 395413,
+      "SoundDuration": 395413,
+      "Delta": 125289397
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 42,
+      "Duration": 395413,
+      "SoundDuration": 395413,
+      "Delta": 125684810
+    },
+    {
+      "NoteNumber": 69,
+      "Velocity": 45,
+      "Duration": 430107,
+      "SoundDuration": 430107,
+      "Delta": 126080223
+    },
+    {
+      "NoteNumber": 72,
+      "Velocity": 61,
+      "Duration": 1235838,
+      "SoundDuration": 1235838,
+      "Delta": 126510331
+    },
+    {
+      "NoteNumber": 60,
+      "Velocity": 46,
+      "Duration": 411946,
+      "SoundDuration": 411946,
+      "Delta": 126510331
+    },
+    {
+      "NoteNumber": 51,
+      "Velocity": 46,
+      "Duration": 1235838,
+      "SoundDuration": 1235838,
+      "Delta": 126510331
+    },
+    {
+      "NoteNumber": 39,
+      "Velocity": 46,
+      "Duration": 1235838,
+      "SoundDuration": 1235838,
+      "Delta": 126510331
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 42,
+      "Duration": 411946,
+      "SoundDuration": 411946,
+      "Delta": 126922277
+    },
+    {
+      "NoteNumber": 69,
+      "Velocity": 41,
+      "Duration": 411946,
+      "SoundDuration": 411946,
+      "Delta": 127334224
+    },
+    {
+      "NoteNumber": 73,
+      "Velocity": 63,
+      "Duration": 1402426,
+      "SoundDuration": 1402426,
+      "Delta": 127746170
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 47,
+      "Duration": 435255,
+      "SoundDuration": 435255,
+      "Delta": 127746170
+    },
+    {
+      "NoteNumber": 37,
+      "Velocity": 46,
+      "Duration": 1402426,
+      "SoundDuration": 1402426,
+      "Delta": 127746170
+    },
+    {
+      "NoteNumber": 49,
+      "Velocity": 46,
+      "Duration": 1402426,
+      "SoundDuration": 1402426,
+      "Delta": 127746170
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 42,
+      "Duration": 435255,
+      "SoundDuration": 435255,
+      "Delta": 128181426
+    },
+    {
+      "NoteNumber": 69,
+      "Velocity": 42,
+      "Duration": 531914,
+      "SoundDuration": 531914,
+      "Delta": 128616681
+    },
+    {
+      "NoteNumber": 75,
+      "Velocity": 65,
+      "Duration": 3739386,
+      "SoundDuration": 3739386,
+      "Delta": 129148596
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 52,
+      "Duration": 445335,
+      "SoundDuration": 445335,
+      "Delta": 129148596
+    },
+    {
+      "NoteNumber": 36,
+      "Velocity": 50,
+      "Duration": 3739386,
+      "SoundDuration": 3739386,
+      "Delta": 129148596
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 50,
+      "Duration": 3739386,
+      "SoundDuration": 3739386,
+      "Delta": 129148596
+    },
+    {
+      "NoteNumber": 48,
+      "Velocity": 50,
+      "Duration": 3739386,
+      "SoundDuration": 3739386,
+      "Delta": 129148596
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 50,
+      "Duration": 420875,
+      "SoundDuration": 420875,
+      "Delta": 129593931
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 48,
+      "Duration": 420875,
+      "SoundDuration": 420875,
+      "Delta": 130014807
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 53,
+      "Duration": 403063,
+      "SoundDuration": 403063,
+      "Delta": 130435682
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 50,
+      "Duration": 390777,
+      "SoundDuration": 390777,
+      "Delta": 130838745
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 50,
+      "Duration": 390777,
+      "SoundDuration": 390777,
+      "Delta": 131229523
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 56,
+      "Duration": 407331,
+      "SoundDuration": 407331,
+      "Delta": 131620301
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 52,
+      "Duration": 398883,
+      "SoundDuration": 398883,
+      "Delta": 132027633
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 52,
+      "Duration": 461467,
+      "SoundDuration": 461467,
+      "Delta": 132426516
+    },
+    {
+      "NoteNumber": 75,
+      "Velocity": 72,
+      "Duration": 1435568,
+      "SoundDuration": 1435568,
+      "Delta": 132887983
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 57,
+      "Duration": 440237,
+      "SoundDuration": 440237,
+      "Delta": 132887983
+    },
+    {
+      "NoteNumber": 36,
+      "Velocity": 48,
+      "Duration": 1435568,
+      "SoundDuration": 1435568,
+      "Delta": 132887983
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 48,
+      "Duration": 1435568,
+      "SoundDuration": 1435568,
+      "Delta": 132887983
+    },
+    {
+      "NoteNumber": 48,
+      "Velocity": 48,
+      "Duration": 1435568,
+      "SoundDuration": 1435568,
+      "Delta": 132887983
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 56,
+      "Duration": 440237,
+      "SoundDuration": 440237,
+      "Delta": 133328221
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 56,
+      "Duration": 555092,
+      "SoundDuration": 555092,
+      "Delta": 133768458
+    },
+    {
+      "NoteNumber": 76,
+      "Velocity": 86,
+      "Duration": 2616609,
+      "SoundDuration": 2616609,
+      "Delta": 134323551
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 61,
+      "Duration": 440237,
+      "SoundDuration": 440237,
+      "Delta": 134323551
+    },
+    {
+      "NoteNumber": 37,
+      "Velocity": 55,
+      "Duration": 2616609,
+      "SoundDuration": 2616609,
+      "Delta": 134323551
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 55,
+      "Duration": 2616609,
+      "SoundDuration": 2616609,
+      "Delta": 134323551
+    },
+    {
+      "NoteNumber": 49,
+      "Velocity": 55,
+      "Duration": 2616609,
+      "SoundDuration": 2616609,
+      "Delta": 134323551
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 57,
+      "Duration": 407331,
+      "SoundDuration": 407331,
+      "Delta": 134763789
+    },
+    {
+      "NoteNumber": 73,
+      "Velocity": 55,
+      "Duration": 407331,
+      "SoundDuration": 407331,
+      "Delta": 135171121
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 52,
+      "Duration": 430107,
+      "SoundDuration": 430107,
+      "Delta": 135578453
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 48,
+      "Duration": 420875,
+      "SoundDuration": 420875,
+      "Delta": 136008561
+    },
+    {
+      "NoteNumber": 73,
+      "Velocity": 48,
+      "Duration": 510725,
+      "SoundDuration": 510725,
+      "Delta": 136429436
+    },
+    {
+      "NoteNumber": 75,
+      "Velocity": 65,
+      "Duration": 1372851,
+      "SoundDuration": 1372851,
+      "Delta": 136940161
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 45,
+      "Duration": 471747,
+      "SoundDuration": 471747,
+      "Delta": 136940161
+    },
+    {
+      "NoteNumber": 42,
+      "Velocity": 46,
+      "Duration": 1372851,
+      "SoundDuration": 1372851,
+      "Delta": 136940161
+    },
+    {
+      "NoteNumber": 30,
+      "Velocity": 46,
+      "Duration": 1372851,
+      "SoundDuration": 1372851,
+      "Delta": 136940161
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 41,
+      "Duration": 450551,
+      "SoundDuration": 450551,
+      "Delta": 137411909
+    },
+    {
+      "NoteNumber": 69,
+      "Velocity": 41,
+      "Duration": 450552,
+      "SoundDuration": 450552,
+      "Delta": 137862461
+    },
+    {
+      "NoteNumber": 73,
+      "Velocity": 56,
+      "Duration": 1515044,
+      "SoundDuration": 1515044,
+      "Delta": 138313013
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 40,
+      "Duration": 524521,
+      "SoundDuration": 524521,
+      "Delta": 138313013
+    },
+    {
+      "NoteNumber": 31,
+      "Velocity": 45,
+      "Duration": 1515044,
+      "SoundDuration": 1515044,
+      "Delta": 138313013
+    },
+    {
+      "NoteNumber": 43,
+      "Velocity": 45,
+      "Duration": 1515044,
+      "SoundDuration": 1515044,
+      "Delta": 138313013
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 38,
+      "Duration": 472925,
+      "SoundDuration": 472925,
+      "Delta": 138837534
+    },
+    {
+      "NoteNumber": 70,
+      "Velocity": 33,
+      "Duration": 517598,
+      "SoundDuration": 517598,
+      "Delta": 139310459
+    },
+    {
+      "NoteNumber": 72,
+      "Velocity": 52,
+      "Duration": 484848,
+      "SoundDuration": 484848,
+      "Delta": 139828058
+    },
+    {
+      "NoteNumber": 32,
+      "Velocity": 41,
+      "Duration": 5214220,
+      "SoundDuration": 5214220,
+      "Delta": 139828058
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 41,
+      "Duration": 5214220,
+      "SoundDuration": 5214220,
+      "Delta": 139828058
+    },
+    {
+      "NoteNumber": 60,
+      "Velocity": 52,
+      "Duration": 446017,
+      "SoundDuration": 446017,
+      "Delta": 140312906
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 52,
+      "Duration": 430986,
+      "SoundDuration": 430986,
+      "Delta": 140758923
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 65,
+      "Duration": 1297643,
+      "SoundDuration": 1297643,
+      "Delta": 141189909
+    },
+    {
+      "NoteNumber": 60,
+      "Velocity": 52,
+      "Duration": 420875,
+      "SoundDuration": 420875,
+      "Delta": 141610784
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 53,
+      "Duration": 455892,
+      "SoundDuration": 455892,
+      "Delta": 142031660
+    },
+    {
+      "NoteNumber": 69,
+      "Velocity": 77,
+      "Duration": 1248959,
+      "SoundDuration": 1248959,
+      "Delta": 142487552
+    },
+    {
+      "NoteNumber": 60,
+      "Velocity": 52,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 142903872
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 52,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 143320191
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 65,
+      "Duration": 1305767,
+      "SoundDuration": 1305767,
+      "Delta": 143736511
+    },
+    {
+      "NoteNumber": 60,
+      "Velocity": 52,
+      "Duration": 435255,
+      "SoundDuration": 435255,
+      "Delta": 144171767
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 53,
+      "Duration": 435255,
+      "SoundDuration": 435255,
+      "Delta": 144607022
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 53,
+      "Duration": 5175124,
+      "SoundDuration": 5175124,
+      "Delta": 145042278
+    },
+    {
+      "NoteNumber": 32,
+      "Velocity": 53,
+      "Duration": 5175124,
+      "SoundDuration": 5175124,
+      "Delta": 145042278
+    },
+    {
+      "NoteNumber": 60,
+      "Velocity": 52,
+      "Duration": 398883,
+      "SoundDuration": 398883,
+      "Delta": 145458598
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 52,
+      "Duration": 398882,
+      "SoundDuration": 398882,
+      "Delta": 145857481
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 65,
+      "Duration": 1303944,
+      "SoundDuration": 1303944,
+      "Delta": 146256364
+    },
+    {
+      "NoteNumber": 60,
+      "Velocity": 53,
+      "Duration": 403063,
+      "SoundDuration": 403063,
+      "Delta": 146686656
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 53,
+      "Duration": 470588,
+      "SoundDuration": 470588,
+      "Delta": 147089720
+    },
+    {
+      "NoteNumber": 57,
+      "Velocity": 76,
+      "Duration": 1338669,
+      "SoundDuration": 1338669,
+      "Delta": 147560308
+    },
+    {
+      "NoteNumber": 60,
+      "Velocity": 53,
+      "Duration": 446017,
+      "SoundDuration": 446017,
+      "Delta": 148018320
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 53,
+      "Duration": 434640,
+      "SoundDuration": 434640,
+      "Delta": 148464337
+    },
+    {
+      "NoteNumber": 54,
+      "Velocity": 60,
+      "Duration": 1318425,
+      "SoundDuration": 1318425,
+      "Delta": 148898978
+    },
+    {
+      "NoteNumber": 60,
+      "Velocity": 52,
+      "Duration": 425622,
+      "SoundDuration": 425622,
+      "Delta": 149324600
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 46,
+      "Duration": 467180,
+      "SoundDuration": 467180,
+      "Delta": 149750222
+    },
+    {
+      "NoteNumber": 52,
+      "Velocity": 52,
+      "Duration": 432190,
+      "SoundDuration": 432190,
+      "Delta": 150217403
+    },
+    {
+      "NoteNumber": 32,
+      "Velocity": 46,
+      "Duration": 5022926,
+      "SoundDuration": 5022926,
+      "Delta": 150217403
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 46,
+      "Duration": 5022926,
+      "SoundDuration": 5022926,
+      "Delta": 150217403
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 52,
+      "Duration": 421516,
+      "SoundDuration": 421516,
+      "Delta": 150649593
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 52,
+      "Duration": 411309,
+      "SoundDuration": 411309,
+      "Delta": 151071110
+    },
+    {
+      "NoteNumber": 73,
+      "Velocity": 65,
+      "Duration": 1231658,
+      "SoundDuration": 1231658,
+      "Delta": 151482419
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 52,
+      "Duration": 403063,
+      "SoundDuration": 403063,
+      "Delta": 151885482
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 47,
+      "Duration": 425532,
+      "SoundDuration": 425532,
+      "Delta": 152288546
+    },
+    {
+      "NoteNumber": 76,
+      "Velocity": 76,
+      "Duration": 1254051,
+      "SoundDuration": 1254051,
+      "Delta": 152714078
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 65,
+      "Duration": 421052,
+      "SoundDuration": 421052,
+      "Delta": 153126024
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 65,
+      "Duration": 421052,
+      "SoundDuration": 421052,
+      "Delta": 153547077
+    },
+    {
+      "NoteNumber": 73,
+      "Velocity": 65,
+      "Duration": 1272199,
+      "SoundDuration": 1272199,
+      "Delta": 153968129
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 53,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 154407690
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 50,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 154824009
+    },
+    {
+      "NoteNumber": 32,
+      "Velocity": 52,
+      "Duration": 5353071,
+      "SoundDuration": 5353071,
+      "Delta": 155240329
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 52,
+      "Duration": 5353071,
+      "SoundDuration": 5353071,
+      "Delta": 155240329
+    },
+    {
+      "NoteNumber": 52,
+      "Velocity": 52,
+      "Duration": 403063,
+      "SoundDuration": 403063,
+      "Delta": 155643392
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 52,
+      "Duration": 411946,
+      "SoundDuration": 411946,
+      "Delta": 156046456
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 61,
+      "Duration": 1294106,
+      "SoundDuration": 1294106,
+      "Delta": 156458402
+    },
+    {
+      "NoteNumber": 52,
+      "Velocity": 52,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 156874722
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 52,
+      "Duration": 461467,
+      "SoundDuration": 461467,
+      "Delta": 157291041
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 75,
+      "Duration": 1305767,
+      "SoundDuration": 1305767,
+      "Delta": 157752509
+    },
+    {
+      "NoteNumber": 52,
+      "Velocity": 48,
+      "Duration": 435255,
+      "SoundDuration": 435255,
+      "Delta": 158187764
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 48,
+      "Duration": 435255,
+      "SoundDuration": 435255,
+      "Delta": 158623020
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 65,
+      "Duration": 1535125,
+      "SoundDuration": 1535125,
+      "Delta": 159058276
+    },
+    {
+      "NoteNumber": 52,
+      "Velocity": 53,
+      "Duration": 472925,
+      "SoundDuration": 472925,
+      "Delta": 159531201
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 50,
+      "Duration": 589275,
+      "SoundDuration": 589275,
+      "Delta": 160004126
+    },
+    {
+      "NoteNumber": 51,
+      "Velocity": 65,
+      "Duration": 531914,
+      "SoundDuration": 531914,
+      "Delta": 160593401
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 46,
+      "Duration": 5064299,
+      "SoundDuration": 5064299,
+      "Delta": 160593401
+    },
+    {
+      "NoteNumber": 32,
+      "Velocity": 46,
+      "Duration": 5064299,
+      "SoundDuration": 5064299,
+      "Delta": 160593401
+    },
+    {
+      "NoteNumber": 57,
+      "Velocity": 52,
+      "Duration": 478812,
+      "SoundDuration": 478812,
+      "Delta": 161125316
+    },
+    {
+      "NoteNumber": 54,
+      "Velocity": 52,
+      "Duration": 407331,
+      "SoundDuration": 407331,
+      "Delta": 161604129
+    },
+    {
+      "NoteNumber": 60,
+      "Velocity": 53,
+      "Duration": 382994,
+      "SoundDuration": 382994,
+      "Delta": 162011461
+    },
+    {
+      "NoteNumber": 57,
+      "Velocity": 52,
+      "Duration": 382995,
+      "SoundDuration": 382995,
+      "Delta": 162394456
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 52,
+      "Duration": 380339,
+      "SoundDuration": 380339,
+      "Delta": 162777451
+    },
+    {
+      "NoteNumber": 60,
+      "Velocity": 52,
+      "Duration": 376379,
+      "SoundDuration": 376379,
+      "Delta": 163157790
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 52,
+      "Duration": 372479,
+      "SoundDuration": 372479,
+      "Delta": 163534170
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 52,
+      "Duration": 368220,
+      "SoundDuration": 368220,
+      "Delta": 163906650
+    },
+    {
+      "NoteNumber": 69,
+      "Velocity": 52,
+      "Duration": 435255,
+      "SoundDuration": 435255,
+      "Delta": 164274870
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 52,
+      "Duration": 459770,
+      "SoundDuration": 459770,
+      "Delta": 164710126
+    },
+    {
+      "NoteNumber": 72,
+      "Velocity": 52,
+      "Duration": 487804,
+      "SoundDuration": 487804,
+      "Delta": 165169896
+    },
+    {
+      "NoteNumber": 52,
+      "Velocity": 65,
+      "Duration": 435255,
+      "SoundDuration": 435255,
+      "Delta": 165657701
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 46,
+      "Duration": 4979277,
+      "SoundDuration": 4979277,
+      "Delta": 165657701
+    },
+    {
+      "NoteNumber": 32,
+      "Velocity": 46,
+      "Duration": 4979277,
+      "SoundDuration": 4979277,
+      "Delta": 165657701
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 52,
+      "Duration": 399405,
+      "SoundDuration": 399405,
+      "Delta": 166092956
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 52,
+      "Duration": 396324,
+      "SoundDuration": 396324,
+      "Delta": 166492362
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 48,
+      "Duration": 394066,
+      "SoundDuration": 394066,
+      "Delta": 166888686
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 52,
+      "Duration": 375458,
+      "SoundDuration": 375458,
+      "Delta": 167282752
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 52,
+      "Duration": 388321,
+      "SoundDuration": 388321,
+      "Delta": 167658211
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 53,
+      "Duration": 380048,
+      "SoundDuration": 380048,
+      "Delta": 168046532
+    },
+    {
+      "NoteNumber": 73,
+      "Velocity": 52,
+      "Duration": 399551,
+      "SoundDuration": 399551,
+      "Delta": 168426581
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 52,
+      "Duration": 407951,
+      "SoundDuration": 407951,
+      "Delta": 168826132
+    },
+    {
+      "NoteNumber": 76,
+      "Velocity": 53,
+      "Duration": 450552,
+      "SoundDuration": 450552,
+      "Delta": 169234084
+    },
+    {
+      "NoteNumber": 73,
+      "Velocity": 52,
+      "Duration": 435255,
+      "SoundDuration": 435255,
+      "Delta": 169684636
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 52,
+      "Duration": 517085,
+      "SoundDuration": 517085,
+      "Delta": 170119892
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 65,
+      "Duration": 398392,
+      "SoundDuration": 398392,
+      "Delta": 170636978
+    },
+    {
+      "NoteNumber": 32,
+      "Velocity": 45,
+      "Duration": 4865805,
+      "SoundDuration": 4865805,
+      "Delta": 170636978
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 45,
+      "Duration": 4865805,
+      "SoundDuration": 4865805,
+      "Delta": 170636978
+    },
+    {
+      "NoteNumber": 67,
+      "Velocity": 55,
+      "Duration": 387358,
+      "SoundDuration": 387358,
+      "Delta": 171035370
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 55,
+      "Duration": 377377,
+      "SoundDuration": 377377,
+      "Delta": 171422729
+    },
+    {
+      "NoteNumber": 70,
+      "Velocity": 56,
+      "Duration": 371816,
+      "SoundDuration": 371816,
+      "Delta": 171800106
+    },
+    {
+      "NoteNumber": 67,
+      "Velocity": 56,
+      "Duration": 353982,
+      "SoundDuration": 353982,
+      "Delta": 172171922
+    },
+    {
+      "NoteNumber": 73,
+      "Velocity": 62,
+      "Duration": 370370,
+      "SoundDuration": 370370,
+      "Delta": 172525904
+    },
+    {
+      "NoteNumber": 70,
+      "Velocity": 62,
+      "Duration": 382994,
+      "SoundDuration": 382994,
+      "Delta": 172896275
+    },
+    {
+      "NoteNumber": 76,
+      "Velocity": 68,
+      "Duration": 382994,
+      "SoundDuration": 382994,
+      "Delta": 173279270
+    },
+    {
+      "NoteNumber": 73,
+      "Velocity": 67,
+      "Duration": 382995,
+      "SoundDuration": 382995,
+      "Delta": 173662265
+    },
+    {
+      "NoteNumber": 79,
+      "Velocity": 71,
+      "Duration": 425622,
+      "SoundDuration": 425622,
+      "Delta": 174045260
+    },
+    {
+      "NoteNumber": 76,
+      "Velocity": 68,
+      "Duration": 425622,
+      "SoundDuration": 425622,
+      "Delta": 174470882
+    },
+    {
+      "NoteNumber": 82,
+      "Velocity": 68,
+      "Duration": 606279,
+      "SoundDuration": 606279,
+      "Delta": 174896504
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 76,
+      "Duration": 411946,
+      "SoundDuration": 411946,
+      "Delta": 175502784
+    },
+    {
+      "NoteNumber": 32,
+      "Velocity": 46,
+      "Duration": 13944063,
+      "SoundDuration": 13944063,
+      "Delta": 175502784
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 46,
+      "Duration": 13944063,
+      "SoundDuration": 13944063,
+      "Delta": 175502784
+    },
+    {
+      "NoteNumber": 72,
+      "Velocity": 72,
+      "Duration": 379218,
+      "SoundDuration": 379218,
+      "Delta": 175914730
+    },
+    {
+      "NoteNumber": 69,
+      "Velocity": 70,
+      "Duration": 353982,
+      "SoundDuration": 353982,
+      "Delta": 176293949
+    },
+    {
+      "NoteNumber": 75,
+      "Velocity": 78,
+      "Duration": 361271,
+      "SoundDuration": 361271,
+      "Delta": 176647931
+    },
+    {
+      "NoteNumber": 72,
+      "Velocity": 76,
+      "Duration": 347825,
+      "SoundDuration": 347825,
+      "Delta": 177009203
+    },
+    {
+      "NoteNumber": 78,
+      "Velocity": 82,
+      "Duration": 360360,
+      "SoundDuration": 360360,
+      "Delta": 177357029
+    },
+    {
+      "NoteNumber": 75,
+      "Velocity": 80,
+      "Duration": 350877,
+      "SoundDuration": 350877,
+      "Delta": 177717389
+    },
+    {
+      "NoteNumber": 81,
+      "Velocity": 83,
+      "Duration": 373831,
+      "SoundDuration": 373831,
+      "Delta": 178068266
+    },
+    {
+      "NoteNumber": 78,
+      "Velocity": 81,
+      "Duration": 360360,
+      "SoundDuration": 360360,
+      "Delta": 178442098
+    },
+    {
+      "NoteNumber": 84,
+      "Velocity": 88,
+      "Duration": 392156,
+      "SoundDuration": 392156,
+      "Delta": 178802458
+    },
+    {
+      "NoteNumber": 81,
+      "Velocity": 83,
+      "Duration": 373831,
+      "SoundDuration": 373831,
+      "Delta": 179194615
+    },
+    {
+      "NoteNumber": 87,
+      "Velocity": 92,
+      "Duration": 439560,
+      "SoundDuration": 439560,
+      "Delta": 179568447
+    },
+    {
+      "NoteNumber": 84,
+      "Velocity": 97,
+      "Duration": 454545,
+      "SoundDuration": 454545,
+      "Delta": 180008007
+    },
+    {
+      "NoteNumber": 78,
+      "Velocity": 90,
+      "Duration": 368188,
+      "SoundDuration": 368188,
+      "Delta": 180462553
+    },
+    {
+      "NoteNumber": 81,
+      "Velocity": 82,
+      "Duration": 353982,
+      "SoundDuration": 353982,
+      "Delta": 180830741
+    },
+    {
+      "NoteNumber": 75,
+      "Velocity": 90,
+      "Duration": 371816,
+      "SoundDuration": 371816,
+      "Delta": 181184724
+    },
+    {
+      "NoteNumber": 78,
+      "Velocity": 83,
+      "Duration": 357142,
+      "SoundDuration": 357142,
+      "Delta": 181556540
+    },
+    {
+      "NoteNumber": 72,
+      "Velocity": 90,
+      "Duration": 373831,
+      "SoundDuration": 373831,
+      "Delta": 181913683
+    },
+    {
+      "NoteNumber": 75,
+      "Velocity": 82,
+      "Duration": 360360,
+      "SoundDuration": 360360,
+      "Delta": 182287515
+    },
+    {
+      "NoteNumber": 69,
+      "Velocity": 90,
+      "Duration": 380952,
+      "SoundDuration": 380952,
+      "Delta": 182647875
+    },
+    {
+      "NoteNumber": 72,
+      "Velocity": 82,
+      "Duration": 363636,
+      "SoundDuration": 363636,
+      "Delta": 183028827
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 90,
+      "Duration": 382995,
+      "SoundDuration": 382995,
+      "Delta": 183392464
+    },
+    {
+      "NoteNumber": 69,
+      "Velocity": 82,
+      "Duration": 366972,
+      "SoundDuration": 366972,
+      "Delta": 183775459
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 88,
+      "Duration": 381878,
+      "SoundDuration": 381878,
+      "Delta": 184142431
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 82,
+      "Duration": 377358,
+      "SoundDuration": 377358,
+      "Delta": 184524310
+    },
+    {
+      "NoteNumber": 60,
+      "Velocity": 87,
+      "Duration": 385745,
+      "SoundDuration": 385745,
+      "Delta": 184901668
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 81,
+      "Duration": 380713,
+      "SoundDuration": 380713,
+      "Delta": 185287413
+    },
+    {
+      "NoteNumber": 57,
+      "Velocity": 85,
+      "Duration": 387547,
+      "SoundDuration": 387547,
+      "Delta": 185668127
+    },
+    {
+      "NoteNumber": 60,
+      "Velocity": 77,
+      "Duration": 407331,
+      "SoundDuration": 407331,
+      "Delta": 186055674
+    },
+    {
+      "NoteNumber": 54,
+      "Velocity": 85,
+      "Duration": 407331,
+      "SoundDuration": 407331,
+      "Delta": 186463006
+    },
+    {
+      "NoteNumber": 57,
+      "Velocity": 80,
+      "Duration": 415558,
+      "SoundDuration": 415558,
+      "Delta": 186870338
+    },
+    {
+      "NoteNumber": 51,
+      "Velocity": 82,
+      "Duration": 880475,
+      "SoundDuration": 880475,
+      "Delta": 187285896
+    },
+    {
+      "NoteNumber": 54,
+      "Velocity": 75,
+      "Duration": 440237,
+      "SoundDuration": 440237,
+      "Delta": 187726134
+    },
+    {
+      "NoteNumber": 49,
+      "Velocity": 83,
+      "Duration": 1280475,
+      "SoundDuration": 1280475,
+      "Delta": 188166372
+    },
+    {
+      "NoteNumber": 54,
+      "Velocity": 75,
+      "Duration": 440237,
+      "SoundDuration": 440237,
+      "Delta": 188606609
+    },
+    {
+      "NoteNumber": 57,
+      "Velocity": 71,
+      "Duration": 400000,
+      "SoundDuration": 400000,
+      "Delta": 189046847
+    },
+    {
+      "NoteNumber": 48,
+      "Velocity": 80,
+      "Duration": 2345819,
+      "SoundDuration": 2345819,
+      "Delta": 189446847
+    },
+    {
+      "NoteNumber": 32,
+      "Velocity": 56,
+      "Duration": 4838256,
+      "SoundDuration": 4838256,
+      "Delta": 189446847
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 56,
+      "Duration": 4838256,
+      "SoundDuration": 4838256,
+      "Delta": 189446847
+    },
+    {
+      "NoteNumber": 54,
+      "Velocity": 70,
+      "Duration": 380952,
+      "SoundDuration": 380952,
+      "Delta": 189858793
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 70,
+      "Duration": 366972,
+      "SoundDuration": 366972,
+      "Delta": 190239746
+    },
+    {
+      "NoteNumber": 57,
+      "Velocity": 70,
+      "Duration": 388182,
+      "SoundDuration": 388182,
+      "Delta": 190606718
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 67,
+      "Duration": 398883,
+      "SoundDuration": 398883,
+      "Delta": 190994900
+    },
+    {
+      "NoteNumber": 54,
+      "Velocity": 67,
+      "Duration": 398883,
+      "SoundDuration": 398883,
+      "Delta": 191393783
+    },
+    {
+      "NoteNumber": 51,
+      "Velocity": 78,
+      "Duration": 1224833,
+      "SoundDuration": 1224833,
+      "Delta": 191792666
+    },
+    {
+      "NoteNumber": 54,
+      "Velocity": 68,
+      "Duration": 394788,
+      "SoundDuration": 394788,
+      "Delta": 192227922
+    },
+    {
+      "NoteNumber": 57,
+      "Velocity": 68,
+      "Duration": 394788,
+      "SoundDuration": 394788,
+      "Delta": 192622710
+    },
+    {
+      "NoteNumber": 49,
+      "Velocity": 78,
+      "Duration": 1267604,
+      "SoundDuration": 1267604,
+      "Delta": 193017499
+    },
+    {
+      "NoteNumber": 54,
+      "Velocity": 65,
+      "Duration": 386847,
+      "SoundDuration": 386847,
+      "Delta": 193412288
+    },
+    {
+      "NoteNumber": 57,
+      "Velocity": 65,
+      "Duration": 485968,
+      "SoundDuration": 485968,
+      "Delta": 193799135
+    },
+    {
+      "NoteNumber": 48,
+      "Velocity": 77,
+      "Duration": 2444400,
+      "SoundDuration": 2444400,
+      "Delta": 194285104
+    },
+    {
+      "NoteNumber": 32,
+      "Velocity": 47,
+      "Duration": 5097967,
+      "SoundDuration": 5097967,
+      "Delta": 194285104
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 47,
+      "Duration": 5097967,
+      "SoundDuration": 5097967,
+      "Delta": 194285104
+    },
+    {
+      "NoteNumber": 54,
+      "Velocity": 65,
+      "Duration": 368188,
+      "SoundDuration": 368188,
+      "Delta": 194705979
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 65,
+      "Duration": 368188,
+      "SoundDuration": 368188,
+      "Delta": 195074168
+    },
+    {
+      "NoteNumber": 57,
+      "Velocity": 63,
+      "Duration": 386385,
+      "SoundDuration": 386385,
+      "Delta": 195442356
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 62,
+      "Duration": 396856,
+      "SoundDuration": 396856,
+      "Delta": 195828742
+    },
+    {
+      "NoteNumber": 54,
+      "Velocity": 62,
+      "Duration": 503905,
+      "SoundDuration": 503905,
+      "Delta": 196225599
+    },
+    {
+      "NoteNumber": 50,
+      "Velocity": 78,
+      "Duration": 1309984,
+      "SoundDuration": 1309984,
+      "Delta": 196729504
+    },
+    {
+      "NoteNumber": 54,
+      "Velocity": 70,
+      "Duration": 419309,
+      "SoundDuration": 419309,
+      "Delta": 197185396
+    },
+    {
+      "NoteNumber": 57,
+      "Velocity": 71,
+      "Duration": 434782,
+      "SoundDuration": 434782,
+      "Delta": 197604706
+    },
+    {
+      "NoteNumber": 49,
+      "Velocity": 76,
+      "Duration": 1343582,
+      "SoundDuration": 1343582,
+      "Delta": 198039488
+    },
+    {
+      "NoteNumber": 54,
+      "Velocity": 65,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 198484823
+    },
+    {
+      "NoteNumber": 57,
+      "Velocity": 65,
+      "Duration": 481927,
+      "SoundDuration": 481927,
+      "Delta": 198901143
+    },
+    {
+      "NoteNumber": 48,
+      "Velocity": 78,
+      "Duration": 2486255,
+      "SoundDuration": 2486255,
+      "Delta": 199383071
+    },
+    {
+      "NoteNumber": 32,
+      "Velocity": 42,
+      "Duration": 2486255,
+      "SoundDuration": 2486255,
+      "Delta": 199383071
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 42,
+      "Duration": 2486255,
+      "SoundDuration": 2486255,
+      "Delta": 199383071
+    },
+    {
+      "NoteNumber": 54,
+      "Velocity": 68,
+      "Duration": 404040,
+      "SoundDuration": 404040,
+      "Delta": 199817853
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 68,
+      "Duration": 386847,
+      "SoundDuration": 386847,
+      "Delta": 200221894
+    },
+    {
+      "NoteNumber": 57,
+      "Velocity": 66,
+      "Duration": 400000,
+      "SoundDuration": 400000,
+      "Delta": 200608741
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 65,
+      "Duration": 430292,
+      "SoundDuration": 430292,
+      "Delta": 201008741
+    },
+    {
+      "NoteNumber": 54,
+      "Velocity": 63,
+      "Duration": 430292,
+      "SoundDuration": 430292,
+      "Delta": 201439034
+    },
+    {
+      "NoteNumber": 49,
+      "Velocity": 68,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 201869326
+    },
+    {
+      "NoteNumber": 45,
+      "Velocity": 41,
+      "Duration": 2538773,
+      "SoundDuration": 2538773,
+      "Delta": 201869326
+    },
+    {
+      "NoteNumber": 33,
+      "Velocity": 41,
+      "Duration": 2538773,
+      "SoundDuration": 2538773,
+      "Delta": 201869326
+    },
+    {
+      "NoteNumber": 52,
+      "Velocity": 63,
+      "Duration": 394788,
+      "SoundDuration": 394788,
+      "Delta": 202285646
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 62,
+      "Duration": 435255,
+      "SoundDuration": 435255,
+      "Delta": 202680435
+    },
+    {
+      "NoteNumber": 49,
+      "Velocity": 68,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 203115690
+    },
+    {
+      "NoteNumber": 52,
+      "Velocity": 62,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 203532010
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 62,
+      "Duration": 459770,
+      "SoundDuration": 459770,
+      "Delta": 203948330
+    },
+    {
+      "NoteNumber": 51,
+      "Velocity": 76,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 204408100
+    },
+    {
+      "NoteNumber": 30,
+      "Velocity": 35,
+      "Duration": 2568854,
+      "SoundDuration": 2568854,
+      "Delta": 204408100
+    },
+    {
+      "NoteNumber": 42,
+      "Velocity": 35,
+      "Duration": 2568854,
+      "SoundDuration": 2568854,
+      "Delta": 204408100
+    },
+    {
+      "NoteNumber": 57,
+      "Velocity": 65,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 204824419
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 61,
+      "Duration": 392156,
+      "SoundDuration": 392156,
+      "Delta": 205240739
+    },
+    {
+      "NoteNumber": 51,
+      "Velocity": 65,
+      "Duration": 416666,
+      "SoundDuration": 416666,
+      "Delta": 205632896
+    },
+    {
+      "NoteNumber": 57,
+      "Velocity": 57,
+      "Duration": 416666,
+      "SoundDuration": 416666,
+      "Delta": 206049563
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 56,
+      "Duration": 510725,
+      "SoundDuration": 510725,
+      "Delta": 206466229
+    },
+    {
+      "NoteNumber": 51,
+      "Velocity": 60,
+      "Duration": 440237,
+      "SoundDuration": 440237,
+      "Delta": 206976955
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 46,
+      "Duration": 2743870,
+      "SoundDuration": 2743870,
+      "Delta": 206976955
+    },
+    {
+      "NoteNumber": 32,
+      "Velocity": 46,
+      "Duration": 2743870,
+      "SoundDuration": 2743870,
+      "Delta": 206976955
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 52,
+      "Duration": 440237,
+      "SoundDuration": 440237,
+      "Delta": 207417192
+    },
+    {
+      "NoteNumber": 60,
+      "Velocity": 52,
+      "Duration": 421052,
+      "SoundDuration": 421052,
+      "Delta": 207857430
+    },
+    {
+      "NoteNumber": 51,
+      "Velocity": 47,
+      "Duration": 439560,
+      "SoundDuration": 439560,
+      "Delta": 208278483
+    },
+    {
+      "NoteNumber": 54,
+      "Velocity": 45,
+      "Duration": 439560,
+      "SoundDuration": 439560,
+      "Delta": 208718043
+    },
+    {
+      "NoteNumber": 60,
+      "Velocity": 40,
+      "Duration": 563221,
+      "SoundDuration": 563221,
+      "Delta": 209157603
+    },
+    {
+      "NoteNumber": 52,
+      "Velocity": 41,
+      "Duration": 456647,
+      "SoundDuration": 456647,
+      "Delta": 209720825
+    },
+    {
+      "NoteNumber": 37,
+      "Velocity": 41,
+      "Duration": 5410227,
+      "SoundDuration": 5410227,
+      "Delta": 209720825
+    },
+    {
+      "NoteNumber": 49,
+      "Velocity": 41,
+      "Duration": 5410227,
+      "SoundDuration": 5410227,
+      "Delta": 209720825
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 41,
+      "Duration": 5410227,
+      "SoundDuration": 5410227,
+      "Delta": 209720825
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 38,
+      "Duration": 442815,
+      "SoundDuration": 442815,
+      "Delta": 210177473
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 37,
+      "Duration": 429782,
+      "SoundDuration": 429782,
+      "Delta": 210620289
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 41,
+      "Duration": 420875,
+      "SoundDuration": 420875,
+      "Delta": 211050071
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 38,
+      "Duration": 396039,
+      "SoundDuration": 396039,
+      "Delta": 211470946
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 38,
+      "Duration": 416666,
+      "SoundDuration": 416666,
+      "Delta": 211866986
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 41,
+      "Duration": 450552,
+      "SoundDuration": 450552,
+      "Delta": 212283652
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 38,
+      "Duration": 404040,
+      "SoundDuration": 404040,
+      "Delta": 212734204
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 38,
+      "Duration": 421052,
+      "SoundDuration": 421052,
+      "Delta": 213138245
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 56,
+      "Duration": 1142938,
+      "SoundDuration": 1142938,
+      "Delta": 213559297
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 41,
+      "Duration": 500000,
+      "SoundDuration": 500000,
+      "Delta": 213559297
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 37,
+      "Duration": 500000,
+      "SoundDuration": 500000,
+      "Delta": 214059297
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 33,
+      "Duration": 571755,
+      "SoundDuration": 571755,
+      "Delta": 214559297
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 56,
+      "Duration": 428816,
+      "SoundDuration": 428816,
+      "Delta": 214702236
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 56,
+      "Duration": 3710242,
+      "SoundDuration": 3710242,
+      "Delta": 215131053
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 41,
+      "Duration": 446330,
+      "SoundDuration": 446330,
+      "Delta": 215131053
+    },
+    {
+      "NoteNumber": 36,
+      "Velocity": 46,
+      "Duration": 5229190,
+      "SoundDuration": 5229190,
+      "Delta": 215131053
+    },
+    {
+      "NoteNumber": 48,
+      "Velocity": 46,
+      "Duration": 5229190,
+      "SoundDuration": 5229190,
+      "Delta": 215131053
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 46,
+      "Duration": 5229190,
+      "SoundDuration": 5229190,
+      "Delta": 215131053
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 37,
+      "Duration": 434808,
+      "SoundDuration": 434808,
+      "Delta": 215577383
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 37,
+      "Duration": 423316,
+      "SoundDuration": 423316,
+      "Delta": 216012192
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 40,
+      "Duration": 411946,
+      "SoundDuration": 411946,
+      "Delta": 216435508
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 38,
+      "Duration": 411946,
+      "SoundDuration": 411946,
+      "Delta": 216847454
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 38,
+      "Duration": 384615,
+      "SoundDuration": 384615,
+      "Delta": 217259400
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 41,
+      "Duration": 408163,
+      "SoundDuration": 408163,
+      "Delta": 217644016
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 38,
+      "Duration": 408163,
+      "SoundDuration": 408163,
+      "Delta": 218052179
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 37,
+      "Duration": 380952,
+      "SoundDuration": 380952,
+      "Delta": 218460342
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 56,
+      "Duration": 1102628,
+      "SoundDuration": 1102628,
+      "Delta": 218841295
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 41,
+      "Duration": 481927,
+      "SoundDuration": 481927,
+      "Delta": 218841295
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 38,
+      "Duration": 481927,
+      "SoundDuration": 481927,
+      "Delta": 219323222
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 35,
+      "Duration": 555093,
+      "SoundDuration": 555093,
+      "Delta": 219805150
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 56,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 219943923
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 56,
+      "Duration": 2487190,
+      "SoundDuration": 2487190,
+      "Delta": 220360243
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 41,
+      "Duration": 435255,
+      "SoundDuration": 435255,
+      "Delta": 220360243
+    },
+    {
+      "NoteNumber": 37,
+      "Velocity": 46,
+      "Duration": 2487190,
+      "SoundDuration": 2487190,
+      "Delta": 220360243
+    },
+    {
+      "NoteNumber": 49,
+      "Velocity": 46,
+      "Duration": 2487190,
+      "SoundDuration": 2487190,
+      "Delta": 220360243
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 40,
+      "Duration": 403063,
+      "SoundDuration": 403063,
+      "Delta": 220795499
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 40,
+      "Duration": 403063,
+      "SoundDuration": 403063,
+      "Delta": 221198562
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 41,
+      "Duration": 390777,
+      "SoundDuration": 390777,
+      "Delta": 221601625
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 38,
+      "Duration": 390777,
+      "SoundDuration": 390777,
+      "Delta": 221992403
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 37,
+      "Duration": 464252,
+      "SoundDuration": 464252,
+      "Delta": 222383181
+    },
+    {
+      "NoteNumber": 69,
+      "Velocity": 56,
+      "Duration": 2622112,
+      "SoundDuration": 2622112,
+      "Delta": 222847433
+    },
+    {
+      "NoteNumber": 57,
+      "Velocity": 41,
+      "Duration": 445335,
+      "SoundDuration": 445335,
+      "Delta": 222847433
+    },
+    {
+      "NoteNumber": 42,
+      "Velocity": 46,
+      "Duration": 2622112,
+      "SoundDuration": 2622112,
+      "Delta": 222847433
+    },
+    {
+      "NoteNumber": 30,
+      "Velocity": 46,
+      "Duration": 2622112,
+      "SoundDuration": 2622112,
+      "Delta": 222847433
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 40,
+      "Duration": 445335,
+      "SoundDuration": 445335,
+      "Delta": 223292768
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 38,
+      "Duration": 425622,
+      "SoundDuration": 425622,
+      "Delta": 223738103
+    },
+    {
+      "NoteNumber": 57,
+      "Velocity": 41,
+      "Duration": 411946,
+      "SoundDuration": 411946,
+      "Delta": 224163726
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 38,
+      "Duration": 411946,
+      "SoundDuration": 411946,
+      "Delta": 224575672
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 36,
+      "Duration": 481927,
+      "SoundDuration": 481927,
+      "Delta": 224987618
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 56,
+      "Duration": 2627351,
+      "SoundDuration": 2627351,
+      "Delta": 225469546
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 41,
+      "Duration": 455892,
+      "SoundDuration": 455892,
+      "Delta": 225469546
+    },
+    {
+      "NoteNumber": 35,
+      "Velocity": 46,
+      "Duration": 2627351,
+      "SoundDuration": 2627351,
+      "Delta": 225469546
+    },
+    {
+      "NoteNumber": 47,
+      "Velocity": 46,
+      "Duration": 2627351,
+      "SoundDuration": 2627351,
+      "Delta": 225469546
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 37,
+      "Duration": 425622,
+      "SoundDuration": 425622,
+      "Delta": 225925438
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 37,
+      "Duration": 425622,
+      "SoundDuration": 425622,
+      "Delta": 226351061
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 40,
+      "Duration": 398883,
+      "SoundDuration": 398883,
+      "Delta": 226776683
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 37,
+      "Duration": 430292,
+      "SoundDuration": 430292,
+      "Delta": 227175566
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 37,
+      "Duration": 491038,
+      "SoundDuration": 491038,
+      "Delta": 227605859
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 56,
+      "Duration": 1374690,
+      "SoundDuration": 1374690,
+      "Delta": 228096897
+    },
+    {
+      "NoteNumber": 57,
+      "Velocity": 40,
+      "Duration": 440431,
+      "SoundDuration": 440431,
+      "Delta": 228096897
+    },
+    {
+      "NoteNumber": 47,
+      "Velocity": 46,
+      "Duration": 2839481,
+      "SoundDuration": 2839481,
+      "Delta": 228096897
+    },
+    {
+      "NoteNumber": 35,
+      "Velocity": 46,
+      "Duration": 2839481,
+      "SoundDuration": 2839481,
+      "Delta": 228096897
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 35,
+      "Duration": 440431,
+      "SoundDuration": 440431,
+      "Delta": 228537329
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 35,
+      "Duration": 493827,
+      "SoundDuration": 493827,
+      "Delta": 228977761
+    },
+    {
+      "NoteNumber": 71,
+      "Velocity": 56,
+      "Duration": 1464791,
+      "SoundDuration": 1464791,
+      "Delta": 229471588
+    },
+    {
+      "NoteNumber": 57,
+      "Velocity": 40,
+      "Duration": 468055,
+      "SoundDuration": 468055,
+      "Delta": 229471588
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 35,
+      "Duration": 468055,
+      "SoundDuration": 468055,
+      "Delta": 229939643
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 32,
+      "Duration": 528681,
+      "SoundDuration": 528681,
+      "Delta": 230407698
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 56,
+      "Duration": 844355,
+      "SoundDuration": 844355,
+      "Delta": 230936379
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 40,
+      "Duration": 445335,
+      "SoundDuration": 445335,
+      "Delta": 230936379
+    },
+    {
+      "NoteNumber": 40,
+      "Velocity": 45,
+      "Duration": 5268984,
+      "SoundDuration": 5268984,
+      "Delta": 230936379
+    },
+    {
+      "NoteNumber": 52,
+      "Velocity": 45,
+      "Duration": 5268984,
+      "SoundDuration": 5268984,
+      "Delta": 230936379
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 37,
+      "Duration": 425622,
+      "SoundDuration": 425622,
+      "Delta": 231381714
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 37,
+      "Duration": 425622,
+      "SoundDuration": 425622,
+      "Delta": 231807337
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 40,
+      "Duration": 390777,
+      "SoundDuration": 390777,
+      "Delta": 232232959
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 37,
+      "Duration": 390777,
+      "SoundDuration": 390777,
+      "Delta": 232623737
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 37,
+      "Duration": 390777,
+      "SoundDuration": 390777,
+      "Delta": 233014514
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 40,
+      "Duration": 398883,
+      "SoundDuration": 398883,
+      "Delta": 233405292
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 37,
+      "Duration": 398882,
+      "SoundDuration": 398882,
+      "Delta": 233804175
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 37,
+      "Duration": 467180,
+      "SoundDuration": 467180,
+      "Delta": 234203058
+    },
+    {
+      "NoteNumber": 71,
+      "Velocity": 61,
+      "Duration": 1093168,
+      "SoundDuration": 1093168,
+      "Delta": 234670239
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 40,
+      "Duration": 472925,
+      "SoundDuration": 472925,
+      "Delta": 234670239
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 37,
+      "Duration": 472924,
+      "SoundDuration": 472924,
+      "Delta": 235143164
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 32,
+      "Duration": 589275,
+      "SoundDuration": 589275,
+      "Delta": 235616089
+    },
+    {
+      "NoteNumber": 71,
+      "Velocity": 56,
+      "Duration": 441956,
+      "SoundDuration": 441956,
+      "Delta": 235763408
+    },
+    {
+      "NoteNumber": 71,
+      "Velocity": 61,
+      "Duration": 3757997,
+      "SoundDuration": 3757997,
+      "Delta": 236205364
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 40,
+      "Duration": 455892,
+      "SoundDuration": 455892,
+      "Delta": 236205364
+    },
+    {
+      "NoteNumber": 39,
+      "Velocity": 35,
+      "Duration": 5268898,
+      "SoundDuration": 5268898,
+      "Delta": 236205364
+    },
+    {
+      "NoteNumber": 51,
+      "Velocity": 35,
+      "Duration": 5268898,
+      "SoundDuration": 5268898,
+      "Delta": 236205364
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 33,
+      "Duration": 455892,
+      "SoundDuration": 455892,
+      "Delta": 236661256
+    },
+    {
+      "NoteNumber": 69,
+      "Velocity": 31,
+      "Duration": 425622,
+      "SoundDuration": 425622,
+      "Delta": 237117149
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 40,
+      "Duration": 403063,
+      "SoundDuration": 403063,
+      "Delta": 237542771
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 32,
+      "Duration": 398371,
+      "SoundDuration": 398371,
+      "Delta": 237945834
+    },
+    {
+      "NoteNumber": 69,
+      "Velocity": 32,
+      "Duration": 393284,
+      "SoundDuration": 393284,
+      "Delta": 238344206
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 40,
+      "Duration": 388321,
+      "SoundDuration": 388321,
+      "Delta": 238737490
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 32,
+      "Duration": 383004,
+      "SoundDuration": 383004,
+      "Delta": 239125811
+    },
+    {
+      "NoteNumber": 69,
+      "Velocity": 32,
+      "Duration": 454545,
+      "SoundDuration": 454545,
+      "Delta": 239508816
+    },
+    {
+      "NoteNumber": 71,
+      "Velocity": 63,
+      "Duration": 1100616,
+      "SoundDuration": 1100616,
+      "Delta": 239963361
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 40,
+      "Duration": 481927,
+      "SoundDuration": 481927,
+      "Delta": 239963361
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 33,
+      "Duration": 481927,
+      "SoundDuration": 481927,
+      "Delta": 240445289
+    },
+    {
+      "NoteNumber": 69,
+      "Velocity": 33,
+      "Duration": 547046,
+      "SoundDuration": 547046,
+      "Delta": 240927217
+    },
+    {
+      "NoteNumber": 71,
+      "Velocity": 56,
+      "Duration": 410284,
+      "SoundDuration": 410284,
+      "Delta": 241063978
+    },
+    {
+      "NoteNumber": 71,
+      "Velocity": 63,
+      "Duration": 2483826,
+      "SoundDuration": 2483826,
+      "Delta": 241474263
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 40,
+      "Duration": 398883,
+      "SoundDuration": 398883,
+      "Delta": 241474263
+    },
+    {
+      "NoteNumber": 52,
+      "Velocity": 37,
+      "Duration": 2483826,
+      "SoundDuration": 2483826,
+      "Delta": 241474263
+    },
+    {
+      "NoteNumber": 40,
+      "Velocity": 37,
+      "Duration": 2483826,
+      "SoundDuration": 2483826,
+      "Delta": 241474263
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 35,
+      "Duration": 398882,
+      "SoundDuration": 398882,
+      "Delta": 241873146
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 35,
+      "Duration": 398883,
+      "SoundDuration": 398883,
+      "Delta": 242272029
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 40,
+      "Duration": 411946,
+      "SoundDuration": 411946,
+      "Delta": 242670912
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 35,
+      "Duration": 411946,
+      "SoundDuration": 411946,
+      "Delta": 243082858
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 35,
+      "Duration": 463284,
+      "SoundDuration": 463284,
+      "Delta": 243494804
+    },
+    {
+      "NoteNumber": 72,
+      "Velocity": 65,
+      "Duration": 1235838,
+      "SoundDuration": 1235838,
+      "Delta": 243958089
+    },
+    {
+      "NoteNumber": 60,
+      "Velocity": 40,
+      "Duration": 411946,
+      "SoundDuration": 411946,
+      "Delta": 243958089
+    },
+    {
+      "NoteNumber": 39,
+      "Velocity": 37,
+      "Duration": 1235838,
+      "SoundDuration": 1235838,
+      "Delta": 243958089
+    },
+    {
+      "NoteNumber": 51,
+      "Velocity": 37,
+      "Duration": 1235838,
+      "SoundDuration": 1235838,
+      "Delta": 243958089
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 46,
+      "Duration": 411946,
+      "SoundDuration": 411946,
+      "Delta": 244370035
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 50,
+      "Duration": 411946,
+      "SoundDuration": 411946,
+      "Delta": 244781982
+    },
+    {
+      "NoteNumber": 73,
+      "Velocity": 72,
+      "Duration": 1447340,
+      "SoundDuration": 1447340,
+      "Delta": 245193928
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 55,
+      "Duration": 436110,
+      "SoundDuration": 436110,
+      "Delta": 245193928
+    },
+    {
+      "NoteNumber": 49,
+      "Velocity": 40,
+      "Duration": 1447340,
+      "SoundDuration": 1447340,
+      "Delta": 245193928
+    },
+    {
+      "NoteNumber": 37,
+      "Velocity": 40,
+      "Duration": 1447340,
+      "SoundDuration": 1447340,
+      "Delta": 245193928
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 60,
+      "Duration": 463284,
+      "SoundDuration": 463284,
+      "Delta": 245630038
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 60,
+      "Duration": 547945,
+      "SoundDuration": 547945,
+      "Delta": 246093323
+    },
+    {
+      "NoteNumber": 75,
+      "Velocity": 75,
+      "Duration": 2550333,
+      "SoundDuration": 2550333,
+      "Delta": 246641268
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 60,
+      "Duration": 455892,
+      "SoundDuration": 455892,
+      "Delta": 246641268
+    },
+    {
+      "NoteNumber": 36,
+      "Velocity": 45,
+      "Duration": 2550333,
+      "SoundDuration": 2550333,
+      "Delta": 246641268
+    },
+    {
+      "NoteNumber": 48,
+      "Velocity": 45,
+      "Duration": 2550333,
+      "SoundDuration": 2550333,
+      "Delta": 246641268
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 45,
+      "Duration": 2550333,
+      "SoundDuration": 2550333,
+      "Delta": 246641268
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 52,
+      "Duration": 425622,
+      "SoundDuration": 425622,
+      "Delta": 247097160
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 52,
+      "Duration": 425622,
+      "SoundDuration": 425622,
+      "Delta": 247522783
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 53,
+      "Duration": 411946,
+      "SoundDuration": 411946,
+      "Delta": 247948405
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 50,
+      "Duration": 411946,
+      "SoundDuration": 411946,
+      "Delta": 248360351
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 50,
+      "Duration": 419303,
+      "SoundDuration": 419303,
+      "Delta": 248772298
+    },
+    {
+      "NoteNumber": 76,
+      "Velocity": 56,
+      "Duration": 2658760,
+      "SoundDuration": 2658760,
+      "Delta": 249191601
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 48,
+      "Duration": 414216,
+      "SoundDuration": 414216,
+      "Delta": 249191601
+    },
+    {
+      "NoteNumber": 37,
+      "Velocity": 38,
+      "Duration": 2658760,
+      "SoundDuration": 2658760,
+      "Delta": 249191601
+    },
+    {
+      "NoteNumber": 49,
+      "Velocity": 38,
+      "Duration": 2658760,
+      "SoundDuration": 2658760,
+      "Delta": 249191601
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 38,
+      "Duration": 2658760,
+      "SoundDuration": 2658760,
+      "Delta": 249191601
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 40,
+      "Duration": 411946,
+      "SoundDuration": 411946,
+      "Delta": 249605818
+    },
+    {
+      "NoteNumber": 73,
+      "Velocity": 40,
+      "Duration": 411946,
+      "SoundDuration": 411946,
+      "Delta": 250017764
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 40,
+      "Duration": 440237,
+      "SoundDuration": 440237,
+      "Delta": 250429710
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 33,
+      "Duration": 455892,
+      "SoundDuration": 455892,
+      "Delta": 250869948
+    },
+    {
+      "NoteNumber": 73,
+      "Velocity": 33,
+      "Duration": 524521,
+      "SoundDuration": 524521,
+      "Delta": 251325840
+    },
+    {
+      "NoteNumber": 74,
+      "Velocity": 56,
+      "Duration": 2707613,
+      "SoundDuration": 2707613,
+      "Delta": 251850362
+    },
+    {
+      "NoteNumber": 62,
+      "Velocity": 40,
+      "Duration": 440237,
+      "SoundDuration": 440237,
+      "Delta": 251850362
+    },
+    {
+      "NoteNumber": 30,
+      "Velocity": 41,
+      "Duration": 2707613,
+      "SoundDuration": 2707613,
+      "Delta": 251850362
+    },
+    {
+      "NoteNumber": 42,
+      "Velocity": 41,
+      "Duration": 2707613,
+      "SoundDuration": 2707613,
+      "Delta": 251850362
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 37,
+      "Duration": 420875,
+      "SoundDuration": 420875,
+      "Delta": 252290599
+    },
+    {
+      "NoteNumber": 69,
+      "Velocity": 37,
+      "Duration": 420875,
+      "SoundDuration": 420875,
+      "Delta": 252711475
+    },
+    {
+      "NoteNumber": 62,
+      "Velocity": 40,
+      "Duration": 450551,
+      "SoundDuration": 450551,
+      "Delta": 253132350
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 37,
+      "Duration": 450551,
+      "SoundDuration": 450551,
+      "Delta": 253582902
+    },
+    {
+      "NoteNumber": 69,
+      "Velocity": 37,
+      "Duration": 524521,
+      "SoundDuration": 524521,
+      "Delta": 254033454
+    },
+    {
+      "NoteNumber": 72,
+      "Velocity": 56,
+      "Duration": 2728279,
+      "SoundDuration": 2728279,
+      "Delta": 254557975
+    },
+    {
+      "NoteNumber": 60,
+      "Velocity": 40,
+      "Duration": 430292,
+      "SoundDuration": 430292,
+      "Delta": 254557975
+    },
+    {
+      "NoteNumber": 32,
+      "Velocity": 41,
+      "Duration": 2728279,
+      "SoundDuration": 2728279,
+      "Delta": 254557975
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 41,
+      "Duration": 2728279,
+      "SoundDuration": 2728279,
+      "Delta": 254557975
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 37,
+      "Duration": 430292,
+      "SoundDuration": 430292,
+      "Delta": 254988268
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 37,
+      "Duration": 430292,
+      "SoundDuration": 430292,
+      "Delta": 255418561
+    },
+    {
+      "NoteNumber": 60,
+      "Velocity": 40,
+      "Duration": 455892,
+      "SoundDuration": 455892,
+      "Delta": 255848853
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 37,
+      "Duration": 440237,
+      "SoundDuration": 440237,
+      "Delta": 256304746
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 35,
+      "Duration": 541271,
+      "SoundDuration": 541271,
+      "Delta": 256744983
+    },
+    {
+      "NoteNumber": 73,
+      "Velocity": 56,
+      "Duration": 3853385,
+      "SoundDuration": 3853385,
+      "Delta": 257286255
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 40,
+      "Duration": 503905,
+      "SoundDuration": 503905,
+      "Delta": 257286255
+    },
+    {
+      "NoteNumber": 49,
+      "Velocity": 38,
+      "Duration": 6570266,
+      "SoundDuration": 6570266,
+      "Delta": 257286255
+    },
+    {
+      "NoteNumber": 37,
+      "Velocity": 38,
+      "Duration": 6570266,
+      "SoundDuration": 6570266,
+      "Delta": 257286255
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 33,
+      "Duration": 467180,
+      "SoundDuration": 467180,
+      "Delta": 257790161
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 30,
+      "Duration": 435255,
+      "SoundDuration": 435255,
+      "Delta": 258257341
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 40,
+      "Duration": 407331,
+      "SoundDuration": 407331,
+      "Delta": 258692597
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 33,
+      "Duration": 390777,
+      "SoundDuration": 390777,
+      "Delta": 259099929
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 31,
+      "Duration": 430292,
+      "SoundDuration": 430292,
+      "Delta": 259490707
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 40,
+      "Duration": 398883,
+      "SoundDuration": 398883,
+      "Delta": 259920999
+    },
+    {
+      "NoteNumber": 65,
+      "Velocity": 33,
+      "Duration": 398882,
+      "SoundDuration": 398882,
+      "Delta": 260319882
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 33,
+      "Duration": 420875,
+      "SoundDuration": 420875,
+      "Delta": 260718765
+    },
+    {
+      "NoteNumber": 73,
+      "Velocity": 56,
+      "Duration": 1383490,
+      "SoundDuration": 1383490,
+      "Delta": 261139641
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 40,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 261139641
+    },
+    {
+      "NoteNumber": 65,
+      "Velocity": 31,
+      "Duration": 435255,
+      "SoundDuration": 435255,
+      "Delta": 261555960
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 30,
+      "Duration": 531915,
+      "SoundDuration": 531915,
+      "Delta": 261991216
+    },
+    {
+      "NoteNumber": 74,
+      "Velocity": 71,
+      "Duration": 3803819,
+      "SoundDuration": 3803819,
+      "Delta": 262523131
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 40,
+      "Duration": 467180,
+      "SoundDuration": 467180,
+      "Delta": 262523131
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 42,
+      "Duration": 445335,
+      "SoundDuration": 445335,
+      "Delta": 262990312
+    },
+    {
+      "NoteNumber": 69,
+      "Velocity": 40,
+      "Duration": 420875,
+      "SoundDuration": 420875,
+      "Delta": 263435647
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 46,
+      "Duration": 403063,
+      "SoundDuration": 403063,
+      "Delta": 263856522
+    },
+    {
+      "NoteNumber": 54,
+      "Velocity": 47,
+      "Duration": 1210160,
+      "SoundDuration": 1210160,
+      "Delta": 263856522
+    },
+    {
+      "NoteNumber": 42,
+      "Velocity": 47,
+      "Duration": 1210160,
+      "SoundDuration": 1210160,
+      "Delta": 263856522
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 47,
+      "Duration": 390777,
+      "SoundDuration": 390777,
+      "Delta": 264259585
+    },
+    {
+      "NoteNumber": 69,
+      "Velocity": 47,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 264650363
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 53,
+      "Duration": 411946,
+      "SoundDuration": 411946,
+      "Delta": 265066683
+    },
+    {
+      "NoteNumber": 45,
+      "Velocity": 56,
+      "Duration": 1260267,
+      "SoundDuration": 1260267,
+      "Delta": 265066683
+    },
+    {
+      "NoteNumber": 57,
+      "Velocity": 56,
+      "Duration": 1260267,
+      "SoundDuration": 1260267,
+      "Delta": 265066683
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 55,
+      "Duration": 398882,
+      "SoundDuration": 398882,
+      "Delta": 265478629
+    },
+    {
+      "NoteNumber": 69,
+      "Velocity": 53,
+      "Duration": 449438,
+      "SoundDuration": 449438,
+      "Delta": 265877512
+    },
+    {
+      "NoteNumber": 72,
+      "Velocity": 56,
+      "Duration": 1378711,
+      "SoundDuration": 1378711,
+      "Delta": 266326950
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 61,
+      "Duration": 440237,
+      "SoundDuration": 440237,
+      "Delta": 266326950
+    },
+    {
+      "NoteNumber": 54,
+      "Velocity": 50,
+      "Duration": 1378711,
+      "SoundDuration": 1378711,
+      "Delta": 266326950
+    },
+    {
+      "NoteNumber": 42,
+      "Velocity": 50,
+      "Duration": 1378711,
+      "SoundDuration": 1378711,
+      "Delta": 266326950
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 60,
+      "Duration": 420875,
+      "SoundDuration": 420875,
+      "Delta": 266767188
+    },
+    {
+      "NoteNumber": 69,
+      "Velocity": 52,
+      "Duration": 517598,
+      "SoundDuration": 517598,
+      "Delta": 267188063
+    },
+    {
+      "NoteNumber": 73,
+      "Velocity": 56,
+      "Duration": 3697682,
+      "SoundDuration": 3697682,
+      "Delta": 267705662
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 45,
+      "Duration": 440237,
+      "SoundDuration": 440237,
+      "Delta": 267705662
+    },
+    {
+      "NoteNumber": 37,
+      "Velocity": 41,
+      "Duration": 6329840,
+      "SoundDuration": 6329840,
+      "Delta": 267705662
+    },
+    {
+      "NoteNumber": 49,
+      "Velocity": 41,
+      "Duration": 6329840,
+      "SoundDuration": 6329840,
+      "Delta": 267705662
+    },
+    {
+      "NoteNumber": 65,
+      "Velocity": 37,
+      "Duration": 440237,
+      "SoundDuration": 440237,
+      "Delta": 268145899
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 36,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 268586137
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 40,
+      "Duration": 388349,
+      "SoundDuration": 388349,
+      "Delta": 269002457
+    },
+    {
+      "NoteNumber": 65,
+      "Velocity": 35,
+      "Duration": 388349,
+      "SoundDuration": 388349,
+      "Delta": 269390806
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 35,
+      "Duration": 388349,
+      "SoundDuration": 388349,
+      "Delta": 269779156
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 40,
+      "Duration": 411946,
+      "SoundDuration": 411946,
+      "Delta": 270167506
+    },
+    {
+      "NoteNumber": 65,
+      "Velocity": 33,
+      "Duration": 411946,
+      "SoundDuration": 411946,
+      "Delta": 270579452
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 33,
+      "Duration": 411946,
+      "SoundDuration": 411946,
+      "Delta": 270991398
+    },
+    {
+      "NoteNumber": 73,
+      "Velocity": 56,
+      "Duration": 1335577,
+      "SoundDuration": 1335577,
+      "Delta": 271403345
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 40,
+      "Duration": 420875,
+      "SoundDuration": 420875,
+      "Delta": 271403345
+    },
+    {
+      "NoteNumber": 65,
+      "Velocity": 33,
+      "Duration": 420875,
+      "SoundDuration": 420875,
+      "Delta": 271824220
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 28,
+      "Duration": 493827,
+      "SoundDuration": 493827,
+      "Delta": 272245095
+    },
+    {
+      "NoteNumber": 74,
+      "Velocity": 68,
+      "Duration": 3790782,
+      "SoundDuration": 3790782,
+      "Delta": 272738922
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 40,
+      "Duration": 445335,
+      "SoundDuration": 445335,
+      "Delta": 272738922
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 42,
+      "Duration": 425622,
+      "SoundDuration": 425622,
+      "Delta": 273184257
+    },
+    {
+      "NoteNumber": 69,
+      "Velocity": 46,
+      "Duration": 425622,
+      "SoundDuration": 425622,
+      "Delta": 273609880
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 47,
+      "Duration": 407331,
+      "SoundDuration": 407331,
+      "Delta": 274035502
+    },
+    {
+      "NoteNumber": 42,
+      "Velocity": 48,
+      "Duration": 1203013,
+      "SoundDuration": 1203013,
+      "Delta": 274035502
+    },
+    {
+      "NoteNumber": 54,
+      "Velocity": 48,
+      "Duration": 1203013,
+      "SoundDuration": 1203013,
+      "Delta": 274035502
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 48,
+      "Duration": 407331,
+      "SoundDuration": 407331,
+      "Delta": 274442834
+    },
+    {
+      "NoteNumber": 69,
+      "Velocity": 55,
+      "Duration": 388349,
+      "SoundDuration": 388349,
+      "Delta": 274850166
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 57,
+      "Duration": 420875,
+      "SoundDuration": 420875,
+      "Delta": 275238516
+    },
+    {
+      "NoteNumber": 57,
+      "Velocity": 57,
+      "Duration": 1291188,
+      "SoundDuration": 1291188,
+      "Delta": 275238516
+    },
+    {
+      "NoteNumber": 45,
+      "Velocity": 57,
+      "Duration": 1291188,
+      "SoundDuration": 1291188,
+      "Delta": 275238516
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 56,
+      "Duration": 420875,
+      "SoundDuration": 420875,
+      "Delta": 275659391
+    },
+    {
+      "NoteNumber": 69,
+      "Velocity": 55,
+      "Duration": 449438,
+      "SoundDuration": 449438,
+      "Delta": 276080266
+    },
+    {
+      "NoteNumber": 72,
+      "Velocity": 56,
+      "Duration": 1413808,
+      "SoundDuration": 1413808,
+      "Delta": 276529705
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 61,
+      "Duration": 440237,
+      "SoundDuration": 440237,
+      "Delta": 276529705
+    },
+    {
+      "NoteNumber": 42,
+      "Velocity": 48,
+      "Duration": 1413808,
+      "SoundDuration": 1413808,
+      "Delta": 276529705
+    },
+    {
+      "NoteNumber": 54,
+      "Velocity": 48,
+      "Duration": 1413808,
+      "SoundDuration": 1413808,
+      "Delta": 276529705
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 55,
+      "Duration": 440237,
+      "SoundDuration": 440237,
+      "Delta": 276969942
+    },
+    {
+      "NoteNumber": 69,
+      "Velocity": 37,
+      "Duration": 533333,
+      "SoundDuration": 533333,
+      "Delta": 277410180
+    },
+    {
+      "NoteNumber": 73,
+      "Velocity": 61,
+      "Duration": 2577239,
+      "SoundDuration": 2577239,
+      "Delta": 277943513
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 46,
+      "Duration": 455892,
+      "SoundDuration": 455892,
+      "Delta": 277943513
+    },
+    {
+      "NoteNumber": 49,
+      "Velocity": 40,
+      "Duration": 2577239,
+      "SoundDuration": 2577239,
+      "Delta": 277943513
+    },
+    {
+      "NoteNumber": 37,
+      "Velocity": 40,
+      "Duration": 2577239,
+      "SoundDuration": 2577239,
+      "Delta": 277943513
+    },
+    {
+      "NoteNumber": 65,
+      "Velocity": 38,
+      "Duration": 455892,
+      "SoundDuration": 455892,
+      "Delta": 278399406
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 38,
+      "Duration": 430292,
+      "SoundDuration": 430292,
+      "Delta": 278855298
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 40,
+      "Duration": 386847,
+      "SoundDuration": 386847,
+      "Delta": 279285591
+    },
+    {
+      "NoteNumber": 65,
+      "Velocity": 37,
+      "Duration": 386847,
+      "SoundDuration": 386847,
+      "Delta": 279672438
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 37,
+      "Duration": 461467,
+      "SoundDuration": 461467,
+      "Delta": 280059285
+    },
+    {
+      "NoteNumber": 73,
+      "Velocity": 56,
+      "Duration": 2598227,
+      "SoundDuration": 2598227,
+      "Delta": 280520753
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 42,
+      "Duration": 450552,
+      "SoundDuration": 450552,
+      "Delta": 280520753
+    },
+    {
+      "NoteNumber": 30,
+      "Velocity": 42,
+      "Duration": 2598227,
+      "SoundDuration": 2598227,
+      "Delta": 280520753
+    },
+    {
+      "NoteNumber": 42,
+      "Velocity": 42,
+      "Duration": 2598227,
+      "SoundDuration": 2598227,
+      "Delta": 280520753
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 37,
+      "Duration": 430292,
+      "SoundDuration": 430292,
+      "Delta": 280971305
+    },
+    {
+      "NoteNumber": 69,
+      "Velocity": 37,
+      "Duration": 430292,
+      "SoundDuration": 430292,
+      "Delta": 281401597
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 40,
+      "Duration": 394788,
+      "SoundDuration": 394788,
+      "Delta": 281831890
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 37,
+      "Duration": 394788,
+      "SoundDuration": 394788,
+      "Delta": 282226679
+    },
+    {
+      "NoteNumber": 69,
+      "Velocity": 37,
+      "Duration": 497512,
+      "SoundDuration": 497512,
+      "Delta": 282621467
+    },
+    {
+      "NoteNumber": 71,
+      "Velocity": 56,
+      "Duration": 3633940,
+      "SoundDuration": 3633940,
+      "Delta": 283118980
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 47,
+      "Duration": 425622,
+      "SoundDuration": 425622,
+      "Delta": 283118980
+    },
+    {
+      "NoteNumber": 39,
+      "Velocity": 45,
+      "Duration": 3633940,
+      "SoundDuration": 3633940,
+      "Delta": 283118980
+    },
+    {
+      "NoteNumber": 51,
+      "Velocity": 45,
+      "Duration": 3633940,
+      "SoundDuration": 3633940,
+      "Delta": 283118980
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 40,
+      "Duration": 394788,
+      "SoundDuration": 394788,
+      "Delta": 283544602
+    },
+    {
+      "NoteNumber": 69,
+      "Velocity": 40,
+      "Duration": 394788,
+      "SoundDuration": 394788,
+      "Delta": 283939391
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 40,
+      "Duration": 403063,
+      "SoundDuration": 403063,
+      "Delta": 284334179
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 38,
+      "Duration": 403063,
+      "SoundDuration": 403063,
+      "Delta": 284737243
+    },
+    {
+      "NoteNumber": 69,
+      "Velocity": 37,
+      "Duration": 377358,
+      "SoundDuration": 377358,
+      "Delta": 285140306
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 40,
+      "Duration": 399999,
+      "SoundDuration": 399999,
+      "Delta": 285517664
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 38,
+      "Duration": 400000,
+      "SoundDuration": 400000,
+      "Delta": 285917664
+    },
+    {
+      "NoteNumber": 69,
+      "Velocity": 37,
+      "Duration": 435255,
+      "SoundDuration": 435255,
+      "Delta": 286317664
+    },
+    {
+      "NoteNumber": 71,
+      "Velocity": 56,
+      "Duration": 1233676,
+      "SoundDuration": 1233676,
+      "Delta": 286752920
+    },
+    {
+      "NoteNumber": 59,
+      "Velocity": 40,
+      "Duration": 394788,
+      "SoundDuration": 394788,
+      "Delta": 286752920
+    },
+    {
+      "NoteNumber": 40,
+      "Velocity": 41,
+      "Duration": 1233676,
+      "SoundDuration": 1233676,
+      "Delta": 286752920
+    },
+    {
+      "NoteNumber": 52,
+      "Velocity": 41,
+      "Duration": 1233676,
+      "SoundDuration": 1233676,
+      "Delta": 286752920
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 38,
+      "Duration": 382994,
+      "SoundDuration": 382994,
+      "Delta": 287147709
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 33,
+      "Duration": 455892,
+      "SoundDuration": 455892,
+      "Delta": 287530704
+    },
+    {
+      "NoteNumber": 69,
+      "Velocity": 56,
+      "Duration": 1233016,
+      "SoundDuration": 1233016,
+      "Delta": 287986596
+    },
+    {
+      "NoteNumber": 57,
+      "Velocity": 40,
+      "Duration": 411946,
+      "SoundDuration": 411946,
+      "Delta": 287986596
+    },
+    {
+      "NoteNumber": 37,
+      "Velocity": 46,
+      "Duration": 1233016,
+      "SoundDuration": 1233016,
+      "Delta": 287986596
+    },
+    {
+      "NoteNumber": 49,
+      "Velocity": 46,
+      "Duration": 1233016,
+      "SoundDuration": 1233016,
+      "Delta": 287986596
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 37,
+      "Duration": 390777,
+      "SoundDuration": 390777,
+      "Delta": 288398542
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 37,
+      "Duration": 430292,
+      "SoundDuration": 430292,
+      "Delta": 288789320
+    },
+    {
+      "NoteNumber": 69,
+      "Velocity": 56,
+      "Duration": 1201948,
+      "SoundDuration": 1201948,
+      "Delta": 289219613
+    },
+    {
+      "NoteNumber": 57,
+      "Velocity": 40,
+      "Duration": 394788,
+      "SoundDuration": 394788,
+      "Delta": 289219613
+    },
+    {
+      "NoteNumber": 39,
+      "Velocity": 40,
+      "Duration": 1201948,
+      "SoundDuration": 1201948,
+      "Delta": 289219613
+    },
+    {
+      "NoteNumber": 51,
+      "Velocity": 40,
+      "Duration": 1201948,
+      "SoundDuration": 1201948,
+      "Delta": 289219613
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 37,
+      "Duration": 394788,
+      "SoundDuration": 394788,
+      "Delta": 289614401
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 37,
+      "Duration": 412371,
+      "SoundDuration": 412371,
+      "Delta": 290009190
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 56,
+      "Duration": 1223297,
+      "SoundDuration": 1223297,
+      "Delta": 290421561
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 40,
+      "Duration": 398883,
+      "SoundDuration": 398883,
+      "Delta": 290421561
+    },
+    {
+      "NoteNumber": 48,
+      "Velocity": 46,
+      "Duration": 1223297,
+      "SoundDuration": 1223297,
+      "Delta": 290421561
+    },
+    {
+      "NoteNumber": 36,
+      "Velocity": 46,
+      "Duration": 1223297,
+      "SoundDuration": 1223297,
+      "Delta": 290421561
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 37,
+      "Duration": 398882,
+      "SoundDuration": 398882,
+      "Delta": 290820444
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 37,
+      "Duration": 425532,
+      "SoundDuration": 425532,
+      "Delta": 291219327
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 56,
+      "Duration": 1294106,
+      "SoundDuration": 1294106,
+      "Delta": 291644859
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 40,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 291644859
+    },
+    {
+      "NoteNumber": 49,
+      "Velocity": 40,
+      "Duration": 1294106,
+      "SoundDuration": 1294106,
+      "Delta": 291644859
+    },
+    {
+      "NoteNumber": 37,
+      "Velocity": 40,
+      "Duration": 1294106,
+      "SoundDuration": 1294106,
+      "Delta": 291644859
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 37,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 292061179
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 37,
+      "Duration": 461467,
+      "SoundDuration": 461467,
+      "Delta": 292477498
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 56,
+      "Duration": 2424765,
+      "SoundDuration": 2424765,
+      "Delta": 292938966
+    },
+    {
+      "NoteNumber": 54,
+      "Velocity": 40,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 292938966
+    },
+    {
+      "NoteNumber": 33,
+      "Velocity": 46,
+      "Duration": 2424765,
+      "SoundDuration": 2424765,
+      "Delta": 292938966
+    },
+    {
+      "NoteNumber": 45,
+      "Velocity": 46,
+      "Duration": 2424765,
+      "SoundDuration": 2424765,
+      "Delta": 292938966
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 42,
+      "Duration": 390777,
+      "SoundDuration": 390777,
+      "Delta": 293355285
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 46,
+      "Duration": 390777,
+      "SoundDuration": 390777,
+      "Delta": 293746063
+    },
+    {
+      "NoteNumber": 54,
+      "Velocity": 46,
+      "Duration": 390777,
+      "SoundDuration": 390777,
+      "Delta": 294136841
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 47,
+      "Duration": 390777,
+      "SoundDuration": 390777,
+      "Delta": 294527618
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 50,
+      "Duration": 445335,
+      "SoundDuration": 445335,
+      "Delta": 294918396
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 67,
+      "Duration": 1371513,
+      "SoundDuration": 1371513,
+      "Delta": 295363731
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 53,
+      "Duration": 440237,
+      "SoundDuration": 440237,
+      "Delta": 295363731
+    },
+    {
+      "NoteNumber": 32,
+      "Velocity": 50,
+      "Duration": 1371513,
+      "SoundDuration": 1371513,
+      "Delta": 295363731
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 50,
+      "Duration": 1371513,
+      "SoundDuration": 1371513,
+      "Delta": 295363731
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 53,
+      "Duration": 440237,
+      "SoundDuration": 440237,
+      "Delta": 295803969
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 53,
+      "Duration": 491038,
+      "SoundDuration": 491038,
+      "Delta": 296244206
+    },
+    {
+      "NoteNumber": 69,
+      "Velocity": 77,
+      "Duration": 1497582,
+      "SoundDuration": 1497582,
+      "Delta": 296735245
+    },
+    {
+      "NoteNumber": 57,
+      "Velocity": 60,
+      "Duration": 467180,
+      "SoundDuration": 467180,
+      "Delta": 296735245
+    },
+    {
+      "NoteNumber": 42,
+      "Velocity": 57,
+      "Duration": 1497582,
+      "SoundDuration": 1497582,
+      "Delta": 296735245
+    },
+    {
+      "NoteNumber": 30,
+      "Velocity": 57,
+      "Duration": 1497582,
+      "SoundDuration": 1497582,
+      "Delta": 296735245
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 57,
+      "Duration": 467180,
+      "SoundDuration": 467180,
+      "Delta": 297202426
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 55,
+      "Duration": 563221,
+      "SoundDuration": 563221,
+      "Delta": 297669606
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 56,
+      "Duration": 2866413,
+      "SoundDuration": 2866413,
+      "Delta": 298232828
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 40,
+      "Duration": 531915,
+      "SoundDuration": 531915,
+      "Delta": 298232828
+    },
+    {
+      "NoteNumber": 32,
+      "Velocity": 46,
+      "Duration": 2866413,
+      "SoundDuration": 2866413,
+      "Delta": 298232828
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 46,
+      "Duration": 2866413,
+      "SoundDuration": 2866413,
+      "Delta": 298232828
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 37,
+      "Duration": 497512,
+      "SoundDuration": 497512,
+      "Delta": 298764743
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 35,
+      "Duration": 484848,
+      "SoundDuration": 484848,
+      "Delta": 299262255
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 40,
+      "Duration": 461467,
+      "SoundDuration": 461467,
+      "Delta": 299747104
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 37,
+      "Duration": 445335,
+      "SoundDuration": 445335,
+      "Delta": 300208571
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 37,
+      "Duration": 445335,
+      "SoundDuration": 445335,
+      "Delta": 300653906
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 47,
+      "Duration": 2991168,
+      "SoundDuration": 2991168,
+      "Delta": 301099241
+    },
+    {
+      "NoteNumber": 54,
+      "Velocity": 40,
+      "Duration": 450552,
+      "SoundDuration": 450552,
+      "Delta": 301099241
+    },
+    {
+      "NoteNumber": 32,
+      "Velocity": 46,
+      "Duration": 2991168,
+      "SoundDuration": 2991168,
+      "Delta": 301099241
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 46,
+      "Duration": 2991168,
+      "SoundDuration": 2991168,
+      "Delta": 301099241
+    },
+    {
+      "NoteNumber": 60,
+      "Velocity": 35,
+      "Duration": 450551,
+      "SoundDuration": 450551,
+      "Delta": 301549793
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 31,
+      "Duration": 510725,
+      "SoundDuration": 510725,
+      "Delta": 302000345
+    },
+    {
+      "NoteNumber": 54,
+      "Velocity": 30,
+      "Duration": 470588,
+      "SoundDuration": 470588,
+      "Delta": 302511070
+    },
+    {
+      "NoteNumber": 60,
+      "Velocity": 26,
+      "Duration": 470588,
+      "SoundDuration": 470588,
+      "Delta": 302981659
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 26,
+      "Duration": 638162,
+      "SoundDuration": 638162,
+      "Delta": 303452247
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 53,
+      "Duration": 4003696,
+      "SoundDuration": 4003696,
+      "Delta": 304090409
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 41,
+      "Duration": 1485823,
+      "SoundDuration": 1485823,
+      "Delta": 304090409
+    },
+    {
+      "NoteNumber": 52,
+      "Velocity": 37,
+      "Duration": 571755,
+      "SoundDuration": 571755,
+      "Delta": 304090409
+    },
+    {
+      "NoteNumber": 37,
+      "Velocity": 37,
+      "Duration": 5570476,
+      "SoundDuration": 5570476,
+      "Delta": 304090409
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 32,
+      "Duration": 478812,
+      "SoundDuration": 478812,
+      "Delta": 304662164
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 32,
+      "Duration": 435255,
+      "SoundDuration": 435255,
+      "Delta": 305140977
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 37,
+      "Duration": 411946,
+      "SoundDuration": 411946,
+      "Delta": 305576233
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 32,
+      "Duration": 403063,
+      "SoundDuration": 403063,
+      "Delta": 305988179
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 32,
+      "Duration": 440237,
+      "SoundDuration": 440237,
+      "Delta": 306391242
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 37,
+      "Duration": 420875,
+      "SoundDuration": 420875,
+      "Delta": 306831480
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 31,
+      "Duration": 420875,
+      "SoundDuration": 420875,
+      "Delta": 307252355
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 31,
+      "Duration": 420875,
+      "SoundDuration": 420875,
+      "Delta": 307673231
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 53,
+      "Duration": 1137963,
+      "SoundDuration": 1137963,
+      "Delta": 308094106
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 37,
+      "Duration": 497512,
+      "SoundDuration": 497512,
+      "Delta": 308094106
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 30,
+      "Duration": 497512,
+      "SoundDuration": 497512,
+      "Delta": 308591618
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 30,
+      "Duration": 571755,
+      "SoundDuration": 571755,
+      "Delta": 309089131
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 53,
+      "Duration": 428816,
+      "SoundDuration": 428816,
+      "Delta": 309232069
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 53,
+      "Duration": 3670273,
+      "SoundDuration": 3670273,
+      "Delta": 309660886
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 37,
+      "Duration": 427364,
+      "SoundDuration": 427364,
+      "Delta": 309660886
+    },
+    {
+      "NoteNumber": 36,
+      "Velocity": 37,
+      "Duration": 5280293,
+      "SoundDuration": 5280293,
+      "Delta": 309660886
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 33,
+      "Duration": 416365,
+      "SoundDuration": 416365,
+      "Delta": 310088250
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 33,
+      "Duration": 405251,
+      "SoundDuration": 405251,
+      "Delta": 310504615
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 37,
+      "Duration": 390777,
+      "SoundDuration": 390777,
+      "Delta": 310909867
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 30,
+      "Duration": 390777,
+      "SoundDuration": 390777,
+      "Delta": 311300645
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 30,
+      "Duration": 390777,
+      "SoundDuration": 390777,
+      "Delta": 311691423
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 37,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 312082200
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 30,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 312498520
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 30,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 312914840
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 53,
+      "Duration": 1139063,
+      "SoundDuration": 1139063,
+      "Delta": 313331159
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 37,
+      "Duration": 491038,
+      "SoundDuration": 491038,
+      "Delta": 313331159
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 30,
+      "Duration": 491038,
+      "SoundDuration": 491038,
+      "Delta": 313822198
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 30,
+      "Duration": 627943,
+      "SoundDuration": 627943,
+      "Delta": 314313237
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 53,
+      "Duration": 470957,
+      "SoundDuration": 470957,
+      "Delta": 314470222
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 53,
+      "Duration": 3469237,
+      "SoundDuration": 3469237,
+      "Delta": 314941180
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 37,
+      "Duration": 411855,
+      "SoundDuration": 411855,
+      "Delta": 314941180
+    },
+    {
+      "NoteNumber": 37,
+      "Velocity": 37,
+      "Duration": 4948336,
+      "SoundDuration": 4948336,
+      "Delta": 314941180
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 35,
+      "Duration": 397379,
+      "SoundDuration": 397379,
+      "Delta": 315353036
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 40,
+      "Duration": 384468,
+      "SoundDuration": 384468,
+      "Delta": 315750415
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 45,
+      "Duration": 375516,
+      "SoundDuration": 375516,
+      "Delta": 316134884
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 48,
+      "Duration": 375516,
+      "SoundDuration": 375516,
+      "Delta": 316510400
+    },
+    {
+      "NoteNumber": 73,
+      "Velocity": 50,
+      "Duration": 375516,
+      "SoundDuration": 375516,
+      "Delta": 316885916
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 48,
+      "Duration": 382994,
+      "SoundDuration": 382994,
+      "Delta": 317261433
+    },
+    {
+      "NoteNumber": 76,
+      "Velocity": 53,
+      "Duration": 382994,
+      "SoundDuration": 382994,
+      "Delta": 317644428
+    },
+    {
+      "NoteNumber": 73,
+      "Velocity": 60,
+      "Duration": 382994,
+      "SoundDuration": 382994,
+      "Delta": 318027423
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 53,
+      "Duration": 1030131,
+      "SoundDuration": 1030131,
+      "Delta": 318410418
+    },
+    {
+      "NoteNumber": 80,
+      "Velocity": 62,
+      "Duration": 440237,
+      "SoundDuration": 440237,
+      "Delta": 318410418
+    },
+    {
+      "NoteNumber": 76,
+      "Velocity": 65,
+      "Duration": 440237,
+      "SoundDuration": 440237,
+      "Delta": 318850655
+    },
+    {
+      "NoteNumber": 73,
+      "Velocity": 71,
+      "Duration": 598623,
+      "SoundDuration": 598623,
+      "Delta": 319290893
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 60,
+      "Duration": 448967,
+      "SoundDuration": 448967,
+      "Delta": 319440549
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 63,
+      "Duration": 3758478,
+      "SoundDuration": 3758478,
+      "Delta": 319889516
+    },
+    {
+      "NoteNumber": 72,
+      "Velocity": 75,
+      "Duration": 484848,
+      "SoundDuration": 484848,
+      "Delta": 319889516
+    },
+    {
+      "NoteNumber": 32,
+      "Velocity": 37,
+      "Duration": 5378781,
+      "SoundDuration": 5378781,
+      "Delta": 319889516
+    },
+    {
+      "NoteNumber": 75,
+      "Velocity": 75,
+      "Duration": 404675,
+      "SoundDuration": 404675,
+      "Delta": 320374365
+    },
+    {
+      "NoteNumber": 69,
+      "Velocity": 75,
+      "Duration": 394308,
+      "SoundDuration": 394308,
+      "Delta": 320779040
+    },
+    {
+      "NoteNumber": 72,
+      "Velocity": 70,
+      "Duration": 383495,
+      "SoundDuration": 383495,
+      "Delta": 321173348
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 65,
+      "Duration": 375516,
+      "SoundDuration": 375516,
+      "Delta": 321556844
+    },
+    {
+      "NoteNumber": 69,
+      "Velocity": 63,
+      "Duration": 386847,
+      "SoundDuration": 386847,
+      "Delta": 321932360
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 61,
+      "Duration": 386847,
+      "SoundDuration": 386847,
+      "Delta": 322319207
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 57,
+      "Duration": 386847,
+      "SoundDuration": 386847,
+      "Delta": 322706055
+    },
+    {
+      "NoteNumber": 57,
+      "Velocity": 52,
+      "Duration": 1072691,
+      "SoundDuration": 1072691,
+      "Delta": 323092902
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 62,
+      "Duration": 1156910,
+      "SoundDuration": 1156910,
+      "Delta": 323647995
+    },
+    {
+      "NoteNumber": 60,
+      "Velocity": 50,
+      "Duration": 1620302,
+      "SoundDuration": 1620302,
+      "Delta": 323647995
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 47,
+      "Duration": 484848,
+      "SoundDuration": 484848,
+      "Delta": 324165593
+    },
+    {
+      "NoteNumber": 54,
+      "Velocity": 47,
+      "Duration": 617856,
+      "SoundDuration": 617856,
+      "Delta": 324650442
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 60,
+      "Duration": 463391,
+      "SoundDuration": 463391,
+      "Delta": 324804906
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 53,
+      "Duration": 3661878,
+      "SoundDuration": 3661878,
+      "Delta": 325268298
+    },
+    {
+      "NoteNumber": 52,
+      "Velocity": 42,
+      "Duration": 420875,
+      "SoundDuration": 420875,
+      "Delta": 325268298
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 42,
+      "Duration": 420875,
+      "SoundDuration": 420875,
+      "Delta": 325268298
+    },
+    {
+      "NoteNumber": 37,
+      "Velocity": 37,
+      "Duration": 5093739,
+      "SoundDuration": 5093739,
+      "Delta": 325268298
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 40,
+      "Duration": 377358,
+      "SoundDuration": 377358,
+      "Delta": 325689173
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 45,
+      "Duration": 377358,
+      "SoundDuration": 377358,
+      "Delta": 326066531
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 48,
+      "Duration": 382994,
+      "SoundDuration": 382994,
+      "Delta": 326443890
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 53,
+      "Duration": 403063,
+      "SoundDuration": 403063,
+      "Delta": 326826885
+    },
+    {
+      "NoteNumber": 73,
+      "Velocity": 60,
+      "Duration": 403063,
+      "SoundDuration": 403063,
+      "Delta": 327229948
+    },
+    {
+      "NoteNumber": 68,
+      "Velocity": 61,
+      "Duration": 403063,
+      "SoundDuration": 403063,
+      "Delta": 327633011
+    },
+    {
+      "NoteNumber": 76,
+      "Velocity": 63,
+      "Duration": 403063,
+      "SoundDuration": 403063,
+      "Delta": 328036075
+    },
+    {
+      "NoteNumber": 73,
+      "Velocity": 65,
+      "Duration": 491038,
+      "SoundDuration": 491038,
+      "Delta": 328439138
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 53,
+      "Duration": 1015540,
+      "SoundDuration": 1015540,
+      "Delta": 328930177
+    },
+    {
+      "NoteNumber": 80,
+      "Velocity": 67,
+      "Duration": 420875,
+      "SoundDuration": 420875,
+      "Delta": 328930177
+    },
+    {
+      "NoteNumber": 76,
+      "Velocity": 68,
+      "Duration": 455892,
+      "SoundDuration": 455892,
+      "Delta": 329351052
+    },
+    {
+      "NoteNumber": 73,
+      "Velocity": 70,
+      "Duration": 555092,
+      "SoundDuration": 555092,
+      "Delta": 329806944
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 56,
+      "Duration": 416319,
+      "SoundDuration": 416319,
+      "Delta": 329945717
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 63,
+      "Duration": 3799538,
+      "SoundDuration": 3799538,
+      "Delta": 330362037
+    },
+    {
+      "NoteNumber": 72,
+      "Velocity": 75,
+      "Duration": 503905,
+      "SoundDuration": 503905,
+      "Delta": 330362037
+    },
+    {
+      "NoteNumber": 32,
+      "Velocity": 37,
+      "Duration": 5581767,
+      "SoundDuration": 5581767,
+      "Delta": 330362037
+    },
+    {
+      "NoteNumber": 75,
+      "Velocity": 68,
+      "Duration": 407331,
+      "SoundDuration": 407331,
+      "Delta": 330865943
+    },
+    {
+      "NoteNumber": 69,
+      "Velocity": 65,
+      "Duration": 407332,
+      "SoundDuration": 407332,
+      "Delta": 331273275
+    },
+    {
+      "NoteNumber": 72,
+      "Velocity": 61,
+      "Duration": 384615,
+      "SoundDuration": 384615,
+      "Delta": 331680607
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 60,
+      "Duration": 408163,
+      "SoundDuration": 408163,
+      "Delta": 332065222
+    },
+    {
+      "NoteNumber": 69,
+      "Velocity": 53,
+      "Duration": 380952,
+      "SoundDuration": 380952,
+      "Delta": 332473385
+    },
+    {
+      "NoteNumber": 63,
+      "Velocity": 50,
+      "Duration": 408163,
+      "SoundDuration": 408163,
+      "Delta": 332854338
+    },
+    {
+      "NoteNumber": 66,
+      "Velocity": 48,
+      "Duration": 388349,
+      "SoundDuration": 388349,
+      "Delta": 333262501
+    },
+    {
+      "NoteNumber": 57,
+      "Velocity": 46,
+      "Duration": 1065818,
+      "SoundDuration": 1065818,
+      "Delta": 333650851
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 61,
+      "Duration": 1278196,
+      "SoundDuration": 1278196,
+      "Delta": 334161576
+    },
+    {
+      "NoteNumber": 60,
+      "Velocity": 41,
+      "Duration": 1782229,
+      "SoundDuration": 1782229,
+      "Delta": 334161576
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 37,
+      "Duration": 555093,
+      "SoundDuration": 555093,
+      "Delta": 334716669
+    },
+    {
+      "NoteNumber": 54,
+      "Velocity": 35,
+      "Duration": 672042,
+      "SoundDuration": 672042,
+      "Delta": 335271762
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 53,
+      "Duration": 504032,
+      "SoundDuration": 504032,
+      "Delta": 335439773
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 53,
+      "Duration": 2523297,
+      "SoundDuration": 2523297,
+      "Delta": 335943805
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 50,
+      "Duration": 503905,
+      "SoundDuration": 503905,
+      "Delta": 335943805
+    },
+    {
+      "NoteNumber": 52,
+      "Velocity": 50,
+      "Duration": 503905,
+      "SoundDuration": 503905,
+      "Delta": 335943805
+    },
+    {
+      "NoteNumber": 37,
+      "Velocity": 37,
+      "Duration": 7637648,
+      "SoundDuration": 7637648,
+      "Delta": 335943805
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 50,
+      "Duration": 440237,
+      "SoundDuration": 440237,
+      "Delta": 336447710
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 50,
+      "Duration": 394788,
+      "SoundDuration": 394788,
+      "Delta": 336887948
+    },
+    {
+      "NoteNumber": 64,
+      "Velocity": 48,
+      "Duration": 394788,
+      "SoundDuration": 394788,
+      "Delta": 337282737
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 48,
+      "Duration": 394788,
+      "SoundDuration": 394788,
+      "Delta": 337677525
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 47,
+      "Duration": 394788,
+      "SoundDuration": 394788,
+      "Delta": 338072314
+    },
+    {
+      "NoteNumber": 49,
+      "Velocity": 53,
+      "Duration": 2570349,
+      "SoundDuration": 2570349,
+      "Delta": 338467103
+    },
+    {
+      "NoteNumber": 52,
+      "Velocity": 47,
+      "Duration": 394788,
+      "SoundDuration": 394788,
+      "Delta": 338861891
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 47,
+      "Duration": 425622,
+      "SoundDuration": 425622,
+      "Delta": 339256680
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 47,
+      "Duration": 425622,
+      "SoundDuration": 425622,
+      "Delta": 339682302
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 46,
+      "Duration": 425622,
+      "SoundDuration": 425622,
+      "Delta": 340107925
+    },
+    {
+      "NoteNumber": 52,
+      "Velocity": 46,
+      "Duration": 503905,
+      "SoundDuration": 503905,
+      "Delta": 340533547
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 50,
+      "Duration": 2530399,
+      "SoundDuration": 2530399,
+      "Delta": 341037452
+    },
+    {
+      "NoteNumber": 49,
+      "Velocity": 45,
+      "Duration": 412201,
+      "SoundDuration": 412201,
+      "Delta": 341472708
+    },
+    {
+      "NoteNumber": 52,
+      "Velocity": 45,
+      "Duration": 393455,
+      "SoundDuration": 393455,
+      "Delta": 341833384
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 42,
+      "Duration": 435255,
+      "SoundDuration": 435255,
+      "Delta": 342275687
+    },
+    {
+      "NoteNumber": 52,
+      "Velocity": 42,
+      "Duration": 435255,
+      "SoundDuration": 435255,
+      "Delta": 342710942
+    },
+    {
+      "NoteNumber": 49,
+      "Velocity": 41,
+      "Duration": 435255,
+      "SoundDuration": 435255,
+      "Delta": 343146198
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 41,
+      "Duration": 427329,
+      "SoundDuration": 427329,
+      "Delta": 343581454
+    },
+    {
+      "NoteNumber": 49,
+      "Velocity": 41,
+      "Duration": 403551,
+      "SoundDuration": 403551,
+      "Delta": 344008783
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 40,
+      "Duration": 406386,
+      "SoundDuration": 406386,
+      "Delta": 344412335
+    },
+    {
+      "NoteNumber": 40,
+      "Velocity": 40,
+      "Duration": 425622,
+      "SoundDuration": 425622,
+      "Delta": 344818721
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 38,
+      "Duration": 531915,
+      "SoundDuration": 531915,
+      "Delta": 345244344
+    },
+    {
+      "NoteNumber": 40,
+      "Velocity": 37,
+      "Duration": 751314,
+      "SoundDuration": 751314,
+      "Delta": 345776259
+    },
+    {
+      "NoteNumber": 37,
+      "Velocity": 38,
+      "Duration": 3282276,
+      "SoundDuration": 3282276,
+      "Delta": 346527573
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 37,
+      "Duration": 3293623,
+      "SoundDuration": 3293623,
+      "Delta": 349809849
+    },
+    {
+      "NoteNumber": 52,
+      "Velocity": 31,
+      "Duration": 3293623,
+      "SoundDuration": 3293623,
+      "Delta": 349809849
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 31,
+      "Duration": 3293623,
+      "SoundDuration": 3293623,
+      "Delta": 349809849
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 26,
+      "Duration": 3293623,
+      "SoundDuration": 3293623,
+      "Delta": 349809849
+    },
+    {
+      "NoteNumber": 49,
+      "Velocity": 31,
+      "Duration": 3293623,
+      "SoundDuration": 3293623,
+      "Delta": 349809849
+    },
+    {
+      "NoteNumber": 37,
+      "Velocity": 26,
+      "Duration": 3293623,
+      "SoundDuration": 3293623,
+      "Delta": 349809849
+    },
+    {
+      "NoteNumber": 61,
+      "Velocity": 37,
+      "Duration": 8880428,
+      "SoundDuration": 8880428,
+      "Delta": 353103473
+    },
+    {
+      "NoteNumber": 52,
+      "Velocity": 31,
+      "Duration": 8880428,
+      "SoundDuration": 8880428,
+      "Delta": 353103473
+    },
+    {
+      "NoteNumber": 56,
+      "Velocity": 31,
+      "Duration": 8880428,
+      "SoundDuration": 8880428,
+      "Delta": 353103473
+    },
+    {
+      "NoteNumber": 44,
+      "Velocity": 26,
+      "Duration": 8880428,
+      "SoundDuration": 8880428,
+      "Delta": 353103473
+    },
+    {
+      "NoteNumber": 49,
+      "Velocity": 31,
+      "Duration": 8880428,
+      "SoundDuration": 8880428,
+      "Delta": 353103473
+    },
+    {
+      "NoteNumber": 37,
+      "Velocity": 26,
+      "Duration": 8880428,
+      "SoundDuration": 8880428,
+      "Delta": 353103473
+    }
+  ]
+}

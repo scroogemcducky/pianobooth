@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, createContext, useContext } from 'react'
 import { useThree } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
@@ -14,19 +14,33 @@ import {
   getKeyboardWidth,
 } from '../utils/pianoLayout'
 
-const redMaterialBlack = new THREE.MeshBasicMaterial({
-  color: new THREE.Color(...BLACK_KEY_COLOR),
-})
+// Context for dynamic key colors
+type KeyMaterialsContextType = {
+  blackMaterial: THREE.MeshBasicMaterial
+  whiteMaterial: THREE.MeshBasicMaterial
+}
 
-const redMaterialWhite = new THREE.MeshBasicMaterial({
-  color: new THREE.Color(...WHITE_KEY_COLOR),
-})
+const KeyMaterialsContext = createContext<KeyMaterialsContextType | null>(null)
+
+function useKeyMaterials() {
+  const context = useContext(KeyMaterialsContext)
+  if (!context) {
+    // Fallback to default materials
+    return {
+      blackMaterial: new THREE.MeshBasicMaterial({ color: new THREE.Color(...BLACK_KEY_COLOR) }),
+      whiteMaterial: new THREE.MeshBasicMaterial({ color: new THREE.Color(...WHITE_KEY_COLOR) }),
+    }
+  }
+  return context
+}
 
 type RecordKeysProps = {
   layout?: PianoLayout | null
   scaleMultiplier?: number
   scaleFillRatio?: number
   scaleMax?: number
+  blackKeyColor?: number[]
+  whiteKeyColor?: number[]
 }
 
 const RecordKeys: React.FC<RecordKeysProps> = ({
@@ -34,6 +48,8 @@ const RecordKeys: React.FC<RecordKeysProps> = ({
   scaleMultiplier = 1.5,
   scaleFillRatio = 1,
   scaleMax = 2,
+  blackKeyColor,
+  whiteKeyColor,
 }) => {
   const { viewport } = useThree()
   const activeLayout = layout ?? DEFAULT_PIANO_LAYOUT
@@ -41,6 +57,16 @@ const RecordKeys: React.FC<RecordKeysProps> = ({
     () => Array.from({ length: activeLayout.octaveCount }, (_, idx) => activeLayout.startOctave + idx),
     [activeLayout.startOctave, activeLayout.octaveCount],
   )
+
+  // Create dynamic materials based on props
+  const materials = useMemo(() => {
+    const black = blackKeyColor ?? BLACK_KEY_COLOR
+    const white = whiteKeyColor ?? WHITE_KEY_COLOR
+    return {
+      blackMaterial: new THREE.MeshBasicMaterial({ color: new THREE.Color(...black) }),
+      whiteMaterial: new THREE.MeshBasicMaterial({ color: new THREE.Color(...white) }),
+    }
+  }, [blackKeyColor?.[0], blackKeyColor?.[1], blackKeyColor?.[2], whiteKeyColor?.[0], whiteKeyColor?.[1], whiteKeyColor?.[2]])
 
   const totalKeyboardWidth = getKeyboardWidth(activeLayout)
   const scaleFactor = scalingFactor(viewport.width, totalKeyboardWidth, {
@@ -51,7 +77,7 @@ const RecordKeys: React.FC<RecordKeysProps> = ({
   const { keyboardY, screenBottom } = getKeyboardMetrics(viewport.height, scaleFactor)
 
   return (
-    <>
+    <KeyMaterialsContext.Provider value={materials}>
       <group scale={[scaleFactor, scaleFactor, 1]} position={[0, keyboardY, 0]}>
         <group position={[-activeLayout.centerX, 0, 0]}>
           {octaveIndices.map((octaveIndex) => (
@@ -64,7 +90,7 @@ const RecordKeys: React.FC<RecordKeysProps> = ({
         <planeGeometry args={[viewport.width, keyboardY - screenBottom]} />
         <meshBasicMaterial color="black" />
       </mesh>
-    </>
+    </KeyMaterialsContext.Provider>
   )
 }
 
@@ -98,9 +124,10 @@ type NoteProps = { noteNumber: number }
 function CKey({ noteNumber }: NoteProps) {
   const { nodes, materials }: any = useGLTF('/c.glb')
   const isPressed = useStore((state) => state[noteNumber])
+  const { whiteMaterial } = useKeyMaterials()
   return (
     <group position={[-0.116, 0, -1.695]} rotation={[0, 0, -Math.PI / 2]}>
-      <mesh geometry={nodes.Cube1051.geometry} material={isPressed ? redMaterialWhite : materials.white} />
+      <mesh geometry={nodes.Cube1051.geometry} material={isPressed ? whiteMaterial : materials.white} />
     </group>
   )
 }
@@ -108,11 +135,12 @@ function CKey({ noteNumber }: NoteProps) {
 function CSharpKey({ noteNumber }: NoteProps) {
   const { nodes, materials }: any = useGLTF('/c_sharp.glb')
   const isPressed = useStore((state) => state[noteNumber])
+  const { blackMaterial } = useKeyMaterials()
   return (
     <group dispose={null}>
       <mesh
         geometry={nodes.Black.geometry}
-        material={isPressed ? redMaterialBlack : materials.Material}
+        material={isPressed ? blackMaterial : materials.Material}
         position={[1.133, 0, 1.922]}
         rotation={[0, 0, -Math.PI / 2]}
       />
@@ -123,9 +151,10 @@ function CSharpKey({ noteNumber }: NoteProps) {
 function DKey({ noteNumber }: NoteProps) {
   const { nodes, materials }: any = useGLTF('/d.glb')
   const isPressed = useStore((state) => state[noteNumber])
+  const { whiteMaterial } = useKeyMaterials()
   return (
     <group position={[2.434, 0, -1.683]} rotation={[0, 0, -Math.PI / 2]}>
-      <mesh geometry={nodes.Cube1055.geometry} material={isPressed ? redMaterialWhite : materials.white} />
+      <mesh geometry={nodes.Cube1055.geometry} material={isPressed ? whiteMaterial : materials.white} />
     </group>
   )
 }
@@ -133,11 +162,12 @@ function DKey({ noteNumber }: NoteProps) {
 function DSharpKey({ noteNumber }: NoteProps) {
   const { nodes, materials }: any = useGLTF('/d_sharp.glb')
   const isPressed = useStore((state) => state[noteNumber])
+  const { blackMaterial } = useKeyMaterials()
   return (
     <group dispose={null}>
       <mesh
         geometry={nodes.Black001.geometry}
-        material={isPressed ? redMaterialBlack : materials.Material}
+        material={isPressed ? blackMaterial : materials.Material}
         position={[3.755, 0, 1.922]}
         rotation={[0, 0, -Math.PI / 2]}
       />
@@ -148,9 +178,10 @@ function DSharpKey({ noteNumber }: NoteProps) {
 function EKey({ noteNumber }: NoteProps) {
   const { nodes, materials }: any = useGLTF('/e.glb')
   const isPressed = useStore((state) => state[noteNumber])
+  const { whiteMaterial } = useKeyMaterials()
   return (
     <group position={[4.984, 0, -1.683]} rotation={[0, 0, -Math.PI / 2]}>
-      <mesh geometry={nodes.Cube1056.geometry} material={isPressed ? redMaterialWhite : materials.white} />
+      <mesh geometry={nodes.Cube1056.geometry} material={isPressed ? whiteMaterial : materials.white} />
     </group>
   )
 }
@@ -158,9 +189,10 @@ function EKey({ noteNumber }: NoteProps) {
 function FKey({ noteNumber }: NoteProps) {
   const { nodes, materials }: any = useGLTF('/f.glb')
   const isPressed = useStore((state) => state[noteNumber])
+  const { whiteMaterial } = useKeyMaterials()
   return (
     <group position={[7.534, 0, -1.683]} rotation={[0, 0, -Math.PI / 2]}>
-      <mesh geometry={nodes.Cube1057.geometry} material={isPressed ? redMaterialWhite : materials.white} />
+      <mesh geometry={nodes.Cube1057.geometry} material={isPressed ? whiteMaterial : materials.white} />
     </group>
   )
 }
@@ -168,10 +200,11 @@ function FKey({ noteNumber }: NoteProps) {
 function FSharpKey({ noteNumber }: NoteProps) {
   const { nodes, materials }: any = useGLTF('/f_sharp.glb')
   const isPressed = useStore((state) => state[noteNumber])
+  const { blackMaterial } = useKeyMaterials()
   return (
     <mesh
       geometry={nodes.Black002.geometry}
-      material={isPressed ? redMaterialBlack : materials.Material}
+      material={isPressed ? blackMaterial : materials.Material}
       position={[8.816, 0, 1.922]}
       rotation={[0, 0, -Math.PI / 2]}
     />
@@ -181,9 +214,10 @@ function FSharpKey({ noteNumber }: NoteProps) {
 function GKey({ noteNumber }: NoteProps) {
   const { nodes, materials }: any = useGLTF('/g.glb')
   const isPressed = useStore((state) => state[noteNumber])
+  const { whiteMaterial } = useKeyMaterials()
   return (
     <group position={[10.084, 0, -1.692]} rotation={[0, 0, -Math.PI / 2]}>
-      <mesh geometry={nodes.Cube1058.geometry} material={isPressed ? redMaterialWhite : materials.white} />
+      <mesh geometry={nodes.Cube1058.geometry} material={isPressed ? whiteMaterial : materials.white} />
     </group>
   )
 }
@@ -191,10 +225,11 @@ function GKey({ noteNumber }: NoteProps) {
 function GSharpKey({ noteNumber }: NoteProps) {
   const { nodes, materials }: any = useGLTF('/g_sharp.glb')
   const isPressed = useStore((state) => state[noteNumber])
+  const { blackMaterial } = useKeyMaterials()
   return (
     <mesh
       geometry={nodes.Black003.geometry}
-      material={isPressed ? redMaterialBlack : materials.Material}
+      material={isPressed ? blackMaterial : materials.Material}
       position={[11.345, 0, 1.922]}
       rotation={[0, 0, -Math.PI / 2]}
     />
@@ -204,9 +239,10 @@ function GSharpKey({ noteNumber }: NoteProps) {
 function AKey({ noteNumber }: NoteProps) {
   const { nodes, materials }: any = useGLTF('/a.glb')
   const isPressed = useStore((state) => state[noteNumber])
+  const { whiteMaterial } = useKeyMaterials()
   return (
     <group position={[12.634, 0, -1.683]} rotation={[0, 0, -Math.PI / 2]}>
-      <mesh geometry={nodes.Cube1059.geometry} material={isPressed ? redMaterialWhite : materials.white} />
+      <mesh geometry={nodes.Cube1059.geometry} material={isPressed ? whiteMaterial : materials.white} />
     </group>
   )
 }
@@ -214,10 +250,11 @@ function AKey({ noteNumber }: NoteProps) {
 function ASharpKey({ noteNumber }: NoteProps) {
   const { nodes, materials }: any = useGLTF('/a_sharp.glb')
   const isPressed = useStore((state) => state[noteNumber])
+  const { blackMaterial } = useKeyMaterials()
   return (
     <mesh
       geometry={nodes.Black004.geometry}
-      material={isPressed ? redMaterialBlack : materials.Material}
+      material={isPressed ? blackMaterial : materials.Material}
       position={[13.879, 0, 1.922]}
       rotation={[0, 0, -Math.PI / 2]}
     />
@@ -227,9 +264,10 @@ function ASharpKey({ noteNumber }: NoteProps) {
 function BKey({ noteNumber }: NoteProps) {
   const { nodes, materials }: any = useGLTF('/b.glb')
   const isPressed = useStore((state) => state[noteNumber])
+  const { whiteMaterial } = useKeyMaterials()
   return (
     <group position={[15.184, 0, -1.683]} rotation={[0, 0, -Math.PI / 2]}>
-      <mesh geometry={nodes.Cube1060.geometry} material={isPressed ? redMaterialWhite : materials.white} />
+      <mesh geometry={nodes.Cube1060.geometry} material={isPressed ? whiteMaterial : materials.white} />
     </group>
   )
 }

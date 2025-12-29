@@ -9,6 +9,7 @@ type Options = {
   baseUrl?: string
   timeout?: number
   headless?: boolean
+  font?: string
 }
 
 const DEFAULTS = {
@@ -37,7 +38,11 @@ export async function generateThumbnail(
     })
     const page = await context.newPage()
 
-    const result = await captureThumbnail(page, artistSlug, songSlug, outputPath, opts)
+    const result = await captureThumbnail(page, artistSlug, songSlug, outputPath, {
+      baseUrl: opts.baseUrl,
+      timeout: opts.timeout,
+      font: opts.font,
+    })
 
     await browser.close()
     return result
@@ -56,15 +61,18 @@ export async function captureThumbnail(
   artistSlug: string,
   songSlug: string,
   outputPath: string,
-  options: { baseUrl: string; timeout: number }
+  options: { baseUrl: string; timeout: number; font?: string }
 ): Promise<{ success: boolean; error?: string }> {
   try {
     // Ensure output directory exists
     const outputDir = path.dirname(outputPath)
     await fs.mkdir(outputDir, { recursive: true })
 
-    // Navigate to thumbnail route
-    const url = `${options.baseUrl}/thumbnail/${encodeURIComponent(artistSlug)}/${encodeURIComponent(songSlug)}`
+    // Navigate to thumbnail route with optional font parameter
+    let url = `${options.baseUrl}/thumbnail/${encodeURIComponent(artistSlug)}/${encodeURIComponent(songSlug)}`
+    if (options.font) {
+      url += `?font=${encodeURIComponent(options.font)}`
+    }
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: options.timeout })
 
     // Wait for the ready indicator
@@ -79,11 +87,20 @@ export async function captureThumbnail(
       return { success: false, error: 'Thumbnail container not found' }
     }
 
-    await container.screenshot({
-      path: outputPath,
-      type: 'jpeg',
-      quality: 90,
-    })
+    // Use PNG for lossless quality
+    const isPng = outputPath.toLowerCase().endsWith('.png')
+    if (isPng) {
+      await container.screenshot({
+        path: outputPath,
+        type: 'png',
+      })
+    } else {
+      await container.screenshot({
+        path: outputPath,
+        type: 'jpeg',
+        quality: 100,
+      })
+    }
 
     return { success: true }
   } catch (error: unknown) {

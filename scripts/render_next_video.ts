@@ -12,7 +12,7 @@ import { spawn } from 'node:child_process'
 
 import { parseMidiFilePath, type MidiNote } from './parse_midi_to_json'
 import { createNormalizedMidi } from './normalize_midi'
-import { generateThumbnail } from './generate_thumbnail'
+import { captureThumbnail } from './generate_thumbnail'
 
 // Slugify function for generating URL-safe slugs (matches app/utils/slugify.ts)
 function slugify(value: string): string {
@@ -272,18 +272,46 @@ async function getUniqueFilePath(dir: string, baseName: string, ext: string): Pr
   }
 }
 
-async function listMp4(dir: string): Promise<{ name: string; path: string; mtimeMs: number; size: number }[]> {
+async function getUniqueFolderPath(dir: string, baseName: string): Promise<string> {
+  // Check if base folder exists
+  const basePath = path.join(dir, baseName)
+  try {
+    await fs.access(basePath)
+  } catch {
+    // Folder doesn't exist, use base name
+    return basePath
+  }
+
+  // Folder exists, find next available number
+  let counter = 2
+  while (true) {
+    const numberedPath = path.join(dir, `${baseName}_${counter}`)
+    try {
+      await fs.access(numberedPath)
+      counter++
+    } catch {
+      // This numbered path doesn't exist, use it
+      return numberedPath
+    }
+  }
+}
+
+async function listMp4(dir: string, recursive = true): Promise<{ name: string; path: string; mtimeMs: number; size: number }[]> {
   let entries: any[] = []
   try {
     entries = await fs.readdir(dir, { withFileTypes: true })
   } catch { return [] }
   const out: { name: string; path: string; mtimeMs: number; size: number }[] = []
   for (const e of entries) {
-    if (!e.isFile()) continue
-    if (!/\.mp4$/i.test(e.name)) continue
     const p = path.join(dir, e.name)
-    const st = await fs.stat(p)
-    out.push({ name: e.name, path: p, mtimeMs: st.mtimeMs, size: st.size })
+    if (e.isDirectory() && recursive) {
+      // Search subdirectories
+      const subFiles = await listMp4(p, recursive)
+      out.push(...subFiles)
+    } else if (e.isFile() && /\.mp4$/i.test(e.name)) {
+      const st = await fs.stat(p)
+      out.push({ name: e.name, path: p, mtimeMs: st.mtimeMs, size: st.size })
+    }
   }
   return out
 }
@@ -357,6 +385,13 @@ export async function processOneVideo(opts: Options, videoNumber?: number): Prom
   // Parse MIDI to note events (what the page consumes via localStorage)
   const midiObject: MidiNote[] = await parseMidiFilePath(midiPath)
 
+  // Read MIDI buffer and compute hash early (needed for JSON export later)
+  const midiBuffer = await fs.readFile(midiPath)
+  const midiHash = createHash('sha256').update(midiBuffer).digest('hex')
+  const { Midi } = await import('@tonejs/midi')
+  const midiParsed = new Midi(midiBuffer)
+  const durationMs = midiParsed.duration * 1000
+
   // Extract metadata and refine via LLM for naming
   const { title: guessedTitle, artist: guessedArtist, trackNames } = await extractTitleArtist(midiPath)
   let title = guessedTitle
@@ -373,16 +408,19 @@ export async function processOneVideo(opts: Options, videoNumber?: number): Prom
   const fileTitle = refined?.title_short ? refined.title_short : simplifyTitle(title)
   const displayName = sanitizeFileName(`${artist} - ${fileTitle}`)
 
-  await fs.mkdir(opts.outDir, { recursive: true })
+  // Create a unique folder for this video inside videos/
+  const videoFolderPath = await getUniqueFolderPath(opts.outDir, displayName)
+  await fs.mkdir(videoFolderPath, { recursive: true })
 
-  // Get unique file path (increments _2, _3, etc. if file exists)
-  const targetPath = await getUniqueFilePath(opts.outDir, displayName, '.mp4')
+  // Video and thumbnail go in the same folder
+  const targetPath = path.join(videoFolderPath, `${displayName}.mp4`)
   const targetName = path.basename(targetPath)
-  console.log(`${prefix}Output will be: ${targetName}`)
+  console.log(`${prefix}Output folder: ${path.basename(videoFolderPath)}/`)
+  console.log(`${prefix}Output video: ${targetName}`)
 
   // Generate audio from MIDI using FluidSynth (server-side, much faster than browser)
   // Audio delay = intro delay (before notes start falling) + fall duration (time to reach keys)
-  const NOTE_START_DELAY_SECONDS = 0.5  // Must match record.tsx
+  const NOTE_START_DELAY_SECONDS = 0  // Must match record.tsx
   const audioDelay = NOTE_START_DELAY_SECONDS + opts.fallDuration
 
   const tempAudioDir = path.join(process.cwd(), 'temp_audio')
@@ -537,18 +575,84 @@ export async function processOneVideo(opts: Options, videoNumber?: number): Prom
   // Generate thumbnail for the video
   const artistSlug = slugify(artist)
   const songSlug = slugify(fileTitle)
-  const thumbnailPath = targetPath.replace('.mp4', '.jpg')
+  // Save MIDI JSON to public_midi_json for thumbnail route to access
+  const midiJsonDir = path.join('public', 'public_midi_json', artistSlug)
+  const midiJsonPath = path.join(midiJsonDir, `${songSlug}.json`)
+  await fs.mkdir(midiJsonDir, { recursive: true })
 
-  console.log(`${prefix}Generating thumbnail...`)
-  const thumbnailResult = await generateThumbnail(artistSlug, songSlug, thumbnailPath, {
-    baseUrl: opts.baseUrl,
-  })
-
-  if (thumbnailResult.success) {
-    console.log(`${prefix}Thumbnail saved: ${thumbnailPath}`)
-  } else {
-    console.warn(`${prefix}⚠️ Thumbnail generation failed: ${thumbnailResult.error}`)
+  const midiJsonData = {
+    title: fileTitle,
+    artist: artist,
+    durationMs,
+    midiSha256: midiHash,
+    midiObject,
   }
+  await fs.writeFile(midiJsonPath, JSON.stringify(midiJsonData, null, 2))
+  console.log(`${prefix}Saved MIDI JSON: ${midiJsonPath}`)
+
+  // Get all fonts from the fonts directory
+  const fontsDir = path.join('public', 'fonts')
+  let fontFiles: string[] = []
+  try {
+    const entries = await fs.readdir(fontsDir)
+    fontFiles = entries.filter(f => /\.(ttf|otf|woff|woff2)$/i.test(f))
+  } catch {
+    console.warn(`${prefix}⚠️ Could not read fonts directory, using default font`)
+    fontFiles = ['EBGaramond-VariableFont_wght.ttf']
+  }
+
+  // Map font filenames to CSS font-family names
+  const fontNameMap: Record<string, string> = {
+    'EBGaramond-VariableFont_wght.ttf': 'EB Garamond',
+    'DMSerifDisplay-Regular.ttf': 'DM Serif Display',
+    'Italianno-Regular.ttf': 'Italianno',
+    'Parisienne-Regular.ttf': 'Parisienne',
+    'PinyonScript-Regular.ttf': 'Pinyon Script',
+    'Tangerine-Regular.ttf': 'Tangerine',
+    'Tangerine-Bold.ttf': 'Tangerine',
+  }
+
+  // Filter to only known fonts (skip Tangerine-Bold since it's the same family)
+  const uniqueFonts = fontFiles.filter(f => fontNameMap[f] && f !== 'Tangerine-Bold.ttf')
+
+  console.log(`${prefix}Generating ${uniqueFonts.length} thumbnails (one per font)...`)
+  let thumbnailsGenerated = 0
+
+  // Launch a single browser for all thumbnails (much faster than launching per-thumbnail)
+  // Use 2x device scale factor for higher resolution (2560x1440 effective)
+  const thumbBrowser = await chromium.launch({ headless: true })
+  const thumbContext = await thumbBrowser.newContext({
+    viewport: { width: 1280, height: 720 },
+    deviceScaleFactor: 2,
+  })
+  const thumbPage = await thumbContext.newPage()
+
+  try {
+    for (const fontFile of uniqueFonts) {
+      const fontName = fontNameMap[fontFile] || fontFile.replace(/\.(ttf|otf|woff|woff2)$/i, '')
+
+      // Create thumbnail filename with font name (PNG for lossless quality)
+      const safeFontName = fontName.replace(/\s+/g, '_')
+      const fontThumbnailPath = path.join(videoFolderPath, `${displayName}_${safeFontName}.png`)
+
+      const thumbnailResult = await captureThumbnail(thumbPage, artistSlug, songSlug, fontThumbnailPath, {
+        baseUrl: opts.baseUrl,
+        timeout: 30000,
+        font: fontName,
+      })
+
+      if (thumbnailResult.success) {
+        console.log(`${prefix}  Thumbnail saved: ${path.basename(fontThumbnailPath)}`)
+        thumbnailsGenerated++
+      } else {
+        console.warn(`${prefix}  ⚠️ Thumbnail failed (${fontName}): ${thumbnailResult.error}`)
+      }
+    }
+  } finally {
+    await thumbBrowser.close()
+  }
+
+  console.log(`${prefix}Generated ${thumbnailsGenerated}/${uniqueFonts.length} thumbnails`)
 
   // Delete MIDI from queue if requested (default)
   if (!opts.keepMidi) {

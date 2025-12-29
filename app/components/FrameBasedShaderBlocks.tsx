@@ -36,12 +36,12 @@ interface Block {
 }
 
 const fragmentShader = /* glsl */ `
+    uniform vec3 uBlackKeyColor;
+    uniform vec3 uWhiteKeyColor;
     varying float vIsBlackKey;
 
     void main() {
-        vec3 color = vIsBlackKey > 0.5 ?
-            vec3(${BLACK_KEY_COLOR[0]}, ${BLACK_KEY_COLOR[1]}, ${BLACK_KEY_COLOR[2]}) :
-            vec3(${WHITE_KEY_COLOR[0]}, ${WHITE_KEY_COLOR[1]}, ${WHITE_KEY_COLOR[2]});
+        vec3 color = vIsBlackKey > 0.5 ? uBlackKeyColor : uWhiteKeyColor;
         gl_FragColor = vec4(color, 1.0);
     }
 `;
@@ -59,21 +59,23 @@ const vertexShader = /* glsl */ `
     vec3 transformed = position.xyz;
     transformed.y *= instanceHeight;
     transformed.x *= instanceWidth;
-        
+
     vec3 finalPosition = transformed + instancePosition;
     finalPosition.y -= uAccum;
-    
+
     gl_Position = projectionMatrix * modelViewMatrix * vec4(finalPosition, 1.0);
   }
 `;
 
 class CustomShaderMaterial extends THREE.ShaderMaterial {
-  constructor() {
+  constructor(blackKeyColor: number[] = BLACK_KEY_COLOR, whiteKeyColor: number[] = WHITE_KEY_COLOR) {
     super({
       vertexShader,
       fragmentShader,
       uniforms: {
-        uAccum: { value: 0.0 }
+        uAccum: { value: 0.0 },
+        uBlackKeyColor: { value: new THREE.Vector3(...blackKeyColor) },
+        uWhiteKeyColor: { value: new THREE.Vector3(...whiteKeyColor) },
       },
       transparent: true,
       side: THREE.DoubleSide,
@@ -94,6 +96,7 @@ extend({ CustomShaderMaterial });
 
 interface FrameBasedInstancesHandle {
   setTime: (currentTimeMs: number) => void
+  setColors: (blackKeyColor: number[], whiteKeyColor: number[]) => void
 }
 
 interface FrameBasedInstancesProps {
@@ -101,11 +104,18 @@ interface FrameBasedInstancesProps {
   scaleFactor: number
   distance: number
   lookahead: number
+  blackKeyColor?: number[]
+  whiteKeyColor?: number[]
 }
 
 const FrameBasedInstances = forwardRef<FrameBasedInstancesHandle, FrameBasedInstancesProps>(
-  function FrameBasedInstances({ blocks, scaleFactor, distance, lookahead }, ref) {
+  function FrameBasedInstances({ blocks, scaleFactor, distance, lookahead, blackKeyColor, whiteKeyColor }, ref) {
   const materialRef = useRef<CustomShaderMaterial>(null);
+
+  // Create material with initial colors
+  const material = useMemo(() => {
+    return new CustomShaderMaterial(blackKeyColor, whiteKeyColor)
+  }, [])
 
   useImperativeHandle(ref, () => ({
     setTime: (currentTimeMs: number) => {
@@ -115,8 +125,26 @@ const FrameBasedInstances = forwardRef<FrameBasedInstancesHandle, FrameBasedInst
       const speedAdjusted = speed * distance / lookahead
       const accumValue = (currentTimeMs / 1000) * speedAdjusted
       materialRef.current.uniforms.uAccum.value = accumValue
+    },
+    setColors: (blackColor: number[], whiteColor: number[]) => {
+      if (!materialRef.current) return
+      materialRef.current.uniforms.uBlackKeyColor.value.set(...blackColor)
+      materialRef.current.uniforms.uWhiteKeyColor.value.set(...whiteColor)
     }
   }), [distance, lookahead])
+
+  // Update colors when props change
+  useEffect(() => {
+    if (materialRef.current && blackKeyColor) {
+      materialRef.current.uniforms.uBlackKeyColor.value.set(...blackKeyColor)
+    }
+  }, [blackKeyColor?.[0], blackKeyColor?.[1], blackKeyColor?.[2]])
+
+  useEffect(() => {
+    if (materialRef.current && whiteKeyColor) {
+      materialRef.current.uniforms.uWhiteKeyColor.value.set(...whiteKeyColor)
+    }
+  }, [whiteKeyColor?.[0], whiteKeyColor?.[1], whiteKeyColor?.[2]])
 
   const geometry = useMemo(() => {
     if (!blocks.length) return null;
@@ -138,7 +166,7 @@ const FrameBasedInstances = forwardRef<FrameBasedInstancesHandle, FrameBasedInst
     );
     instancedGeometry.setAttribute(
       'instanceHeight',
-      new THREE.InstancedBufferAttribute(new Float32Array(count), 1) 
+      new THREE.InstancedBufferAttribute(new Float32Array(count), 1)
     );
     instancedGeometry.setAttribute(
       'instanceWidth',
@@ -178,12 +206,17 @@ const FrameBasedInstances = forwardRef<FrameBasedInstancesHandle, FrameBasedInst
     geometry.attributes.isBlackKey.needsUpdate = true;
   }, [blocks, geometry, scaleFactor]);
 
+  // Assign material to ref on mount
+  if (!materialRef.current) {
+    (materialRef as React.MutableRefObject<CustomShaderMaterial | null>).current = material
+  }
+
   if (!blocks.length || !geometry) return null;
 
   return (
     <mesh>
       <primitive object={geometry} />
-      <customShaderMaterial ref={materialRef} />
+      <primitive object={material} ref={materialRef} attach="material" />
     </mesh>
   );
 })
@@ -195,6 +228,8 @@ interface FrameBasedShaderBlocksProps {
   scaleFillRatio?: number
   scaleMax?: number
   lookahead?: number
+  blackKeyColor?: number[]
+  whiteKeyColor?: number[]
 }
 
 const FrameBasedShaderBlocks = forwardRef<FrameBasedShaderBlocksHandle, FrameBasedShaderBlocksProps>(
@@ -205,6 +240,8 @@ const FrameBasedShaderBlocks = forwardRef<FrameBasedShaderBlocksHandle, FrameBas
     scaleFillRatio,
     scaleMax,
     lookahead = 3,
+    blackKeyColor,
+    whiteKeyColor,
   }, ref) {
   const { viewport } = useThree()
   const [blocks, setBlocks] = useState<Block[]>([])
@@ -269,6 +306,8 @@ const FrameBasedShaderBlocks = forwardRef<FrameBasedShaderBlocksHandle, FrameBas
           scaleFactor={scaleFactor}
           distance={distance}
           lookahead={lookahead}
+          blackKeyColor={blackKeyColor}
+          whiteKeyColor={whiteKeyColor}
         />
       )}
     </>

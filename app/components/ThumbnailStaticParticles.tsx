@@ -219,10 +219,10 @@ function StaticParticleStream({
     },
     uPrimaryColor: { value: primaryColor },
     uAccentColor: { value: accentColor },
-    uOpacity: { value: opacity },
-    uGlowSpread: { value: glowSpread },
-    uFadeIn: { value: fadeIn },
-    uFadeOut: { value: fadeOut },
+    uOpacity: { value: Math.max(opacity, 0.8) }, // Ensure high visibility for thumbnails
+    uGlowSpread: { value: Math.max(glowSpread, 0.3) }, // More glow for thumbnails
+    uFadeIn: { value: fadeIn * 0.5 }, // Faster fade in
+    uFadeOut: { value: fadeOut * 0.5 }, // Faster fade out (more visible in middle)
   }), [
     timeOffset,
     initialVelocityY,
