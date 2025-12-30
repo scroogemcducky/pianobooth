@@ -14,7 +14,12 @@ export default function Index() {
   const composerImages: Record<string, string> = {
     'Bach': '/images/Bach2.jpg',
     'Beethoven': '/images/Beethoven4.jpg',
+    'Brahms': '/images/Brahms1.jpg',
     'Chopin': '/images/Chopin3.jpg',
+    'Liszt': '/images/Liszt3.jpg',
+    'Mendelssohn': '/images/Mendelssohn4.jpg',
+    'Rachmaninoff': '/images/Rachmaninoff2.jpg',
+    'Christmas': '/images/Santa4.jpg',
     'Debussy': '/images/Debussy3.jpg',
     'Jack Sparrow': '/images/Sparrow3.jpg'
   };
