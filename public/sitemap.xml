@@ -310,13 +310,7 @@
     <loc>https://pianobooth.com/haydn/1-satz</loc>
   </url>
   <url>
-    <loc>https://pianobooth.com/klaviersonate-in-g/1-satz</loc>
-  </url>
-  <url>
     <loc>https://pianobooth.com/haydn/2-satz</loc>
-  </url>
-  <url>
-    <loc>https://pianobooth.com/klaviersonate-in-g/2-satz</loc>
   </url>
   <url>
     <loc>https://pianobooth.com/haydn/klaviersonate-hoboken-xvi-33-1-satz</loc>
@@ -412,9 +406,6 @@
     <loc>https://pianobooth.com/liszt/rhapsodie-nr-9-pesther-karneval</loc>
   </url>
   <url>
-    <loc>https://pianobooth.com/rhapsodie-nr-9/rhapsodie-nr-9-pesther-karneval</loc>
-  </url>
-  <url>
     <loc>https://pianobooth.com/liszt/rhapsodie-nr-10</loc>
   </url>
   <url>
@@ -496,22 +487,13 @@
     <loc>https://pianobooth.com/rachmaninoff/grave</loc>
   </url>
   <url>
-    <loc>https://pianobooth.com/miroirs/miroirs-noctuelles</loc>
-  </url>
-  <url>
     <loc>https://pianobooth.com/schubert/klaviersonate-a-moll-opus-143</loc>
   </url>
   <url>
     <loc>https://pianobooth.com/schubert/klaviersonate-a-moll-opus-143-2-satz</loc>
   </url>
   <url>
-    <loc>https://pianobooth.com/klaviersonate-a/klaviersonate-a-moll-opus-143-2-satz</loc>
-  </url>
-  <url>
     <loc>https://pianobooth.com/schubert/klaviersonate-a-moll-opus-143-3-satz</loc>
-  </url>
-  <url>
-    <loc>https://pianobooth.com/klaviersonate-a/klaviersonate-a-moll-opus-143-3-satz</loc>
   </url>
   <url>
     <loc>https://pianobooth.com/schubert/wandererfantasie-d760-1-satz</loc>
@@ -664,9 +646,6 @@
     <loc>https://pianobooth.com/schumann/knecht-ruprecht-aus-album-f-r-die-jugend-opus-68</loc>
   </url>
   <url>
-    <loc>https://pianobooth.com/christfreuden/christfreuden-weihnachtsfantasie</loc>
-  </url>
-  <url>
     <loc>https://pianobooth.com/albeniz/prelude</loc>
   </url>
   <url>
@@ -766,31 +745,31 @@
     <loc>https://pianobooth.com/brahms/finale-allegro-con-fuoco</loc>
   </url>
   <url>
-    <loc>https://pianobooth.com/burgmueller/agitato</loc>
+    <loc>https://pianobooth.com/burgmuller/agitato</loc>
   </url>
   <url>
-    <loc>https://pianobooth.com/burgmueller/erwachen-im-walde</loc>
+    <loc>https://pianobooth.com/burgmuller/erwachen-im-walde</loc>
   </url>
   <url>
-    <loc>https://pianobooth.com/burgmueller/geschwindigkeit</loc>
+    <loc>https://pianobooth.com/burgmuller/geschwindigkeit</loc>
   </url>
   <url>
-    <loc>https://pianobooth.com/burgmueller/gewitter</loc>
+    <loc>https://pianobooth.com/burgmuller/gewitter</loc>
   </url>
   <url>
-    <loc>https://pianobooth.com/burgmueller/die-perlen</loc>
+    <loc>https://pianobooth.com/burgmuller/die-perlen</loc>
   </url>
   <url>
-    <loc>https://pianobooth.com/burgmueller/die-quelle</loc>
+    <loc>https://pianobooth.com/burgmuller/die-quelle</loc>
   </url>
   <url>
-    <loc>https://pianobooth.com/burgmueller/spinnerlied</loc>
+    <loc>https://pianobooth.com/burgmuller/spinnerlied</loc>
   </url>
   <url>
-    <loc>https://pianobooth.com/burgmueller/die-sylphen</loc>
+    <loc>https://pianobooth.com/burgmuller/die-sylphen</loc>
   </url>
   <url>
-    <loc>https://pianobooth.com/burgmueller/trennung</loc>
+    <loc>https://pianobooth.com/burgmuller/trennung</loc>
   </url>
   <url>
     <loc>https://pianobooth.com/chopin/etude-opus-10-no-5</loc>
@@ -964,7 +943,6 @@
     <loc>https://pianobooth.com/mendelssohn/morgenlied</loc>
   </url>
   <url>
-    <loc>https://pianobooth.com/moszkowski/etincelles-opus-36-no-6</loc>
   </url>
   <url>
     <loc>https://pianobooth.com/mussorgsky/promenade-gnomus-1</loc>
@@ -1039,7 +1017,6 @@
     <loc>https://pianobooth.com/schumann/knecht-ruprecht-aus-album-fur-die-jugend-opus-68</loc>
   </url>
   <url>
-    <loc>https://pianobooth.com/sinding/agitato</loc>
   </url>
   <url>
     <loc>https://pianobooth.com/tchaikovsky/april</loc>
@@ -1276,7 +1253,7 @@
     <loc>https://pianobooth.com/burgmuller/die-perlen-op-109</loc>
   </url>
   <url>
-    <loc>https://pianobooth.com/burgmueller/die-quelle-op-109</loc>
+    <loc>https://pianobooth.com/burgmuller/die-quelle-op-109</loc>
   </url>
   <url>
     <loc>https://pianobooth.com/burgmuller/spinnerlied-op-109</loc>
@@ -1672,7 +1649,6 @@
     <loc>https://pianobooth.com/mendelssohn/venetianisches-gondellied-op-62-no-5-in-a-minor</loc>
   </url>
   <url>
-    <loc>https://pianobooth.com/moszkowski/etincelles-op-36-no-6</loc>
   </url>
   <url>
     <loc>https://pianobooth.com/mozart/piano-sonata-no-9-in-d-major-k-311-i</loc>
@@ -1930,10 +1906,8 @@
     <loc>https://pianobooth.com/schumann/knecht-ruprecht-op-68-no-12</loc>
   </url>
   <url>
-    <loc>https://pianobooth.com/sinding/fruehlingsrauschen-op-32-no-3-in-d-flat-major</loc>
   </url>
   <url>
-    <loc>https://pianobooth.com/sinding/fruhlingsrauschen-op-32-no-3-in-d-flat-major</loc>
   </url>
   <url>
     <loc>https://pianobooth.com/tchaikovsky/april-snowdrop-op-37a</loc>
@@ -1979,8 +1953,5 @@
   </url>
   <url>
     <loc>https://pianobooth.com/heller/christfreuden-weihnachtsfantasie</loc>
-  </url>
-  <url>
-    <loc>https://pianobooth.com/christfreuden/weihnachtsfantasie</loc>
   </url>
 </urlset>

@@ -12,24 +12,37 @@ export const meta: MetaFunction = () => {
 export default function Index() {
   // Composer images mapping
   const composerImages: Record<string, string> = {
+    'Albeniz': '/images/Albeniz3.jpg',
+    "Albéniz": '/images/Albeniz3.jpg',
     'Bach': '/images/Bach2.jpg',
-    'Beethoven': '/images/Beethoven4.jpg',
+    'Balakirev': '/images/Balakirev3.jpg',
+    'Haydn': '/images/Haydn5.jpg',
+    'Beethoven': '/images/Beethoven5.jpg',
+    'Borodin': '/images/Borodin1.jpg',
     'Brahms': '/images/Brahms1.jpg',
+    'Burgmüller': '/images/Burgmuller4.jpg',
+    'Clementi': '/images/Clementi1.jpg',
     'Chopin': '/images/Chopin3.jpg',
     'Liszt': '/images/Liszt3.jpg',
     'Mendelssohn': '/images/Mendelssohn4.jpg',
+    'Mozart': '/images/Mozart1.jpg',
+    'Mussorgsky': '/images/Mussorgsky1.jpg',
     'Rachmaninoff': '/images/Rachmaninoff2.jpg',
+    'Ravel': '/images/Ravel4.jpg',
+    'Schubert': '/images/Schubert4.jpg',
+    'Schumann': '/images/Schumann6.jpg',
+    'Tchaikovsky': '/images/Tchaikovsky5.jpg',
     'Christmas': '/images/Santa4.jpg',
     'Debussy': '/images/Debussy3.jpg',
+    'Godowsky': '/images/Godowsky4.jpg',
+    'Granados': '/images/Granados4.jpg',
+    'Grieg': '/images/Grieg3.jpg',
     'Jack Sparrow': '/images/Sparrow3.jpg'
   };
 
   
 const allPieces: Record<string, { title: string; url: string }[]> = {
-  "Abegg": [
-    { title: "Abegg-Variationen", url: "/abegg/abegg-variationen" }
-  ],
-  "Albeniz": [
+  "Albéniz": [
     { title: "Aragon", url: "/albeniz/aragon" },
     { title: "Asturias (Leyenda)", url: "/albeniz/asturias-leyenda" },
     { title: "Asturias", url: "/albeniz/asturias" },
@@ -56,8 +69,8 @@ const allPieces: Record<string, { title: string; url: string }[]> = {
     { title: ", : Prelude and Fugue No. 1 in C major, BWV 846", url: "/bach/prelude-and-fugue-no-1-in-c-major-bwv-846" },
     { title: "Prelude & Fugue No. 1 in C major, BWV 846", url: "/bach/wtc-i-prelude-fugue-1-c-major-bwv846" }
   ],
-  "Balakirew": [
-    { title: "Orientalische Fantasie", url: "/balakirew/orientalische-fantasie" }
+  "Balakirev": [
+    { title: "Orientalische Fantasie", url: "/balakirev/orientalische-fantasie" }
   ],
   "Beethoven": [
     { title: "1. Movement", url: "/beethoven/1-movement" },
@@ -110,16 +123,16 @@ const allPieces: Record<string, { title: string; url: string }[]> = {
     { title: "Sonate in C 2. Satz", url: "/brahms/sonate-in-c-2-satz" },
     { title: "Sonate in C Opus 1", url: "/brahms/sonate-in-c-opus-1" }
   ],
-  "Burgmueller": [
-    { title: "Agitato", url: "/burgmueller/agitato" },
-    { title: "Die Perlen", url: "/burgmueller/die-perlen" },
-    { title: "Die Quelle", url: "/burgmueller/die-quelle" },
-    { title: "Die Sylphen", url: "/burgmueller/die-sylphen" },
-    { title: "Erwachen im Walde", url: "/burgmueller/erwachen-im-walde" },
-    { title: "Geschwindigkeit", url: "/burgmueller/geschwindigkeit" },
-    { title: "Gewitter", url: "/burgmueller/gewitter" },
-    { title: "Spinnerlied", url: "/burgmueller/spinnerlied" },
-    { title: "Trennung", url: "/burgmueller/trennung" }
+  "Burgmüller": [
+    { title: "Agitato", url: "/burgmuller/agitato" },
+    { title: "Die Perlen", url: "/burgmuller/die-perlen" },
+    { title: "Die Quelle", url: "/burgmuller/die-quelle" },
+    { title: "Die Sylphen", url: "/burgmuller/die-sylphen" },
+    { title: "Erwachen im Walde", url: "/burgmuller/erwachen-im-walde" },
+    { title: "Geschwindigkeit", url: "/burgmuller/geschwindigkeit" },
+    { title: "Gewitter", url: "/burgmuller/gewitter" },
+    { title: "Spinnerlied", url: "/burgmuller/spinnerlied" },
+    { title: "Trennung", url: "/burgmuller/trennung" }
   ],
   "Chopin": [
     { title: "Chopin Ballade in G minor Opus 32", url: "/chopin/chopin-ballade-in-g-minor-opus-32" },
@@ -170,9 +183,6 @@ const allPieces: Record<string, { title: string; url: string }[]> = {
     { title: "Sonate opus 35, 4. Satz", url: "/chopin/sonate-opus-35-4-satz" },
     { title: "Sturmetüde", url: "/chopin/sturmet-de" },
     { title: "Trauermarsch", url: "/chopin/trauermarsch" }
-  ],
-  "Christfreuden": [
-    { title: "Christfreuden - Weihnachtsfantasie", url: "/christfreuden/christfreuden-weihnachtsfantasie" }
   ],
   "Christmas": [
     { title: "Christfreuden - Weihnachtsfantasie", url: "/christmas/christfreuden-weihnachtsfantasie" },
@@ -263,14 +273,6 @@ const allPieces: Record<string, { title: string; url: string }[]> = {
   "Jack Sparrow": [
     { title: "He's a Pirate", url: "/jack-sparrow/hes-a-pirate" }
   ],
-  "Klaviersonate A": [
-    { title: "Klaviersonate a-Moll, Opus 143 2. Satz", url: "/klaviersonate-a/klaviersonate-a-moll-opus-143-2-satz" },
-    { title: "Klaviersonate a-Moll, Opus 143 3. Satz", url: "/klaviersonate-a/klaviersonate-a-moll-opus-143-3-satz" }
-  ],
-  "Klaviersonate In G": [
-    { title: "1. Satz", url: "/klaviersonate-in-g/1-satz" },
-    { title: "2. Satz", url: "/klaviersonate-in-g/2-satz" }
-  ],
   "Liszt": [
     { title: "Etude No. 1 aus Grandes Etudes de Paganini", url: "/liszt/etude-no-1-aus-grandes-etudes-de-paganini" },
     { title: "Etude No. 2 aus Grandes Etudes de Paganini", url: "/liszt/etude-no-2-aus-grandes-etudes-de-paganini" },
@@ -304,12 +306,6 @@ const allPieces: Record<string, { title: string; url: string }[]> = {
     { title: "Trauermarsch", url: "/mendelssohn/trauermarsch" },
     { title: "Venetianisches Gondellied", url: "/mendelssohn/venetianisches-gondellied" },
     { title: "Volkslied", url: "/mendelssohn/volkslied" }
-  ],
-  "Miroirs": [
-    { title: "Miroirs - Noctuelles", url: "/miroirs/miroirs-noctuelles" }
-  ],
-  "Moszkowski": [
-    { title: "Etincelles Opus 36, No. 6", url: "/moszkowski/etincelles-opus-36-no-6" }
   ],
   "Mozart": [
     { title: "1. Satz", url: "/mozart/1-satz" },
@@ -359,9 +355,6 @@ const allPieces: Record<string, { title: string; url: string }[]> = {
     { title: "Miroirs - Noctuelles", url: "/ravel/miroirs-noctuelles" },
     { title: "Ondine", url: "/ravel/ondine" },
     { title: "Scarbo", url: "/ravel/scarbo" }
-  ],
-  "Rhapsodie Nr 9": [
-    { title: "Rhapsodie Nr. 9 - Pesther Karneval", url: "/rhapsodie-nr-9/rhapsodie-nr-9-pesther-karneval" }
   ],
   "Schubert": [
     { title: "Allegretto", url: "/schubert/allegretto" },
@@ -418,9 +411,6 @@ const allPieces: Record<string, { title: string; url: string }[]> = {
     { title: "Träumerei", url: "/schumann/tr-umerei" },
     { title: "Von fremden Ländern und Menschen", url: "/schumann/von-fremden-l-ndern-und-menschen" },
     { title: "Wichtige Begebenheit", url: "/schumann/wichtige-begebenheit" }
-  ],
-  "Sinding": [
-    { title: "Agitato", url: "/sinding/agitato" }
   ],
   "Tchaikovsky": [
     { title: "April", url: "/tchaikovsky/april" },

@@ -57,15 +57,31 @@ const App = () => {
 
   // Composer images mapping
   const composerImages: Record<string, string> = {
+    'Albeniz': '/images/Albeniz3.jpg',
+    "Albéniz": '/images/Albeniz3.jpg',
     'Bach': '/images/Bach2.jpg',
-    'Beethoven': '/images/Beethoven4.jpg',
+    'Balakirev': '/images/Balakirev3.jpg',
+    'Haydn': '/images/Haydn5.jpg',
+    'Beethoven': '/images/Beethoven5.jpg',
+    'Borodin': '/images/Borodin1.jpg',
     'Brahms': '/images/Brahms1.jpg',
+    'Burgmüller': '/images/Burgmuller4.jpg',
+    'Clementi': '/images/Clementi1.jpg',
     'Chopin': '/images/Chopin3.jpg',
     'Liszt': '/images/Liszt3.jpg',
     'Mendelssohn': '/images/Mendelssohn4.jpg',
+    'Mozart': '/images/Mozart1.jpg',
+    'Mussorgsky': '/images/Mussorgsky1.jpg',
     'Rachmaninoff': '/images/Rachmaninoff2.jpg',
+    'Ravel': '/images/Ravel4.jpg',
+    'Schubert': '/images/Schubert4.jpg',
+    'Schumann': '/images/Schumann6.jpg',
+    'Tchaikovsky': '/images/Tchaikovsky5.jpg',
     'Christmas': '/images/Santa4.jpg',
     'Debussy': '/images/Debussy3.jpg',
+    'Godowsky': '/images/Godowsky4.jpg',
+    'Granados': '/images/Granados4.jpg',
+    'Grieg': '/images/Grieg3.jpg',
     'Jack Sparrow': '/images/Sparrow3.jpg'
   };
 
