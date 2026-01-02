@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare'
 import { json } from '@remix-run/cloudflare'
-import { useLoaderData } from '@remix-run/react'
+import { useLoaderData, Link } from '@remix-run/react'
 import EmbeddedPlayView_component from '../components/EmbeddedPlayView_component'
 import usePlayStore from '../store/playStore'
 
@@ -95,7 +95,7 @@ export default function PublicPieceByArtistSongRoute() {
       <section className="px-[5%] sm:px-[6%] md:px-[8%] lg:px-[10%] py-6 flex justify-center">
         <div className="relative w-full max-w-6xl mx-auto">
           <div className="mb-3">
-            <div className="text-lg">{data.artist}</div>
+            <Link to={`/artist/${data.artistSlug}`} className="text-lg hover:text-blue-600 hover:underline">{data.artist}</Link>
             <div className="text-xl font-semibold">{data.title}</div>
           </div>
           <div className="relative w-full max-w-6xl h-[420px] md:h-[500px] lg:h-[580px] mx-auto border border-gray-900 shadow-2xl rounded-lg overflow-hidden">

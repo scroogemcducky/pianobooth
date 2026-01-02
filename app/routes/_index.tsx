@@ -1,8 +1,9 @@
 import { useRef, useState, useEffect} from 'react';
-import { Link, useNavigate } from "@remix-run/react"; 
+import { Link, useNavigate } from "@remix-run/react";
 import  useMidiStore  from '../store/midiStore'
 import type { MetaFunction } from "@remix-run/node";
 import { slugify } from "~/utils/slugify";
+import { composerImages } from "~/data/artists";
 
 export const meta: MetaFunction = () => {
   return [
@@ -20,6 +21,7 @@ const App = () => {
 
   useEffect(() => {
     setIsClient(true);
+    console.log('If you\'re feeling Christmassy -', `${window.location.origin}/artist/christmas`);
   }, []);
 
   if (!isClient) {
@@ -53,36 +55,6 @@ const App = () => {
 
   const handleDragOver = (event) => {
     event.preventDefault();
-  };
-
-  // Composer images mapping
-  const composerImages: Record<string, string> = {
-    'Albeniz': '/images/Albeniz3.jpg',
-    "Albéniz": '/images/Albeniz3.jpg',
-    'Bach': '/images/Bach2.jpg',
-    'Balakirev': '/images/Balakirev3.jpg',
-    'Haydn': '/images/Haydn5.jpg',
-    'Beethoven': '/images/Beethoven5.jpg',
-    'Borodin': '/images/Borodin1.jpg',
-    'Brahms': '/images/Brahms1.jpg',
-    'Burgmüller': '/images/Burgmuller4.jpg',
-    'Clementi': '/images/Clementi1.jpg',
-    'Chopin': '/images/Chopin3.jpg',
-    'Liszt': '/images/Liszt3.jpg',
-    'Mendelssohn': '/images/Mendelssohn4.jpg',
-    'Mozart': '/images/Mozart1.jpg',
-    'Mussorgsky': '/images/Mussorgsky1.jpg',
-    'Rachmaninoff': '/images/Rachmaninoff2.jpg',
-    'Ravel': '/images/Ravel4.jpg',
-    'Schubert': '/images/Schubert4.jpg',
-    'Schumann': '/images/Schumann6.jpg',
-    'Tchaikovsky': '/images/Tchaikovsky5.jpg',
-    'Christmas': '/images/Santa4.jpg',
-    'Debussy': '/images/Debussy3.jpg',
-    'Godowsky': '/images/Godowsky4.jpg',
-    'Granados': '/images/Granados4.jpg',
-    'Grieg': '/images/Grieg3.jpg',
-    'Jack Sparrow': '/images/Sparrow3.jpg'
   };
 
   const featuredStaticPieces: Record<string, { title: string; url: string }[]> = {
@@ -142,7 +114,7 @@ const App = () => {
           <input type="file" ref={MidiFileRef} onChange={handleFileInput} className="hidden" />
           <p className="font-garamond text-2xl text-stone-800">Drop a MIDI file here.</p>
           <p className="text-base text-stone-500">
-            <Link to="/browse" className="italic text-stone-700 underline">
+            <Link to="/browse" className="italic text-gray-600 underline hover:text-gray-700">
               Or browse.
             </Link>
           </p>
@@ -167,9 +139,11 @@ const App = () => {
                     />
                   )}
                   <div className="ml-4 md:ml-0">
-                    <h2 className="text-2xl font-bold font-garamond text-gray-800 mb-4 underline">
-                      {composer}
-                    </h2>
+                    <Link to={`/artist/${composerSlug}`}>
+                      <h2 className="text-2xl font-bold font-garamond text-gray-800 mb-4 underline hover:text-blue-600">
+                        {composer}
+                      </h2>
+                    </Link>
                     <div>
                       {displayPieces.map((piece, index) => (
                         <Link
@@ -180,12 +154,14 @@ const App = () => {
                           {piece.title}
                         </Link>
                       ))}
-                      <Link
-                        to={`/browse#${composerSlug}`}
-                        className="mt-4 inline-flex text-base font-garamond text-gray-400 underline hover:text-gray-600"
-                      >
-                        more…
-                      </Link>
+                      {composer !== 'Jack Sparrow' && (
+                        <Link
+                          to={`/browse#${composerSlug}`}
+                          className="mt-4 inline-flex text-base font-garamond text-gray-600 underline hover:text-gray-700"
+                        >
+                          more…
+                        </Link>
+                      )}
                     </div>
                   </div>
                 </div>
