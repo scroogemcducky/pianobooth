@@ -7,7 +7,7 @@ import midiParser from '../utils/MidiParser'
 import useKeyStore from '../store/keyPressStore'
 import usePlayStore from '../store/playStore'
 import EmbeddedKeys from './EmbeddedKeys'
-import ShaderBlocks_component from './ShaderBlocks_component'
+import ShaderBlocks from './ShaderBlocks'
 import type { VisualizerHandle } from './Instances_component'
 import PlayPauseButton from './PlayPauseButton'
 import EmbeddedSettingsButton from './EmbeddedSettingsButton'
@@ -263,7 +263,7 @@ export default function EmbeddedPlayView_component({
         </>
         <EmbeddedKeys layout={pianoLayout} />
         {midiObject && (
-          <ShaderBlocks_component
+          <ShaderBlocks
             midiObject={midiObject}
             layout={pianoLayout}
             triggerVisibleNote={triggerVisibleNote}

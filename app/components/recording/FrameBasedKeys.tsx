@@ -2,9 +2,9 @@ import React, { useMemo, createContext, useContext } from 'react'
 import { useThree } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
-import useStore from '../store/keyPressStore'
-import { scalingFactor } from '../utils/functions'
-import { BLACK_KEY_COLOR, WHITE_KEY_COLOR } from '../utils/constants'
+import useStore from '../../store/keyPressStore'
+import { scalingFactor } from '../../utils/functions'
+import { BLACK_KEY_COLOR, WHITE_KEY_COLOR } from '../../utils/constants'
 import {
   BASE_NOTE_NUMBER,
   DEFAULT_PIANO_LAYOUT,
@@ -12,7 +12,7 @@ import {
   type PianoLayout,
   getKeyboardMetrics,
   getKeyboardWidth,
-} from '../utils/pianoLayout'
+} from '../../utils/pianoLayout'
 
 // Context for dynamic key colors
 type KeyMaterialsContextType = {
@@ -122,7 +122,7 @@ function Octave({ octaveIndex }: OctaveProps) {
 type NoteProps = { noteNumber: number }
 
 function CKey({ noteNumber }: NoteProps) {
-  const { nodes, materials }: any = useGLTF('/c.glb')
+  const { nodes, materials }: any = useGLTF('/keys/c.glb')
   const isPressed = useStore((state) => state[noteNumber])
   const { whiteMaterial } = useKeyMaterials()
   return (
@@ -133,7 +133,7 @@ function CKey({ noteNumber }: NoteProps) {
 }
 
 function CSharpKey({ noteNumber }: NoteProps) {
-  const { nodes, materials }: any = useGLTF('/c_sharp.glb')
+  const { nodes, materials }: any = useGLTF('/keys/c_sharp.glb')
   const isPressed = useStore((state) => state[noteNumber])
   const { blackMaterial } = useKeyMaterials()
   return (
@@ -149,7 +149,7 @@ function CSharpKey({ noteNumber }: NoteProps) {
 }
 
 function DKey({ noteNumber }: NoteProps) {
-  const { nodes, materials }: any = useGLTF('/d.glb')
+  const { nodes, materials }: any = useGLTF('/keys/d.glb')
   const isPressed = useStore((state) => state[noteNumber])
   const { whiteMaterial } = useKeyMaterials()
   return (
@@ -160,7 +160,7 @@ function DKey({ noteNumber }: NoteProps) {
 }
 
 function DSharpKey({ noteNumber }: NoteProps) {
-  const { nodes, materials }: any = useGLTF('/d_sharp.glb')
+  const { nodes, materials }: any = useGLTF('/keys/d_sharp.glb')
   const isPressed = useStore((state) => state[noteNumber])
   const { blackMaterial } = useKeyMaterials()
   return (
@@ -176,7 +176,7 @@ function DSharpKey({ noteNumber }: NoteProps) {
 }
 
 function EKey({ noteNumber }: NoteProps) {
-  const { nodes, materials }: any = useGLTF('/e.glb')
+  const { nodes, materials }: any = useGLTF('/keys/e.glb')
   const isPressed = useStore((state) => state[noteNumber])
   const { whiteMaterial } = useKeyMaterials()
   return (
@@ -187,7 +187,7 @@ function EKey({ noteNumber }: NoteProps) {
 }
 
 function FKey({ noteNumber }: NoteProps) {
-  const { nodes, materials }: any = useGLTF('/f.glb')
+  const { nodes, materials }: any = useGLTF('/keys/f.glb')
   const isPressed = useStore((state) => state[noteNumber])
   const { whiteMaterial } = useKeyMaterials()
   return (
@@ -198,7 +198,7 @@ function FKey({ noteNumber }: NoteProps) {
 }
 
 function FSharpKey({ noteNumber }: NoteProps) {
-  const { nodes, materials }: any = useGLTF('/f_sharp.glb')
+  const { nodes, materials }: any = useGLTF('/keys/f_sharp.glb')
   const isPressed = useStore((state) => state[noteNumber])
   const { blackMaterial } = useKeyMaterials()
   return (
@@ -212,7 +212,7 @@ function FSharpKey({ noteNumber }: NoteProps) {
 }
 
 function GKey({ noteNumber }: NoteProps) {
-  const { nodes, materials }: any = useGLTF('/g.glb')
+  const { nodes, materials }: any = useGLTF('/keys/g.glb')
   const isPressed = useStore((state) => state[noteNumber])
   const { whiteMaterial } = useKeyMaterials()
   return (
@@ -223,7 +223,7 @@ function GKey({ noteNumber }: NoteProps) {
 }
 
 function GSharpKey({ noteNumber }: NoteProps) {
-  const { nodes, materials }: any = useGLTF('/g_sharp.glb')
+  const { nodes, materials }: any = useGLTF('/keys/g_sharp.glb')
   const isPressed = useStore((state) => state[noteNumber])
   const { blackMaterial } = useKeyMaterials()
   return (
@@ -237,7 +237,7 @@ function GSharpKey({ noteNumber }: NoteProps) {
 }
 
 function AKey({ noteNumber }: NoteProps) {
-  const { nodes, materials }: any = useGLTF('/a.glb')
+  const { nodes, materials }: any = useGLTF('/keys/a.glb')
   const isPressed = useStore((state) => state[noteNumber])
   const { whiteMaterial } = useKeyMaterials()
   return (
@@ -248,7 +248,7 @@ function AKey({ noteNumber }: NoteProps) {
 }
 
 function ASharpKey({ noteNumber }: NoteProps) {
-  const { nodes, materials }: any = useGLTF('/a_sharp.glb')
+  const { nodes, materials }: any = useGLTF('/keys/a_sharp.glb')
   const isPressed = useStore((state) => state[noteNumber])
   const { blackMaterial } = useKeyMaterials()
   return (
@@ -262,7 +262,7 @@ function ASharpKey({ noteNumber }: NoteProps) {
 }
 
 function BKey({ noteNumber }: NoteProps) {
-  const { nodes, materials }: any = useGLTF('/b.glb')
+  const { nodes, materials }: any = useGLTF('/keys/b.glb')
   const isPressed = useStore((state) => state[noteNumber])
   const { whiteMaterial } = useKeyMaterials()
   return (
@@ -273,18 +273,18 @@ function BKey({ noteNumber }: NoteProps) {
 }
 
 useGLTF.preload([
-  '/c.glb',
-  '/c_sharp.glb',
-  '/d.glb',
-  '/d_sharp.glb',
-  '/e.glb',
-  '/f.glb',
-  '/f_sharp.glb',
-  '/g.glb',
-  '/g_sharp.glb',
-  '/a.glb',
-  '/a_sharp.glb',
-  '/b.glb',
+  '/keys/c.glb',
+  '/keys/c_sharp.glb',
+  '/keys/d.glb',
+  '/keys/d_sharp.glb',
+  '/keys/e.glb',
+  '/keys/f.glb',
+  '/keys/f_sharp.glb',
+  '/keys/g.glb',
+  '/keys/g_sharp.glb',
+  '/keys/a.glb',
+  '/keys/a_sharp.glb',
+  '/keys/b.glb',
 ])
 
 export default RecordKeys

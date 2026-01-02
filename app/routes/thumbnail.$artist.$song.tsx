@@ -2,7 +2,7 @@ import React from 'react'
 import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare'
 import { json } from '@remix-run/cloudflare'
 import { useLoaderData } from '@remix-run/react'
-import ThumbnailView from '../components/ThumbnailView'
+import ThumbnailView from '../components/recording/ThumbnailView'
 
 type MidiNote = {
   NoteNumber: number

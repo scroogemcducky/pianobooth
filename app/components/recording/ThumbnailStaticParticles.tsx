@@ -1,10 +1,10 @@
 import React, { useMemo, useEffect } from 'react'
 import * as THREE from 'three'
 import { useThree } from '@react-three/fiber'
-import { scalingFactor, isBlack } from '../utils/functions'
-import { white_key_dimensions, black_key_dimensions, BLACK_KEY_COLOR, WHITE_KEY_COLOR } from '../utils/constants'
-import { type PianoLayout, getKeyboardMetrics, getKeyboardWidth, getNoteXPosition } from '../utils/pianoLayout'
-import useParticleSettingsStore from '../store/particleSettingsStore'
+import { scalingFactor, isBlack } from '../../utils/functions'
+import { white_key_dimensions, black_key_dimensions, BLACK_KEY_COLOR, WHITE_KEY_COLOR } from '../../utils/constants'
+import { type PianoLayout, getKeyboardMetrics, getKeyboardWidth, getNoteXPosition } from '../../utils/pianoLayout'
+import useParticleSettingsStore from '../../store/particleSettingsStore'
 
 const WHITE_KEY_Z = 2.2
 const BLACK_KEY_Z = 2.4

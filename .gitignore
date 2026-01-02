@@ -48,15 +48,21 @@ Icon?
 .supabase/
 
 # Agents
-
+.playwright-home
+.claude
 CLAUDE.md
 PLAN.md
 error.md
 todos.md
+WEBSOCKET_COMPARISON.md
+
+
 # Local Python tooling
 pyproject.toml
 uv.lock
 main.py
+.python_verision
+
 # Temporary files
 temp_frames/
 *.mp4
@@ -64,3 +70,5 @@ temp_frames/
 # Offline recording / large files
 soundfonts/
 temp_audio/
+
+videos/

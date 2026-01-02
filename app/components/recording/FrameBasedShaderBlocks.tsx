@@ -1,15 +1,15 @@
 import { useEffect, useState, useMemo, useRef, forwardRef, useImperativeHandle } from 'react'
 import * as THREE from 'three'
 import { extend, useThree } from '@react-three/fiber'
-import { factor, speed, black_width, white_width, BLACK_KEY_COLOR, WHITE_KEY_COLOR } from '../utils/constants'
-import { calculateHeight, isBlack, scalingFactor } from '../utils/functions.js'
+import { factor, speed, black_width, white_width, BLACK_KEY_COLOR, WHITE_KEY_COLOR } from '../../utils/constants'
+import { calculateHeight, isBlack, scalingFactor } from '../../utils/functions.js'
 import {
   type PianoLayout,
   DEFAULT_PIANO_LAYOUT,
   getKeyboardMetrics,
   getKeyboardWidth,
   getNoteXPosition,
-} from '../utils/pianoLayout'
+} from '../../utils/pianoLayout'
 
 const FRAME_DURATION_MS = 1000 / 60
 

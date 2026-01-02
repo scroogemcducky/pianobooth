@@ -86,7 +86,7 @@ function Octave({ octaveIndex }: OctaveProps) {
 type NoteProps = { noteNumber: number }
 
 function CKey({ noteNumber }: NoteProps) {
-  const { nodes, materials }: any = useGLTF('/c.glb')
+  const { nodes, materials }: any = useGLTF('/keys/c.glb')
   const isPressed = useStore((state) => state[noteNumber])
   return (
     <group position={[-0.116, 0, -1.695]} rotation={[0, 0, -Math.PI / 2]}>
@@ -96,7 +96,7 @@ function CKey({ noteNumber }: NoteProps) {
 }
 
 function CSharpKey({ noteNumber }: NoteProps) {
-  const { nodes, materials }: any = useGLTF('/c_sharp.glb')
+  const { nodes, materials }: any = useGLTF('/keys/c_sharp.glb')
   const isPressed = useStore((state) => state[noteNumber])
   return (
     <group dispose={null}>
@@ -111,7 +111,7 @@ function CSharpKey({ noteNumber }: NoteProps) {
 }
 
 function DKey({ noteNumber }: NoteProps) {
-  const { nodes, materials }: any = useGLTF('/d.glb')
+  const { nodes, materials }: any = useGLTF('/keys/d.glb')
   const isPressed = useStore((state) => state[noteNumber])
   return (
     <group position={[2.434, 0, -1.683]} rotation={[0, 0, -Math.PI / 2]}>
@@ -121,7 +121,7 @@ function DKey({ noteNumber }: NoteProps) {
 }
 
 function DSharpKey({ noteNumber }: NoteProps) {
-  const { nodes, materials }: any = useGLTF('/d_sharp.glb')
+  const { nodes, materials }: any = useGLTF('/keys/d_sharp.glb')
   const isPressed = useStore((state) => state[noteNumber])
   return (
     <group dispose={null}>
@@ -136,7 +136,7 @@ function DSharpKey({ noteNumber }: NoteProps) {
 }
 
 function EKey({ noteNumber }: NoteProps) {
-  const { nodes, materials }: any = useGLTF('/e.glb')
+  const { nodes, materials }: any = useGLTF('/keys/e.glb')
   const isPressed = useStore((state) => state[noteNumber])
   return (
     <group position={[4.984, 0, -1.683]} rotation={[0, 0, -Math.PI / 2]}>
@@ -146,7 +146,7 @@ function EKey({ noteNumber }: NoteProps) {
 }
 
 function FKey({ noteNumber }: NoteProps) {
-  const { nodes, materials }: any = useGLTF('/f.glb')
+  const { nodes, materials }: any = useGLTF('/keys/f.glb')
   const isPressed = useStore((state) => state[noteNumber])
   return (
     <group position={[7.534, 0, -1.683]} rotation={[0, 0, -Math.PI / 2]}>
@@ -156,7 +156,7 @@ function FKey({ noteNumber }: NoteProps) {
 }
 
 function FSharpKey({ noteNumber }: NoteProps) {
-  const { nodes, materials }: any = useGLTF('/f_sharp.glb')
+  const { nodes, materials }: any = useGLTF('/keys/f_sharp.glb')
   const isPressed = useStore((state) => state[noteNumber])
   return (
     <mesh
@@ -169,7 +169,7 @@ function FSharpKey({ noteNumber }: NoteProps) {
 }
 
 function GKey({ noteNumber }: NoteProps) {
-  const { nodes, materials }: any = useGLTF('/g.glb')
+  const { nodes, materials }: any = useGLTF('/keys/g.glb')
   const isPressed = useStore((state) => state[noteNumber])
   return (
     <group position={[10.084, 0, -1.692]} rotation={[0, 0, -Math.PI / 2]}>
@@ -179,7 +179,7 @@ function GKey({ noteNumber }: NoteProps) {
 }
 
 function GSharpKey({ noteNumber }: NoteProps) {
-  const { nodes, materials }: any = useGLTF('/g_sharp.glb')
+  const { nodes, materials }: any = useGLTF('/keys/g_sharp.glb')
   const isPressed = useStore((state) => state[noteNumber])
   return (
     <mesh
@@ -192,7 +192,7 @@ function GSharpKey({ noteNumber }: NoteProps) {
 }
 
 function AKey({ noteNumber }: NoteProps) {
-  const { nodes, materials }: any = useGLTF('/a.glb')
+  const { nodes, materials }: any = useGLTF('/keys/a.glb')
   const isPressed = useStore((state) => state[noteNumber])
   return (
     <group position={[12.634, 0, -1.683]} rotation={[0, 0, -Math.PI / 2]}>
@@ -202,7 +202,7 @@ function AKey({ noteNumber }: NoteProps) {
 }
 
 function ASharpKey({ noteNumber }: NoteProps) {
-  const { nodes, materials }: any = useGLTF('/a_sharp.glb')
+  const { nodes, materials }: any = useGLTF('/keys/a_sharp.glb')
   const isPressed = useStore((state) => state[noteNumber])
   return (
     <mesh
@@ -215,7 +215,7 @@ function ASharpKey({ noteNumber }: NoteProps) {
 }
 
 function BKey({ noteNumber }: NoteProps) {
-  const { nodes, materials }: any = useGLTF('/b.glb')
+  const { nodes, materials }: any = useGLTF('/keys/b.glb')
   const isPressed = useStore((state) => state[noteNumber])
   return (
     <group position={[15.184, 0, -1.683]} rotation={[0, 0, -Math.PI / 2]}>
@@ -225,18 +225,18 @@ function BKey({ noteNumber }: NoteProps) {
 }
 
 useGLTF.preload([
-  '/c.glb',
-  '/c_sharp.glb',
-  '/d.glb',
-  '/d_sharp.glb',
-  '/e.glb',
-  '/f.glb',
-  '/f_sharp.glb',
-  '/g.glb',
-  '/g_sharp.glb',
-  '/a.glb',
-  '/a_sharp.glb',
-  '/b.glb',
+  '/keys/c.glb',
+  '/keys/c_sharp.glb',
+  '/keys/d.glb',
+  '/keys/d_sharp.glb',
+  '/keys/e.glb',
+  '/keys/f.glb',
+  '/keys/f_sharp.glb',
+  '/keys/g.glb',
+  '/keys/g_sharp.glb',
+  '/keys/a.glb',
+  '/keys/a_sharp.glb',
+  '/keys/b.glb',
 ])
 
 export default EmbeddedKeys

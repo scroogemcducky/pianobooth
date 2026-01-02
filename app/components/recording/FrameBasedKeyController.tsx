@@ -1,5 +1,5 @@
 import { useRef, forwardRef, useImperativeHandle } from 'react'
-import useKeyStore from '../store/keyPressStore'
+import useKeyStore from '../../store/keyPressStore'
 
 interface MidiNote {
   Delta: number

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare'
 import { json } from '@remix-run/cloudflare'
 import { useLoaderData, Link } from '@remix-run/react'
-import EmbeddedPlayView_component from '../components/EmbeddedPlayView_component'
+import EmbeddedPlayView_component from '../components/EmbeddedPlayer'
 import usePlayStore from '../store/playStore'
 
 type MidiNote = {

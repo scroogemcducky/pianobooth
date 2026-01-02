@@ -13,7 +13,7 @@ import PlayPauseButton from '../components/PlayPauseButton'
 import SettingsButton from '../components/SettingsButton'
 import EmbeddedKeys from '../components/EmbeddedKeys'
 import KeyParticles, { type ActiveKeyParticle } from '../components/KeyParticles'
-import ShaderBlocks_component from '../components/ShaderBlocks_component'
+import ShaderBlocks from '../components/ShaderBlocks'
 import soundFont from 'soundfont-player'
 import * as THREE from 'three'
 import { computePianoLayout, DEFAULT_PIANO_LAYOUT, type PianoLayout } from '../utils/pianoLayout'
@@ -308,7 +308,7 @@ export default function Video() {
           {/* <Camera />  */}
           <EmbeddedKeys layout={pianoLayout} />  
           <KeyParticles layout={pianoLayout} notes={particlesToRender} />
-          {midiObject && <ShaderBlocks_component
+          {midiObject && <ShaderBlocks
             midiObject={midiObject} 
             layout={pianoLayout}
             triggerVisibleNote={triggerVisibleNote} />} 

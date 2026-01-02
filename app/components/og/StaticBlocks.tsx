@@ -1,15 +1,15 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useThree } from '@react-three/fiber'
 import * as THREE from 'three'
-import { factor, black_width, white_width, white_color, black_color } from '../utils/constants'
-import { calculateHeight, isBlack, scalingFactor } from '../utils/functions.js'
+import { factor, black_width, white_width, white_color, black_color } from '../../utils/constants'
+import { calculateHeight, isBlack, scalingFactor } from '../../utils/functions.js'
 import {
   type PianoLayout,
   DEFAULT_PIANO_LAYOUT,
   getKeyboardMetrics,
   getKeyboardWidth,
   getNoteXPosition,
-} from '../utils/pianoLayout'
+} from '../../utils/pianoLayout'
 
 type MidiNote = {
   NoteNumber: number
@@ -28,39 +28,35 @@ type Block = {
   isBlack: boolean
 }
 
-type Props = {
+// Static blocks visualization for OG images - renders a snapshot of the piece
+export default function StaticBlocks({
+  midiObject,
+  layout,
+}: {
   midiObject: MidiNote[]
   layout: PianoLayout
-  timePositionMs: number
-  onActiveNotesChange?: (activeNotes: Set<number>) => void
-}
-
-// Static blocks visualization for thumbnails - renders a snapshot at a specific time position
-export default function ThumbnailStaticBlocks({ midiObject, layout, timePositionMs, onActiveNotesChange }: Props) {
+}) {
   const { viewport } = useThree()
   const [blocks, setBlocks] = useState<Block[]>([])
 
   const activeLayout = layout ?? DEFAULT_PIANO_LAYOUT
   const totalKeyboardWidth = getKeyboardWidth(activeLayout)
   const scaleFactor = scalingFactor(viewport.width, totalKeyboardWidth)
-  const { distance, keyboardY } = getKeyboardMetrics(viewport.height, scaleFactor)
+  const { distance } = getKeyboardMetrics(viewport.height, scaleFactor)
   const half_screen = viewport.height / 2
-
-  // Lookahead determines how far ahead we show notes (in seconds)
-  const lookahead = 3
-
-  // The keyboard Y position in unscaled coordinates (used for note rendering)
-  const keyboardYUnscaled = keyboardY / scaleFactor
 
   useEffect(() => {
     if (!midiObject || midiObject.length === 0) return
 
-    // Calculate time offset to show notes around the specified position
-    // Notes should appear falling from above the keyboard
-    const timeOffsetMs = timePositionMs - lookahead * 1000
+    // Find a good starting point - show blocks from early in the piece
+    // but not the very start to have some visual interest
+    const firstNoteDelta = midiObject[0] ? midiObject[0].Delta / 1000 : 0
+
+    // Show blocks positioned as if we're at the start of the piece
+    // but offset so the notes are visible coming down from the top
+    const timeOffsetMs = firstNoteDelta + 2000 // 2 seconds ahead of first note
 
     const newBlocks: Block[] = []
-    const activeNotes = new Set<number>()
 
     for (let i = 0; i < midiObject.length; i++) {
       const note = midiObject[i]
@@ -73,6 +69,7 @@ export default function ThumbnailStaticBlocks({ midiObject, layout, timePosition
       const yPosition = height / 2 + half_screen + (distance * relativeTime) / (1000 * factor)
 
       // Only include blocks that are visible in the viewport
+      // Show blocks from below the screen to above
       const blockTop = yPosition + height / 2
       const blockBottom = yPosition - height / 2
       const viewportTop = half_screen * 1.5
@@ -89,13 +86,6 @@ export default function ThumbnailStaticBlocks({ midiObject, layout, timePosition
           position: [xPosition, yPosition, -0.05],
           isBlack: isBlack(note.NoteNumber),
         })
-
-        // A note is "active" (key pressed) when its block is touching or below the keyboard level
-        // The keyboard is at keyboardYUnscaled, notes above it are falling toward it
-        // A note touches the keyboard when its bottom edge reaches the keyboard level
-        if (blockBottom <= keyboardYUnscaled + 0.5) { // Small threshold for visual alignment
-          activeNotes.add(note.NoteNumber)
-        }
       }
 
       // Stop after we have enough blocks for the preview
@@ -103,12 +93,7 @@ export default function ThumbnailStaticBlocks({ midiObject, layout, timePosition
     }
 
     setBlocks(newBlocks)
-
-    // Report active notes to parent
-    if (onActiveNotesChange) {
-      onActiveNotesChange(activeNotes)
-    }
-  }, [activeLayout, distance, half_screen, midiObject, timePositionMs, viewport.height, viewport.width, keyboardYUnscaled, onActiveNotesChange])
+  }, [activeLayout, distance, half_screen, midiObject, viewport.height, viewport.width])
 
   // Memoize geometry and materials
   const geometry = useMemo(() => new THREE.PlaneGeometry(1, 1), [])

@@ -1,11 +1,11 @@
 import React, { useMemo, useRef, useEffect, useCallback, forwardRef, useImperativeHandle } from 'react'
 import * as THREE from 'three'
 import { useThree } from '@react-three/fiber'
-import { scalingFactor } from '../utils/functions'
-import { white_key_dimensions, black_key_dimensions, BLACK_KEY_COLOR, WHITE_KEY_COLOR } from '../utils/constants'
-import { type PianoLayout, getKeyboardMetrics, getKeyboardWidth, getNoteXPosition } from '../utils/pianoLayout'
-import useParticleSettingsStore, { type ParticleSettings, PARTICLE_DEFAULTS } from '../store/particleSettingsStore'
-import { isBlack } from '../utils/functions'
+import { scalingFactor } from '../../utils/functions'
+import { white_key_dimensions, black_key_dimensions, BLACK_KEY_COLOR, WHITE_KEY_COLOR } from '../../utils/constants'
+import { type PianoLayout, getKeyboardMetrics, getKeyboardWidth, getNoteXPosition } from '../../utils/pianoLayout'
+import useParticleSettingsStore, { type ParticleSettings, PARTICLE_DEFAULTS } from '../../store/particleSettingsStore'
+import { isBlack } from '../../utils/functions'
 
 const FRAME_DURATION_MS = 1000 / 60
 

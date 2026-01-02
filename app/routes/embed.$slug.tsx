@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
-import EmbeddedPlayView_component from '../components/EmbeddedPlayView_component'
+import EmbeddedPlayView_component from '../components/EmbeddedPlayer'
 
 type LoaderData = {
   slug: string

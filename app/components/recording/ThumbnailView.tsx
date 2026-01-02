@@ -2,11 +2,11 @@ import React, { useEffect, useMemo, useState, useRef, useCallback } from 'react'
 import { Canvas } from '@react-three/fiber'
 import * as THREE from 'three'
 
-import EmbeddedKeys from './EmbeddedKeys'
+import EmbeddedKeys from '../EmbeddedKeys'
 import ThumbnailStaticBlocks from './ThumbnailStaticBlocks'
 import ThumbnailStaticParticles from './ThumbnailStaticParticles'
-import { computePianoLayout, DEFAULT_PIANO_LAYOUT, type PianoLayout } from '../utils/pianoLayout'
-import useKeyStore from '../store/keyPressStore'
+import { computePianoLayout, DEFAULT_PIANO_LAYOUT, type PianoLayout } from '../../utils/pianoLayout'
+import useKeyStore from '../../store/keyPressStore'
 
 type MidiNote = {
   NoteNumber: number

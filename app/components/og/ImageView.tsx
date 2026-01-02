@@ -2,9 +2,9 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import * as THREE from 'three'
 
-import EmbeddedKeys from './EmbeddedKeys'
-import OGStaticBlocks from './OGStaticBlocks'
-import { computePianoLayout, DEFAULT_PIANO_LAYOUT, type PianoLayout } from '../utils/pianoLayout'
+import EmbeddedKeys from '../EmbeddedKeys'
+import StaticBlocks from './StaticBlocks'
+import { computePianoLayout, DEFAULT_PIANO_LAYOUT, type PianoLayout } from '../../utils/pianoLayout'
 
 type MidiNote = {
   NoteNumber: number

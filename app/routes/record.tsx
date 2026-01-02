@@ -5,18 +5,18 @@ import React, { useState, useEffect, useRef } from 'react'
 import { Canvas, useThree } from '@react-three/fiber'
 import midiParser from '../utils/MidiParser'
 import useMidiStore from '../store/midiStore'
-import FrameBasedShaderBlocks, { type FrameBasedShaderBlocksHandle } from '../components/FrameBasedShaderBlocks'
-import FrameBasedTitle, { type FrameBasedTitleHandle } from '../components/FrameBasedTitle'
-import FrameBasedKeyController, { type FrameBasedKeyControllerHandle } from '../components/FrameBasedKeyController'
-import FrameBasedParticles, { type FrameBasedParticlesHandle } from '../components/FrameBasedParticles'
-import RecordKeys from '../components/FrameBasedKeys'
+import FrameBasedShaderBlocks, { type FrameBasedShaderBlocksHandle } from '../components/recording/FrameBasedShaderBlocks'
+import FrameBasedTitle, { type FrameBasedTitleHandle } from '../components/recording/FrameBasedTitle'
+import FrameBasedKeyController, { type FrameBasedKeyControllerHandle } from '../components/recording/FrameBasedKeyController'
+import FrameBasedParticles, { type FrameBasedParticlesHandle } from '../components/recording/FrameBasedParticles'
+import RecordKeys from '../components/recording/FrameBasedKeys'
 import * as THREE from 'three'
 import { ActionFunctionArgs, json } from '@remix-run/cloudflare'
 import { useFetcher } from '@remix-run/react'
 import soundFont, { Player } from 'soundfont-player'
 import { computePianoLayout, DEFAULT_PIANO_LAYOUT, type PianoLayout } from '../utils/pianoLayout'
 import { FALL_DURATION_SECONDS, setFallDuration } from '../utils/recordingConstants'
-import { useSearchParams } from '@remix-run/react'
+
 
 const KNOWN_COMPOSERS = /(bach|beethoven|chopin|debussy|mozart|liszt|schubert|schumann|rachmaninoff|handel|haydn|tchaikovsky|gershwin|albeniz)/i
 
@@ -276,7 +276,7 @@ function DeterministicRecorder({
     const socket = wsRef.current
     if (socket && socket.readyState === WebSocket.OPEN && sessionId) {
       socket.send(payload)
-      if (frameNumber % 50 === 0) {
+      if (frameNumber % 200 === 0) {
         console.log(`→ Frame ${frameNumber} sent (${(blob.size / 1024).toFixed(1)} KB)`)
       }
     }
@@ -317,10 +317,11 @@ function DeterministicRecorder({
       console.log(`Recording complete! Rendered ${framesRendered}/${totalFrames} frames. Finalizing...`)
       
       // Update debug info with actual rendered count
-      const debugInfo = JSON.parse(localStorage.getItem('video_debug') || '{}')
-      debugInfo.framesActuallyRendered = framesRendered
-      debugInfo.framesExpected = totalFrames
-      localStorage.setItem('video_debug', JSON.stringify(debugInfo, null, 2))
+
+      // const debugInfo = JSON.parse(localStorage.getItem('video_debug') || '{}')
+      // debugInfo.framesActuallyRendered = framesRendered
+      // debugInfo.framesExpected = totalFrames
+      // localStorage.setItem('video_debug', JSON.stringify(debugInfo, null, 2))
       
       setTimeout(() => onComplete(), 2000)
     }
@@ -346,12 +347,10 @@ function DeterministicRecorder({
 
 // Server action to process frames and generate video with optional audio
 export async function action({ request }: ActionFunctionArgs) {
-  console.log('🚀 Server action started')
   
   let formData;
   try {
     formData = await request.formData()
-    console.log('📝 Form data received successfully')
   } catch (error) {
     console.error('❌ Failed to parse form data:', error)
     return json({ error: 'Failed to parse form data - possibly too large' }, { status: 413 })
@@ -370,7 +369,6 @@ export async function action({ request }: ActionFunctionArgs) {
   try {
     const frames = JSON.parse(framesData) as string[]
     
-    // Dynamic imports for Node.js modules (only available on server)
     const { spawn } = await import('child_process')
     const fs = await import('fs')
     const path = await import('path')
@@ -401,11 +399,9 @@ export async function action({ request }: ActionFunctionArgs) {
     // Handle audio file if provided
     let audioPath: string | null = null;
     if (audioBase64) {
-      console.log(`📄 Base64 audio data received, decoding...`);
       const audioBuffer = Buffer.from(audioBase64, 'base64');
       audioPath = path.join(tempDir, 'audio.wav');
       await writeFile(audioPath, audioBuffer);
-      console.log(`✅ Audio file saved from base64 to: ${audioPath}`);
     } else {
       console.log('❌ No audio data provided to server.');
     }
@@ -444,7 +440,6 @@ export async function action({ request }: ActionFunctionArgs) {
       
       ffmpegArgs.push(outputPath)
       
-      console.log(`🎬 FFmpeg command: ffmpeg ${ffmpegArgs.join(' ')}`)
       const ffmpeg = spawn('ffmpeg', ffmpegArgs)
       
       ffmpeg.stderr.on('data', (data) => {
@@ -544,19 +539,19 @@ export default function Record() {
       name: 'Original',
       whiteKeyColor: [0.94, 0.075, 0.28],
       blackKeyColor: [0.47, 0.04, 0.004],
-      glow: 0,
+      intensity: 0,
     },
     {
       name: 'Deep Red',
       whiteKeyColor: [0.392, 0.208, 0.251],
       blackKeyColor: [0.208, 0.067, 0.055],
-      glow: 1.5,
+      intensity: 1.5,
     },
     {
       name: 'Coral',
       whiteKeyColor: [1.0, 0.478, 0.6],
       blackKeyColor: [0.369, 0.188, 0.173],
-      glow: 0,
+      intensity: 0,
     },
   ]
   const [colorPreset, setColorPreset] = useState(COLOR_PRESETS[0])
@@ -569,8 +564,8 @@ export default function Record() {
     setColorPreset(preset)
   }, [])
 
-  const blackKeyColor = colorPreset.blackKeyColor.map(c => c * (1 + colorPreset.glow))
-  const whiteKeyColor = colorPreset.whiteKeyColor.map(c => c * (1 + colorPreset.glow))
+  const blackKeyColor = colorPreset.blackKeyColor.map(c => c * (1 + colorPreset.intensity))
+  const whiteKeyColor = colorPreset.whiteKeyColor.map(c => c * (1 + colorPreset.intensity))
 
   const fetcher = useFetcher<FetcherData>()
   const wsRef = useRef<WebSocket | null>(null)

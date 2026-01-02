@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import type { MetaFunction } from '@remix-run/node'
-import EmbeddedPlayView_component from '../components/EmbeddedPlayView_component'
+import EmbeddedPlayView_component from '../components/EmbeddedPlayer'
 import useMidiStore from '../store/midiStore'
 import usePlayStore from '../store/playStore'
 
