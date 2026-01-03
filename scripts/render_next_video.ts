@@ -13,6 +13,7 @@ import { spawn } from 'node:child_process'
 import { parseMidiFilePath, type MidiNote } from './parse_midi_to_json'
 import { createNormalizedMidi } from './normalize_midi'
 import { captureThumbnail } from './generate_thumbnail'
+import { COLOR_PRESETS } from '../app/utils/colorPresets'
 
 // Slugify function for generating URL-safe slugs (matches app/utils/slugify.ts)
 function slugify(value: string): string {
@@ -456,6 +457,8 @@ export async function processOneVideo(opts: Options, videoNumber?: number): Prom
   }
 
   // Launch browser and preload localStorage
+  const presetIndex = Math.floor(Math.random() * COLOR_PRESETS.length)
+  console.log(`${prefix}🎨 Using color preset index for this render: ${presetIndex}`)
   const browser = await chromium.launch({ headless: opts.headless, slowMo: opts.slowMo, devtools: opts.devtools })
   const context = await browser.newContext({ viewport: { width: 1920, height: 1080 } })
   // Preload localStorage with processed MIDI
@@ -508,7 +511,7 @@ export async function processOneVideo(opts: Options, videoNumber?: number): Prom
   // const beforeFiles = await listMp4(opts.publicDir)
   const since = Date.now()
 
-  const recordUrl = `${opts.baseUrl}/record`
+  const recordUrl = `${opts.baseUrl}/record?preset=${presetIndex}`
   console.log(`${prefix}Opening ${recordUrl} ...`)
 
   try {
@@ -536,6 +539,11 @@ export async function processOneVideo(opts: Options, videoNumber?: number): Prom
     const btn = document.querySelector('#record-button') as HTMLButtonElement | null
     return !!btn && !btn.disabled
   }, undefined, { timeout: 120_000 })
+
+  // Ensure the selected color preset has been applied before recording begins.
+  await page.waitForFunction(() => {
+    return (window as any).__COLOR_PRESET_READY__ === true
+  }, undefined, { timeout: 30_000 })
 
   // Wait for Canvas/Three.js to fully initialize before clicking
   // The Canvas needs time to set up WebGL context and load fonts
@@ -639,6 +647,7 @@ export async function processOneVideo(opts: Options, videoNumber?: number): Prom
         baseUrl: opts.baseUrl,
         timeout: 30000,
         font: fontName,
+        preset: presetIndex,
       })
 
       if (thumbnailResult.success) {

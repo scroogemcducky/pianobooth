@@ -89,6 +89,8 @@ type Props = {
   activeNotes: Set<number>
   layout: PianoLayout
   scaleMultiplier?: number
+  blackKeyColor?: [number, number, number]
+  whiteKeyColor?: [number, number, number]
 }
 
 type ParticleStreamProps = {
@@ -262,6 +264,8 @@ export default function ThumbnailStaticParticles({
   activeNotes,
   layout,
   scaleMultiplier = 1,
+  blackKeyColor,
+  whiteKeyColor,
 }: Props) {
   const { viewport } = useThree()
   const settings = useParticleSettingsStore((state) => state.settings)
@@ -276,9 +280,11 @@ export default function ThumbnailStaticParticles({
 
   // Build note info for rendering
   const noteInfos = useMemo(() => {
+    const effectiveBlack = blackKeyColor ?? (BLACK_KEY_COLOR as [number, number, number])
+    const effectiveWhite = whiteKeyColor ?? (WHITE_KEY_COLOR as [number, number, number])
     return Array.from(activeNotes).map((noteNumber) => {
       const keyIsBlack = isBlack(noteNumber)
-      const keyColor = (keyIsBlack ? BLACK_KEY_COLOR : WHITE_KEY_COLOR) as [number, number, number]
+      const keyColor = (keyIsBlack ? effectiveBlack : effectiveWhite) as [number, number, number]
       const relativeX = getNoteXPosition(noteNumber, layout)
       const worldX = relativeX * scaleFactor
       const baseZ = keyIsBlack ? BLACK_KEY_Z : WHITE_KEY_Z
@@ -289,7 +295,7 @@ export default function ThumbnailStaticParticles({
         position: [worldX, keyboardY, baseZ] as [number, number, number],
       }
     })
-  }, [activeNotes, layout, scaleFactor, keyboardY])
+  }, [activeNotes, layout, scaleFactor, keyboardY, blackKeyColor, whiteKeyColor])
 
   if (activeNotes.size === 0) return null
 

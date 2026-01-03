@@ -10,6 +10,7 @@ type Options = {
   timeout?: number
   headless?: boolean
   font?: string
+  preset?: number
 }
 
 const DEFAULTS = {
@@ -61,19 +62,21 @@ export async function captureThumbnail(
   artistSlug: string,
   songSlug: string,
   outputPath: string,
-  options: { baseUrl: string; timeout: number; font?: string }
+  options: { baseUrl: string; timeout: number; font?: string; preset?: number }
 ): Promise<{ success: boolean; error?: string }> {
   try {
     // Ensure output directory exists
     const outputDir = path.dirname(outputPath)
     await fs.mkdir(outputDir, { recursive: true })
 
-    // Navigate to thumbnail route with optional font parameter
-    let url = `${options.baseUrl}/thumbnail/${encodeURIComponent(artistSlug)}/${encodeURIComponent(songSlug)}`
-    if (options.font) {
-      url += `?font=${encodeURIComponent(options.font)}`
+    // Navigate to thumbnail route with optional parameters
+    const url = new URL(options.baseUrl)
+    url.pathname = `/thumbnail/${encodeURIComponent(artistSlug)}/${encodeURIComponent(songSlug)}`
+    if (options.font) url.searchParams.set('font', options.font)
+    if (typeof options.preset === 'number' && Number.isFinite(options.preset)) {
+      url.searchParams.set('preset', String(options.preset))
     }
-    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: options.timeout })
+    await page.goto(url.toString(), { waitUntil: 'domcontentloaded', timeout: options.timeout })
 
     // Wait for the ready indicator
     await page.waitForSelector('#thumbnail-ready', { timeout: options.timeout })
@@ -120,6 +123,7 @@ async function main() {
     console.log('  --base-url <url>  Base URL (default: http://localhost:5173)')
     console.log('  --timeout <ms>    Timeout in milliseconds (default: 30000)')
     console.log('  --headful         Run browser in headful mode')
+    console.log('  --preset <index>  Color preset index (default: 0)')
     console.log('')
     console.log('Example:')
     console.log('  bun run scripts/generate_thumbnail.ts bach prelude-in-c-major ./thumbnails/bach-prelude.jpg')
@@ -140,6 +144,8 @@ async function main() {
       options.timeout = parseInt(args[++i], 10)
     } else if (arg === '--headful') {
       options.headless = false
+    } else if (arg === '--preset' && args[i + 1]) {
+      options.preset = parseInt(args[++i], 10)
     }
   }
 

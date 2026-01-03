@@ -3,6 +3,7 @@ import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare'
 import { json } from '@remix-run/cloudflare'
 import { useLoaderData } from '@remix-run/react'
 import ThumbnailView from '../components/recording/ThumbnailView'
+import { getEffectivePresetColors, parseColorPresetIndex } from '../utils/colorPresets'
 
 type MidiNote = {
   NoteNumber: number
@@ -32,6 +33,8 @@ type LoaderData = {
   timePositionMs: number
   artistImagePath: string | null
   fontFamily: string
+  blackKeyColor: [number, number, number]
+  whiteKeyColor: [number, number, number]
 }
 
 // Constants for random position calculation
@@ -51,6 +54,8 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 
   // Get font from query parameter (default to EB Garamond)
   const fontFamily = url.searchParams.get('font') || 'EB Garamond'
+  const presetIndex = parseColorPresetIndex(url.searchParams.get('preset'))
+  const { blackKeyColor, whiteKeyColor } = getEffectivePresetColors(presetIndex)
 
   // Load MIDI data
   const jsonUrl = `${url.origin}/public_midi_json/${encodeURIComponent(artistSlug)}/${encodeURIComponent(songSlug)}.json`
@@ -90,6 +95,8 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
     timePositionMs,
     artistImagePath,
     fontFamily,
+    blackKeyColor,
+    whiteKeyColor,
   })
 }
 
@@ -114,6 +121,8 @@ export default function ThumbnailRoute() {
         timePositionMs={data.timePositionMs}
         artistImagePath={data.artistImagePath}
         fontFamily={data.fontFamily}
+        blackKeyColor={data.blackKeyColor}
+        whiteKeyColor={data.whiteKeyColor}
       />
     </div>
   )

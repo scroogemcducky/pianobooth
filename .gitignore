@@ -44,8 +44,8 @@ Icon?
 # Cloudflare/Wrangler
 .wrangler/
 
-# Supabase local state
-.supabase/
+# Local documentation
+tests.md
 
 # Agents
 .playwright-home

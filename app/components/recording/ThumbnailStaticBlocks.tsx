@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useThree } from '@react-three/fiber'
 import * as THREE from 'three'
-import { factor, black_width, white_width, white_color, black_color } from '../../utils/constants'
+import { factor, black_width, white_width, BLACK_KEY_COLOR, WHITE_KEY_COLOR } from '../../utils/constants'
 import { calculateHeight, isBlack, scalingFactor } from '../../utils/functions.js'
 import {
   type PianoLayout,
@@ -33,10 +33,19 @@ type Props = {
   layout: PianoLayout
   timePositionMs: number
   onActiveNotesChange?: (activeNotes: Set<number>) => void
+  blackKeyColor?: [number, number, number]
+  whiteKeyColor?: [number, number, number]
 }
 
 // Static blocks visualization for thumbnails - renders a snapshot at a specific time position
-export default function ThumbnailStaticBlocks({ midiObject, layout, timePositionMs, onActiveNotesChange }: Props) {
+export default function ThumbnailStaticBlocks({
+  midiObject,
+  layout,
+  timePositionMs,
+  onActiveNotesChange,
+  blackKeyColor,
+  whiteKeyColor,
+}: Props) {
   const { viewport } = useThree()
   const [blocks, setBlocks] = useState<Block[]>([])
 
@@ -85,7 +94,7 @@ export default function ThumbnailStaticBlocks({ midiObject, layout, timePosition
           noteNumber: note.NoteNumber,
           height,
           width: blockWidth,
-          color: isBlack(note.NoteNumber) ? black_color : white_color,
+          color: isBlack(note.NoteNumber) ? 'black' : 'white',
           position: [xPosition, yPosition, -0.05],
           isBlack: isBlack(note.NoteNumber),
         })
@@ -112,13 +121,15 @@ export default function ThumbnailStaticBlocks({ midiObject, layout, timePosition
 
   // Memoize geometry and materials
   const geometry = useMemo(() => new THREE.PlaneGeometry(1, 1), [])
+  const effectiveWhite = whiteKeyColor ?? (WHITE_KEY_COLOR as [number, number, number])
+  const effectiveBlack = blackKeyColor ?? (BLACK_KEY_COLOR as [number, number, number])
   const whiteMaterial = useMemo(
-    () => new THREE.MeshBasicMaterial({ color: white_color, side: THREE.DoubleSide }),
-    []
+    () => new THREE.MeshBasicMaterial({ color: new THREE.Color(...effectiveWhite), side: THREE.DoubleSide }),
+    [effectiveWhite[0], effectiveWhite[1], effectiveWhite[2]]
   )
   const blackMaterial = useMemo(
-    () => new THREE.MeshBasicMaterial({ color: black_color, side: THREE.DoubleSide }),
-    []
+    () => new THREE.MeshBasicMaterial({ color: new THREE.Color(...effectiveBlack), side: THREE.DoubleSide }),
+    [effectiveBlack[0], effectiveBlack[1], effectiveBlack[2]]
   )
 
   return (

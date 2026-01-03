@@ -16,6 +16,7 @@ import { useFetcher } from '@remix-run/react'
 import soundFont, { Player } from 'soundfont-player'
 import { computePianoLayout, DEFAULT_PIANO_LAYOUT, type PianoLayout } from '../utils/pianoLayout'
 import { FALL_DURATION_SECONDS, setFallDuration } from '../utils/recordingConstants'
+import { COLOR_PRESETS, parseColorPresetIndex } from '../utils/colorPresets'
 
 
 const KNOWN_COMPOSERS = /(bach|beethoven|chopin|debussy|mozart|liszt|schubert|schumann|rachmaninoff|handel|haydn|tchaikovsky|gershwin|albeniz)/i
@@ -533,35 +534,27 @@ export default function Record() {
   const [directionalY, setDirectionalY] = useState(-5.5)
   const [directionalZ, setDirectionalZ] = useState(107.5)
 
-  // Color presets - randomly selected on mount (client-side only)
-  const COLOR_PRESETS = [
-    {
-      name: 'Original',
-      whiteKeyColor: [0.94, 0.075, 0.28],
-      blackKeyColor: [0.47, 0.04, 0.004],
-      intensity: 0,
-    },
-    {
-      name: 'Deep Red',
-      whiteKeyColor: [0.392, 0.208, 0.251],
-      blackKeyColor: [0.208, 0.067, 0.055],
-      intensity: 1.5,
-    },
-    {
-      name: 'Coral',
-      whiteKeyColor: [1.0, 0.478, 0.6],
-      blackKeyColor: [0.369, 0.188, 0.173],
-      intensity: 0,
-    },
-  ]
+  // Color presets - selected on mount (client-side only) to avoid SSR hydration issues
   const [colorPreset, setColorPreset] = useState(COLOR_PRESETS[0])
 
-  // Randomize color on client mount to avoid SSR hydration issues
+  // If `?preset=<index>` is provided, use it; otherwise pick randomly.
   useEffect(() => {
-    const randomIndex = Math.floor(Math.random() * COLOR_PRESETS.length)
-    const preset = COLOR_PRESETS[randomIndex]
-    console.log(`🎨 Color preset selected: ${preset.name}`)
+    let presetIndex: number | null = null
+    try {
+      const url = new URL(window.location.href)
+      presetIndex = parseColorPresetIndex(url.searchParams.get('preset'))
+    } catch {
+      presetIndex = null
+    }
+
+    const chosenIndex = presetIndex ?? Math.floor(Math.random() * COLOR_PRESETS.length)
+    const preset = COLOR_PRESETS[chosenIndex] ?? COLOR_PRESETS[0]
+    console.log(`🎨 Color preset selected: ${preset.name} (index ${chosenIndex})`)
     setColorPreset(preset)
+
+    // Marker for automation (Playwright) to ensure colors are applied before recording starts.
+    ;(window as any).__COLOR_PRESET_INDEX__ = chosenIndex
+    ;(window as any).__COLOR_PRESET_READY__ = true
   }, [])
 
   const blackKeyColor = colorPreset.blackKeyColor.map(c => c * (1 + colorPreset.intensity))

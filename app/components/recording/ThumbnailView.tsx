@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState, useRef, useCallback } from 'react'
 import { Canvas } from '@react-three/fiber'
 import * as THREE from 'three'
 
-import EmbeddedKeys from '../EmbeddedKeys'
+import RecordKeys from './FrameBasedKeys'
 import ThumbnailStaticBlocks from './ThumbnailStaticBlocks'
 import ThumbnailStaticParticles from './ThumbnailStaticParticles'
 import { computePianoLayout, DEFAULT_PIANO_LAYOUT, type PianoLayout } from '../../utils/pianoLayout'
@@ -22,6 +22,8 @@ type Props = {
   timePositionMs: number
   artistImagePath: string | null
   fontFamily?: string
+  blackKeyColor?: [number, number, number]
+  whiteKeyColor?: [number, number, number]
 }
 
 // Thumbnail visualization for YouTube thumbnails (1280x720)
@@ -33,6 +35,8 @@ export default function ThumbnailView({
   timePositionMs,
   artistImagePath,
   fontFamily = 'EB Garamond',
+  blackKeyColor,
+  whiteKeyColor,
 }: Props) {
   const [isReady, setIsReady] = useState(false)
   const [pianoLayout, setPianoLayout] = useState<PianoLayout>(DEFAULT_PIANO_LAYOUT)
@@ -116,7 +120,14 @@ export default function ThumbnailView({
       >
         <ambientLight intensity={7.5} />
         <directionalLight position={[11, -4, 90]} intensity={0.15} />
-        <EmbeddedKeys layout={pianoLayout} />
+        <RecordKeys
+          layout={pianoLayout}
+          scaleMultiplier={1}
+          scaleFillRatio={0.9}
+          scaleMax={1.1}
+          blackKeyColor={blackKeyColor}
+          whiteKeyColor={whiteKeyColor}
+        />
         {midiObject && midiObject.length > 0 && (
           <>
             <ThumbnailStaticBlocks
@@ -124,10 +135,14 @@ export default function ThumbnailView({
               layout={pianoLayout}
               timePositionMs={timePositionMs}
               onActiveNotesChange={handleActiveNotesChange}
+              blackKeyColor={blackKeyColor}
+              whiteKeyColor={whiteKeyColor}
             />
             <ThumbnailStaticParticles
               activeNotes={activeNotes}
               layout={pianoLayout}
+              blackKeyColor={blackKeyColor}
+              whiteKeyColor={whiteKeyColor}
             />
           </>
         )}
