@@ -21,6 +21,7 @@ type KeyParticlesProps = {
 
 const WHITE_KEY_Z = 2.2
 const BLACK_KEY_Z = 2.4
+const PARTICLE_COUNT_DIVISOR = 6
 
 const vertexShader = /* glsl */ `
   uniform float uTime;
@@ -127,7 +128,7 @@ const KeyParticles: React.FC<KeyParticlesProps> = ({ layout, notes }) => {
 
   if (!activeNotes.length) return null
 
-  const perStreamCount = Math.max(50, Math.floor(settings.count / activeNotes.length))
+  const perStreamCount = Math.max(50, Math.floor(settings.count / PARTICLE_COUNT_DIVISOR))
 
   return (
     <>

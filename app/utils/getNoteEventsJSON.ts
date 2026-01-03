@@ -14,6 +14,7 @@ const normalizeOverlappingNotes = (
 ): NoteEvent[] => {
     const sameStartEpsilonUs = options?.sameStartEpsilonUs ?? 2000; // 2ms
     const overlapGapUs = options?.overlapGapUs ?? 100000; // 100ms
+    const minSeparationUs = 100000; // 100ms visible delineation between repeated pitches when possible
 
     const byPitch = new Map<number, NoteEvent[]>();
     for (const note of notes) {
@@ -39,8 +40,9 @@ const normalizeOverlappingNotes = (
                 const candidateStart = pitchNotes[j].Delta;
                 maxEnd = Math.max(maxEnd, candidateStart + pitchNotes[j].Duration);
                 maxSoundEnd = Math.max(maxSoundEnd, candidateStart + (pitchNotes[j].SoundDuration ?? pitchNotes[j].Duration));
-                if (typeof pitchNotes[j].Velocity === 'number') {
-                    maxVelocity = typeof maxVelocity === 'number' ? Math.max(maxVelocity, pitchNotes[j].Velocity) : pitchNotes[j].Velocity;
+                const velocity = pitchNotes[j].Velocity;
+                if (typeof velocity === 'number') {
+                    maxVelocity = typeof maxVelocity === 'number' ? Math.max(maxVelocity, velocity) : velocity;
                 }
                 j++;
             }
@@ -81,6 +83,21 @@ const normalizeOverlappingNotes = (
                         if (typeof prev.SoundDuration === 'number') {
                             if (prev.SoundDuration === originalPrevDuration) prev.SoundDuration = newDuration;
                             else if (prev.SoundDuration < newDuration) prev.SoundDuration = newDuration;
+                        }
+                    }
+                } else {
+                    // If notes touch (or are very close), create a small gap so repeated presses are visually distinct.
+                    const gapUs = nextStart - prevEnd;
+                    if (gapUs >= 0 && gapUs < minSeparationUs) {
+                        const originalPrevDuration = prev.Duration;
+                        const targetEnd = nextStart - minSeparationUs;
+                        const newDuration = targetEnd - prevStart;
+                        if (newDuration > 0) {
+                            prev.Duration = newDuration;
+                            if (typeof prev.SoundDuration === 'number') {
+                                if (prev.SoundDuration === originalPrevDuration) prev.SoundDuration = newDuration;
+                                else if (prev.SoundDuration < newDuration) prev.SoundDuration = newDuration;
+                            }
                         }
                     }
                 }
