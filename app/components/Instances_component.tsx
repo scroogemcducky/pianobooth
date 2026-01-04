@@ -1,9 +1,16 @@
 import * as THREE from 'three'
 import { ShaderMaterial } from 'three'
-import { extend, useFrame } from '@react-three/fiber'
+import { extend, useFrame, type ThreeElements } from '@react-three/fiber'
 import React, { useMemo, useRef, useEffect, type Ref } from 'react'
 import usePlayStore from '../store/playStore'
 import { BLACK_KEY_COLOR, WHITE_KEY_COLOR } from '../utils/constants'
+
+// Extend JSX.IntrinsicElements for R3F v9
+declare module '@react-three/fiber' {
+  interface ThreeElements {
+    customShaderMaterial: ThreeElements['shaderMaterial']
+  }
+}
 
 interface Block {
   position: [number, number, number]
@@ -137,7 +144,7 @@ const CustomGeometryParticles: React.FC<CustomGeometryParticlesProps> = ({
 
   // Expose imperative seek + current time getters via a prop ref
   useEffect(() => {
-    if (!visualizerRef) return
+    if (!visualizerRef) return undefined
     const handle: VisualizerHandle = {
       seek: (ms: number) => {
         timeRef.current = ms
@@ -158,7 +165,7 @@ const CustomGeometryParticles: React.FC<CustomGeometryParticlesProps> = ({
     }
     if (typeof visualizerRef === 'function') {
       visualizerRef(handle)
-      return () => visualizerRef(null as any)
+      return () => { visualizerRef(null as any) }
     } else {
       (visualizerRef as any).current = handle
       return () => {

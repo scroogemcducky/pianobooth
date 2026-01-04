@@ -2,10 +2,17 @@
 
 import * as THREE from 'three';
 import { ShaderMaterial } from 'three';
-import { extend, useFrame } from '@react-three/fiber';
+import { extend, useFrame, type ThreeElements } from '@react-three/fiber';
 import { useMemo, useRef, useEffect } from 'react';
 import usePlayStore from '../store/playStore';
 import { factor, speed, BLACK_KEY_COLOR, WHITE_KEY_COLOR } from '../utils/constants';
+
+// Extend ThreeElements for R3F v9
+declare module '@react-three/fiber' {
+  interface ThreeElements {
+    customShaderMaterial: ThreeElements['shaderMaterial']
+  }
+}
 // import { BLACK_KEY_COLOR, WHITE_KEY_COLOR } from '../utils/constants';
 
 interface Block {
