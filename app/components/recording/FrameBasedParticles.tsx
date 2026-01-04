@@ -37,6 +37,7 @@ interface FrameBasedParticlesProps {
   blackKeyColor?: number[]
   whiteKeyColor?: number[]
   settings?: ParticleSettings
+  zoomAdaptive?: boolean
 }
 
 const WHITE_KEY_Z = 2.2
@@ -151,6 +152,7 @@ type FrameBasedParticleStreamProps = {
   color: [number, number, number]
   isBlack: boolean
   scaleFactor: number
+  motionScale?: number
   settings: ParticleSettings
   particleCount: number
   noteNumber: number // Used for deterministic seeding
@@ -158,7 +160,7 @@ type FrameBasedParticleStreamProps = {
 
 const FrameBasedParticleStream = forwardRef<FrameBasedParticleStreamHandle, FrameBasedParticleStreamProps>(
   function FrameBasedParticleStream(
-    { basePosition, color, isBlack: isBlackKey, scaleFactor, settings, particleCount, noteNumber },
+    { basePosition, color, isBlack: isBlackKey, scaleFactor, motionScale = 1, settings, particleCount, noteNumber },
     ref
   ) {
     const {
@@ -239,7 +241,7 @@ const FrameBasedParticleStream = forwardRef<FrameBasedParticleStreamHandle, Fram
       const rng = seededRandom(noteNumber * 67890)
 
       const width = keyDimensions.x * scaleFactor
-      const baseSpread = width * (0.4 + emitterRadius * 1.5)
+      const baseSpread = width * (0.4 + emitterRadius * 1.5) * motionScale
       const depthRatio = keyDimensions.z / keyDimensions.x
       const halfWidth = Math.max(0.001, width * 0.5)
       const angleRange = allowDownward ? Math.PI : Math.PI * 0.5
@@ -294,6 +296,7 @@ const FrameBasedParticleStream = forwardRef<FrameBasedParticleStreamHandle, Fram
       phases,
       velocityDamping,
       allowDownward,
+      motionScale,
       noteNumber,
     ])
 
@@ -328,13 +331,13 @@ const FrameBasedParticleStream = forwardRef<FrameBasedParticleStreamHandle, Fram
     )
 
     useEffect(() => {
-      const heightBase = (initialVelocityY + emitterVelocityStrength * 1.4 + Math.abs(gravityY) * 0.4) * scaleFactor
+      const heightBase = (initialVelocityY + emitterVelocityStrength * 1.4 + Math.abs(gravityY) * 0.4) * scaleFactor * motionScale
       uniforms.uHeight.value = Math.max(0.4, heightBase)
       uniforms.uBaseSize.value = Math.max(15, size * 180 * Math.max(0.5, scaleFactor))
       uniforms.uDrift.value.set(
-        initialVelocityX * 0.5 * scaleFactor + gravityX * 0.1,
-        gravityY * 0.25 * scaleFactor,
-        initialVelocityZ * 0.5 * scaleFactor + gravityZ * 0.1,
+        (initialVelocityX * 0.5 * scaleFactor + gravityX * 0.1) * motionScale,
+        (gravityY * 0.25 * scaleFactor) * motionScale,
+        (initialVelocityZ * 0.5 * scaleFactor + gravityZ * 0.1) * motionScale,
       )
       uniforms.uPrimaryColor.value.copy(primaryColor)
       uniforms.uAccentColor.value.copy(accentColor)
@@ -355,6 +358,7 @@ const FrameBasedParticleStream = forwardRef<FrameBasedParticleStreamHandle, Fram
       gravityX,
       gravityZ,
       scaleFactor,
+      motionScale,
       size,
       primaryColor,
       accentColor,
@@ -412,7 +416,7 @@ const FrameBasedParticleStream = forwardRef<FrameBasedParticleStreamHandle, Fram
 
 const FrameBasedParticles = forwardRef<FrameBasedParticlesHandle, FrameBasedParticlesProps>(
   function FrameBasedParticles(
-    { midiObject, layout, scaleMultiplier = 1, scaleFillRatio, scaleMax, lookahead = 3, blackKeyColor, whiteKeyColor, settings: settingsProp },
+    { midiObject, layout, scaleMultiplier = 1, scaleFillRatio, scaleMax, lookahead = 3, blackKeyColor, whiteKeyColor, settings: settingsProp, zoomAdaptive = false },
     ref
   ) {
     const { viewport } = useThree()
@@ -531,7 +535,10 @@ const FrameBasedParticles = forwardRef<FrameBasedParticlesHandle, FrameBasedPart
     // Use a fixed particle count per stream to match real-time intensity
     // In real-time, single notes get full settings.count (4000 default)
     // We use a reasonable per-stream count that looks good regardless of total notes
-    const perStreamCount = Math.max(200, Math.floor(settings.count / 4))
+    const densityScale = zoomAdaptive ? Math.max(0.25, 1 / Math.max(1, scaleFactor)) : 1
+    const perStreamMin = zoomAdaptive ? 80 : 200
+    const perStreamCount = Math.max(perStreamMin, Math.floor((settings.count / 4) * densityScale))
+    const motionScale = zoomAdaptive ? densityScale : 1
 
     // Register stream ref
     const registerStreamRef = useCallback((noteNumber: number, handle: FrameBasedParticleStreamHandle | null) => {
@@ -551,17 +558,18 @@ const FrameBasedParticles = forwardRef<FrameBasedParticlesHandle, FrameBasedPart
           const worldX = relativeX * scaleFactor
           const baseZ = info.isBlack ? BLACK_KEY_Z : WHITE_KEY_Z
           return (
-            <FrameBasedParticleStream
-              key={info.noteNumber}
-              ref={(handle) => registerStreamRef(info.noteNumber, handle)}
-              basePosition={[worldX, keyboardY, baseZ]}
-              color={info.color}
-              isBlack={info.isBlack}
-              scaleFactor={scaleFactor}
-              settings={settings}
-              particleCount={perStreamCount}
-              noteNumber={info.noteNumber}
-            />
+              <FrameBasedParticleStream
+                key={info.noteNumber}
+                ref={(handle) => registerStreamRef(info.noteNumber, handle)}
+                basePosition={[worldX, keyboardY, baseZ]}
+                color={info.color}
+                isBlack={info.isBlack}
+                scaleFactor={scaleFactor}
+                motionScale={motionScale}
+                settings={settings}
+                particleCount={perStreamCount}
+                noteNumber={info.noteNumber}
+              />
           )
         })}
       </>

@@ -317,19 +317,55 @@ async function listMp4(dir: string, recursive = true): Promise<{ name: string; p
   return out
 }
 
+function formatBytes(bytes: number): string {
+  const value = Number(bytes)
+  if (!Number.isFinite(value)) return `${bytes} B`
+  const sign = value < 0 ? '-' : ''
+  let v = Math.abs(value)
+  const units = ['B', 'KB', 'MB', 'GB', 'TB']
+  let unitIndex = 0
+  while (v >= 1024 && unitIndex < units.length - 1) {
+    v /= 1024
+    unitIndex++
+  }
+  const decimals = unitIndex === 0 ? 0 : 1
+  return `${sign}${v.toFixed(decimals)} ${units[unitIndex]}`
+}
+
+function writeInlineProgress(line: string) {
+  if (!process.stdout.isTTY) {
+    console.log(line)
+    return
+  }
+  process.stdout.write(`\r\x1b[2K${line}`)
+}
+
+function endInlineProgress() {
+  if (process.stdout.isTTY) process.stdout.write('\n')
+}
+
 async function waitForNewVideo(publicDir: string, sinceMs: number, timeoutMs: number): Promise<string> {
   const start = Date.now()
   const lastSeen: Record<string, number> = {}
+  const progressBarWidth = 18
+  let progressTick = 0
+  let usedInlineProgress = false
   while (Date.now() - start < timeoutMs) {
     const files = await listMp4(publicDir)
     const candidates = files.filter(f => f.mtimeMs >= sinceMs)
     for (const f of candidates) {
       const prev = lastSeen[f.path]
       if (prev && prev === f.size) {
+        if (usedInlineProgress) endInlineProgress()
         return f.path
       }
       if (prev !== undefined && prev !== f.size) {
-        console.log(`Progress: ${path.basename(f.path)} size ${prev} -> ${f.size} bytes`)
+        const delta = f.size - prev
+        const pos = progressTick % progressBarWidth
+        const bar = `${'-'.repeat(pos)}#${'-'.repeat(progressBarWidth - pos - 1)}`
+        progressTick++
+        writeInlineProgress(`Encoding ${path.basename(f.path)} [${bar}] ${formatBytes(f.size)} (+${formatBytes(delta)})`)
+        usedInlineProgress = process.stdout.isTTY
       } else if (prev === undefined) {
         console.log(`Detected new file: ${path.basename(f.path)} (${f.size} bytes)`)        
       }
@@ -337,6 +373,7 @@ async function waitForNewVideo(publicDir: string, sinceMs: number, timeoutMs: nu
     }
     await new Promise(r => setTimeout(r, 2000))
   }
+  if (usedInlineProgress) endInlineProgress()
   throw new Error('Timed out waiting for new video in public/')
 }
 

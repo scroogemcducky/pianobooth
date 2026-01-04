@@ -830,7 +830,7 @@ export default function Record() {
   const updateMidiState = (data: MidiNote[], meta?: Partial<MidiMeta>) => {
     if (!data || !Array.isArray(data) || data.length === 0) return
     setMidiObject(data)
-    const layout = computePianoLayout(data)
+    const layout = computePianoLayout(data, { paddingNotes: 0 })
     setPianoLayout(layout ?? DEFAULT_PIANO_LAYOUT)
     if (meta?.title || meta?.artist) {
       setTitle(meta.title ?? 'Untitled')
@@ -913,9 +913,9 @@ export default function Record() {
   const midiFrameCount = midiObject ? calculateTotalFrames(midiObject, fallDuration) : 0
   const totalFrames = midiFrameCount + NOTE_START_DELAY_FRAMES
   const keyboardScaleOptions = {
-    multiplier: 1.32,
+    multiplier: 1.0,
     fillRatio: 0.95,
-    max: 1.5,
+    max: 2.5,
   }
 
   // Generate audio from MIDI using soundfont
@@ -1524,19 +1524,20 @@ export default function Record() {
         />
 
 	        {midiObject && (
-	          <FrameBasedParticles
-	            ref={particlesRef}
-	            midiObject={midiObject}
-	            layout={pianoLayout}
-	            scaleMultiplier={keyboardScaleOptions.multiplier}
-	            scaleFillRatio={keyboardScaleOptions.fillRatio}
-	            scaleMax={keyboardScaleOptions.max}
-	            lookahead={fallDuration}
-	            blackKeyColor={blackKeyColor}
-	            whiteKeyColor={whiteKeyColor}
-	            settings={mobileParticleSettings}
-	          />
-	        )}
+		          <FrameBasedParticles
+		            ref={particlesRef}
+		            midiObject={midiObject}
+		            layout={pianoLayout}
+		            scaleMultiplier={keyboardScaleOptions.multiplier}
+		            scaleFillRatio={keyboardScaleOptions.fillRatio}
+		            scaleMax={keyboardScaleOptions.max}
+		            lookahead={fallDuration}
+		            blackKeyColor={blackKeyColor}
+		            whiteKeyColor={whiteKeyColor}
+		            settings={mobileParticleSettings}
+		            zoomAdaptive
+		          />
+		        )}
 
         {midiObject && (
           <FrameBasedShaderBlocks
