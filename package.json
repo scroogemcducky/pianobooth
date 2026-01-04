@@ -9,6 +9,7 @@
     "dev": "remix vite:dev",
     "build:public": "bun scripts/build_public_pages.ts --require-llm --base-url https://pianobooth.com",
     "record": "bun scripts/render_next_video.ts",
+    "record:mobile": "bun scripts/render_next_mobile_video.ts",
     "test": "bun scripts/test_websocket_stream.ts",
     "generate:og": "bun scripts/generate_og_images.ts",
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",

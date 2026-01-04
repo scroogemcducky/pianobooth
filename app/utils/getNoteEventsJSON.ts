@@ -14,7 +14,7 @@ const normalizeOverlappingNotes = (
 ): NoteEvent[] => {
     const sameStartEpsilonUs = options?.sameStartEpsilonUs ?? 2000; // 2ms
     const overlapGapUs = options?.overlapGapUs ?? 100000; // 100ms
-    const minSeparationUs = 100000; // 100ms visible delineation between repeated pitches when possible
+    const minSeparationUs = 50000; // 50ms visible delineation between repeated pitches when possible
 
     const byPitch = new Map<number, NoteEvent[]>();
     for (const note of notes) {

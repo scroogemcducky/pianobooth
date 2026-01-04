@@ -166,6 +166,41 @@ export function setupWebSocketServer(server: any) {
     console.log('🔌 Client connected')
 
     let currentSessionId: string | null = null
+    let lastSaveProgressAt = 0
+    let lastSaveLineLen = 0
+    let saveProgressFinished = false
+
+    const renderSaveProgress = (session: { frameCount: number; expectedFrames: number }) => {
+      const total = session.expectedFrames
+      if (!total || total <= 0) return
+
+      const isTTY = !!process.stdout.isTTY
+      const now = Date.now()
+      if (now - lastSaveProgressAt < 200 && session.frameCount < total) return
+      lastSaveProgressAt = now
+
+      const ratio = Math.min(1, Math.max(0, session.frameCount / total))
+      const pct = Math.floor(ratio * 100)
+      const width = 30
+      const filled = Math.round(ratio * width)
+      const bar = `${'='.repeat(filled)}${' '.repeat(Math.max(0, width - filled))}`
+      const line = `Frames [${bar}] ${pct}% (${session.frameCount}/${total})`
+
+      if (isTTY) {
+        const padding = lastSaveLineLen > line.length ? ' '.repeat(lastSaveLineLen - line.length) : ''
+        process.stdout.write(`\r${line}${padding}`)
+        lastSaveLineLen = line.length
+        if (session.frameCount >= total && !saveProgressFinished) {
+          saveProgressFinished = true
+          process.stdout.write('\n')
+        }
+      } else {
+        const step = Math.max(1, Math.floor(total / 10))
+        if (session.frameCount % step === 0 || session.frameCount >= total) {
+          console.log(line)
+        }
+      }
+    }
 
     // Handle incoming messages
     ws.on('message', async (data: Buffer) => {
@@ -347,15 +382,12 @@ export function setupWebSocketServer(server: any) {
             totalFrames: session.frameCount
           }))
 
-          // Only log every 100th frame to reduce spam
-          if (frameNumber % 100 === 0) {
-            console.log(`✓ Frame ${frameNumber} saved (${session.frameCount} total)`)
-          }
-        }
-      } catch (error) {
-        console.error('❌ Error processing message:', error)
-        ws.send(JSON.stringify({
-          type: 'error',
+	          renderSaveProgress({ frameCount: session.frameCount, expectedFrames: session.expectedFrames })
+	        }
+	      } catch (error) {
+	        console.error('❌ Error processing message:', error)
+	        ws.send(JSON.stringify({
+	          type: 'error',
           error: error instanceof Error ? error.message : 'Unknown error'
         }))
       }
@@ -363,6 +395,11 @@ export function setupWebSocketServer(server: any) {
 
     // Handle disconnection
     ws.on('close', async () => {
+      // If we were rendering an in-place progress line, finish it with a newline.
+      if (process.stdout.isTTY && lastSaveLineLen > 0 && !saveProgressFinished) {
+        process.stdout.write('\n')
+        saveProgressFinished = true
+      }
       console.log('🔌 [WS] Client disconnected')
       console.log(`   [WS] Current session: ${currentSessionId || '(none)'}`)
 
