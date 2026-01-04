@@ -681,6 +681,7 @@ async function main() {
     else if (a === '--public-dir' && args[i + 1]) opts.publicDir = args[++i]
     else if (a === '--base-url' && args[i + 1]) opts.baseUrl = args[++i]
     else if (a === '--keep-midi') opts.keepMidi = true
+    else if (a === '--dev-midi' && args[i + 1]) { opts.devMidiPath = args[++i]!; opts.keepMidi = true }
     else if (a === '--no-llm') opts.requireLLM = false
     else if (a === '--model' && args[i + 1]) opts.llmModel = args[++i]
     else if (a === '--timeout' && args[i + 1]) opts.timeoutMs = parseInt(args[++i]!, 10)
