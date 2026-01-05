@@ -1,7 +1,7 @@
 // Frame-by-frame video recording implementation
 // Renders MIDI piano visualization offline for video creation
 
-import React, { useState, useEffect, useMemo, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Canvas, useThree } from '@react-three/fiber'
 import midiParser from '../utils/MidiParser'
 import useMidiStore from '../store/midiStore'
@@ -18,6 +18,7 @@ import { computePianoLayout, DEFAULT_PIANO_LAYOUT, type PianoLayout } from '../u
 import { FALL_DURATION_SECONDS, setFallDuration } from '../utils/recordingConstants'
 import { COLOR_PRESETS, parseColorPresetIndex } from '../utils/colorPresets'
 import useParticleSettingsStore from '../store/particleSettingsStore'
+import { BLOOM_DEFAULTS, BLOOM_STORAGE_KEY } from '../utils/bloomDefaults'
 
 
 const KNOWN_COMPOSERS = /(bach|beethoven|chopin|debussy|mozart|liszt|schubert|schumann|rachmaninoff|handel|haydn|tchaikovsky|gershwin|albeniz)/i
@@ -608,18 +609,14 @@ export default function Record() {
   const [directionalX, setDirectionalX] = useState(10.5)
   const [directionalY, setDirectionalY] = useState(-5.5)
   const [directionalZ, setDirectionalZ] = useState(107.5)
-  const [bloomEnabled, setBloomEnabled] = useState(true)
-  const [bloomStrength, setBloomStrength] = useState(1.6)
-  const [bloomRadius, setBloomRadius] = useState(0.6)
-  const [bloomThreshold, setBloomThreshold] = useState(0)
+  const [bloomEnabled, setBloomEnabled] = useState(BLOOM_DEFAULTS.enabled)
+  const [bloomStrength, setBloomStrength] = useState(BLOOM_DEFAULTS.strength)
+  const [bloomRadius, setBloomRadius] = useState(BLOOM_DEFAULTS.radius)
+  const [bloomThreshold, setBloomThreshold] = useState(BLOOM_DEFAULTS.threshold)
 
   // Color presets - selected on mount (client-side only) to avoid SSR hydration issues
   const [colorPreset, setColorPreset] = useState(COLOR_PRESETS[0])
   const particleSettings = useParticleSettingsStore((state) => state.settings)
-  const mobileParticleSettings = useMemo(
-    () => ({ ...particleSettings, count: Math.floor((particleSettings.count ?? 0) / 2) }),
-    [particleSettings],
-  )
 
   // If `?preset=<index>` is provided, use it; otherwise pick randomly.
   useEffect(() => {
@@ -643,7 +640,7 @@ export default function Record() {
 
   useEffect(() => {
     try {
-      const raw = localStorage.getItem('piano.bloom')
+      const raw = localStorage.getItem(BLOOM_STORAGE_KEY)
       if (!raw) return
       const parsed = JSON.parse(raw)
       if (typeof parsed?.enabled === 'boolean') setBloomEnabled(parsed.enabled)
@@ -653,7 +650,7 @@ export default function Record() {
     } catch {}
 
     const onStorage = (e: StorageEvent) => {
-      if (e.key !== 'piano.bloom' || !e.newValue) return
+      if (e.key !== BLOOM_STORAGE_KEY || !e.newValue) return
       try {
         const parsed = JSON.parse(e.newValue)
         if (typeof parsed?.enabled === 'boolean') setBloomEnabled(parsed.enabled)
@@ -1561,14 +1558,14 @@ export default function Record() {
 		            scaleMultiplier={keyboardScaleOptions.multiplier}
 		            scaleFillRatio={keyboardScaleOptions.fillRatio}
 		            scaleMax={keyboardScaleOptions.max}
-		            lookahead={fallDuration}
-		            blackKeyColor={blackKeyColor}
-		            whiteKeyColor={whiteKeyColor}
-		            settings={mobileParticleSettings}
-		            zoomAdaptive
+			            lookahead={fallDuration}
+			            blackKeyColor={blackKeyColor}
+			            whiteKeyColor={whiteKeyColor}
+			            settings={particleSettings}
+			            zoomAdaptive
                 motionScaleMultiplier={2}
-		          />
-		        )}
+			          />
+			        )}
 
         {midiObject && (
           <FrameBasedShaderBlocks

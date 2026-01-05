@@ -11,6 +11,7 @@ import FrameBasedParticles, { type FrameBasedParticlesHandle } from '../componen
 import RecordKeys from '../components/recording/FrameBasedKeys'
 import SelectiveBloom from '../components/recording/SelectiveBloom'
 import * as THREE from 'three'
+import { BLOOM_DEFAULTS, BLOOM_STORAGE_KEY } from '../utils/bloomDefaults'
 import { computePianoLayout, DEFAULT_PIANO_LAYOUT, type PianoLayout } from '../utils/pianoLayout'
 import { FALL_DURATION_SECONDS } from '../utils/recordingConstants'
 import { PARTICLE_DEFAULTS, PARTICLE_PRESETS, type ParticleSettings } from '../store/particleSettingsStore'
@@ -167,10 +168,10 @@ export default function RecordConstants() {
   const [blackKeyColor, setBlackKeyColor] = useState(initialPreset.blackKeyColor)
   const [whiteKeyColor, setWhiteKeyColor] = useState(initialPreset.whiteKeyColor)
   const [glow, setGlow] = useState(initialPreset.glow) // color intensity boost (0 = normal, 4 = 5x brighter)
-  const [bloomEnabled, setBloomEnabled] = useState(true)
-  const [bloomStrength, setBloomStrength] = useState(1.6)
-  const [bloomRadius, setBloomRadius] = useState(0.6)
-  const [bloomThreshold, setBloomThreshold] = useState(0)
+  const [bloomEnabled, setBloomEnabled] = useState(BLOOM_DEFAULTS.enabled)
+  const [bloomStrength, setBloomStrength] = useState(BLOOM_DEFAULTS.strength)
+  const [bloomRadius, setBloomRadius] = useState(BLOOM_DEFAULTS.radius)
+  const [bloomThreshold, setBloomThreshold] = useState(BLOOM_DEFAULTS.threshold)
 
   // Particle settings
   const [particleSettings, setParticleSettings] = useState<ParticleSettings>({ ...PARTICLE_DEFAULTS })
@@ -191,7 +192,7 @@ export default function RecordConstants() {
 
   useEffect(() => {
     try {
-      const raw = localStorage.getItem('piano.bloom')
+      const raw = localStorage.getItem(BLOOM_STORAGE_KEY)
       if (!raw) return
       const parsed = JSON.parse(raw)
       if (typeof parsed?.enabled === 'boolean') setBloomEnabled(parsed.enabled)
@@ -204,7 +205,7 @@ export default function RecordConstants() {
   useEffect(() => {
     try {
       localStorage.setItem(
-        'piano.bloom',
+        BLOOM_STORAGE_KEY,
         JSON.stringify({ enabled: bloomEnabled, strength: bloomStrength, radius: bloomRadius, threshold: bloomThreshold }),
       )
     } catch {}

@@ -12,6 +12,7 @@ type Options = {
   outDir: string
   outFolder: string | null
   stripMetaTrailingIndex: boolean
+  bloom: boolean
   queueDir: string
   publicDir: string
   devMidiPath: string | null
@@ -26,6 +27,7 @@ const DEFAULTS: Options = {
   outDir: 'videos',
   outFolder: null,
   stripMetaTrailingIndex: false,
+  bloom: false,
   queueDir: 'midi/video_queue',
   publicDir: 'videos',
   devMidiPath: null,
@@ -47,6 +49,7 @@ function parseArgs(argv: string[]): Options {
     else if (a === '--public-dir' && next) opts.publicDir = next, i++
     else if (a === '--dev-midi' && next) opts.devMidiPath = next, i++
     else if (a === '--strip-meta-trailing-index') opts.stripMetaTrailingIndex = true
+    else if (a === '--bloom' || a === '-b') opts.bloom = true
     else if (a === '--no-llm') opts.noLlm = true
     else if (a === '--model' && next) opts.model = next, i++
     else if (a === '--timeout-ms' && next) opts.timeoutMs = Number(next), i++
@@ -109,6 +112,7 @@ async function main() {
   if (opts.devMidiPath) normalArgs.push('--dev-midi', opts.devMidiPath)
   if (opts.outFolder) normalArgs.push('--out-folder', opts.outFolder)
   if (opts.stripMetaTrailingIndex) normalArgs.push('--strip-meta-trailing-index')
+  if (opts.bloom) normalArgs.push('--bloom')
 
   console.log(`\n=== Normal (landscape) + thumbnails ===\n`)
   const normal = await run('bun', normalArgs)
@@ -150,6 +154,7 @@ async function main() {
   ]
   if (opts.timeoutMs) mobileArgs.push('--timeout-ms', String(opts.timeoutMs))
   if (opts.stripMetaTrailingIndex) mobileArgs.push('--strip-meta-trailing-index')
+  if (opts.bloom) mobileArgs.push('--bloom')
   const mobile = await run('bun', mobileArgs)
   if (mobile.code !== 0) process.exit(mobile.code)
 

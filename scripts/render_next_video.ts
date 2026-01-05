@@ -14,6 +14,7 @@ import { parseMidiFilePath, type MidiNote } from './parse_midi_to_json'
 import { createNormalizedMidi } from './normalize_midi'
 import { captureThumbnail } from './generate_thumbnail'
 import { COLOR_PRESETS } from '../app/utils/colorPresets'
+import { BLOOM_DEFAULTS, BLOOM_STORAGE_KEY } from '../app/utils/bloomDefaults'
 
 // Slugify function for generating URL-safe slugs (matches app/utils/slugify.ts)
 function slugify(value: string): string {
@@ -70,6 +71,7 @@ export type Options = {
   outDir: string
   outFolder: string | null
   stripMetaTrailingIndex: boolean
+  bloom: boolean
   baseUrl: string
   requireLLM: boolean
   llmModel: string
@@ -89,6 +91,7 @@ export const DEFAULTS: Options = {
   outDir: 'videos',
   outFolder: null,
   stripMetaTrailingIndex: false,
+  bloom: false,
   baseUrl: process.env.RENDER_BASE_URL || 'http://localhost:5173',
   requireLLM: true,
   llmModel: 'gpt-5',
@@ -626,6 +629,7 @@ export async function processOneVideo(opts: Options, videoNumber?: number): Prom
     } catch (e) {
       console.error('❌ Failed to set fallDuration:', e)
     }
+    try { window.localStorage.setItem(payload.bloomKey as string, JSON.stringify(payload.bloom)) } catch {}
     // Tell browser to skip audio generation - we have pre-generated audio
     try {
       window.localStorage.setItem('preGeneratedAudioPath', payload.audioPath as string)
@@ -638,6 +642,8 @@ export async function processOneVideo(opts: Options, videoNumber?: number): Prom
     data: JSON.stringify(midiObject),
     meta: JSON.stringify({ title: metaTitle, artist }),
     fallDuration: String(opts.fallDuration),
+    bloomKey: BLOOM_STORAGE_KEY,
+    bloom: { ...BLOOM_DEFAULTS, enabled: opts.bloom },
     audioPath: audioGenerated ? audioPath : '',
     skipBrowserAudio: audioGenerated ? 'true' : 'false',
   })
@@ -861,6 +867,7 @@ async function main() {
     else if (a === '--model' && args[i + 1]) opts.llmModel = args[++i]
     else if (a === '--timeout' && args[i + 1]) opts.timeoutMs = parseInt(args[++i]!, 10)
     else if (a === '--strip-meta-trailing-index') opts.stripMetaTrailingIndex = true
+    else if (a === '--bloom' || a === '-b') opts.bloom = true
     else if (a === '--headful' || a === '--no-headless') opts.headless = false
     else if (a === '--slowmo' && args[i + 1]) opts.slowMo = parseInt(args[++i]!, 10)
     else if (a === '--devtools') opts.devtools = true

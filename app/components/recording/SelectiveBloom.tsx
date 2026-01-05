@@ -150,14 +150,14 @@ export default function SelectiveBloom({
         const m = material as any
         if (!m) continue
 
-        if (!originals.has(material)) {
-          originals.set(material, {
-            color: m.color?.clone?.(),
-            emissive: m.emissive?.clone?.(),
-            uBlackKeyColor: m.uniforms?.uBlackKeyColor?.value?.clone?.(),
-            uWhiteKeyColor: m.uniforms?.uWhiteKeyColor?.value?.clone?.(),
-          })
-        }
+        if (originals.has(material)) continue
+
+        originals.set(material, {
+          color: m.color?.clone?.(),
+          emissive: m.emissive?.clone?.(),
+          uBlackKeyColor: m.uniforms?.uBlackKeyColor?.value?.clone?.(),
+          uWhiteKeyColor: m.uniforms?.uWhiteKeyColor?.value?.clone?.(),
+        })
 
         scaleColorToLuminance(m.color, targetLuminance)
         scaleColorToLuminance(m.emissive, targetLuminance)

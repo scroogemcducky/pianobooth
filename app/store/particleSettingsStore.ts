@@ -37,7 +37,7 @@ export type ParticleSettings = {
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value))
 
 const defaultSettings: ParticleSettings = {
-  count: 3000,
+  count: 1500,
   decayFrequency: 0.303,
   velocityDamping: 0.019,
   emitterVisible: true,

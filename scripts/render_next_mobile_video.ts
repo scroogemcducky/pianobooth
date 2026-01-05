@@ -10,6 +10,7 @@ import { chromium } from 'playwright'
 import { parseMidiFilePath, type MidiNote } from './parse_midi_to_json'
 import { createNormalizedMidi } from './normalize_midi'
 import { COLOR_PRESETS } from '../app/utils/colorPresets'
+import { BLOOM_DEFAULTS, BLOOM_STORAGE_KEY } from '../app/utils/bloomDefaults'
 
 const TEASER_FADE_START_SECONDS = 40
 const TEASER_FADE_DURATION_SECONDS = 2
@@ -20,6 +21,7 @@ type Options = {
   outDir: string
   baseUrl: string
   stripMetaTrailingIndex: boolean
+  bloom: boolean
   timeoutMs: number
   headless: boolean
   slowMo: number
@@ -37,6 +39,7 @@ const DEFAULTS: Options = {
   outDir: 'videos/mobile',
   baseUrl: process.env.RENDER_BASE_URL || 'http://localhost:5173',
   stripMetaTrailingIndex: false,
+  bloom: false,
   timeoutMs: 30 * 60 * 1000,
   headless: false,
   slowMo: 0,
@@ -66,6 +69,7 @@ function parseArgs(argv: string[]): Partial<Options> {
     else if (a === '--out-dir' && next) out.outDir = next, i++
     else if (a === '--base-url' && next) out.baseUrl = next, i++
     else if (a === '--strip-meta-trailing-index') out.stripMetaTrailingIndex = true
+    else if (a === '--bloom' || a === '-b') out.bloom = true
     else if (a === '--timeout-ms' && next) out.timeoutMs = Number(next), i++
     else if (a === '--headless') out.headless = true
     else if (a === '--slow-mo' && next) out.slowMo = Number(next), i++
@@ -420,6 +424,7 @@ async function processOneMobileVideo(opts: Options, videoNumber?: number): Promi
     try { window.localStorage.setItem('midiMeta', payload.meta as string) } catch {}
     try { window.localStorage.setItem('fallDuration', payload.fallDuration as string) } catch {}
     try { window.localStorage.setItem('fallDurationMobile', payload.fallDuration as string) } catch {}
+    try { window.localStorage.setItem(payload.bloomKey as string, JSON.stringify(payload.bloom)) } catch {}
     try {
       window.localStorage.setItem('preGeneratedAudioPath', payload.audioPath as string)
       window.localStorage.setItem('skipBrowserAudio', payload.skipBrowserAudio as string)
@@ -428,6 +433,8 @@ async function processOneMobileVideo(opts: Options, videoNumber?: number): Promi
     data: JSON.stringify(midiObject),
     meta: JSON.stringify({ title: metaTitle, artist: meta.artist }),
     fallDuration: String(opts.fallDuration),
+    bloomKey: BLOOM_STORAGE_KEY,
+    bloom: { ...BLOOM_DEFAULTS, enabled: opts.bloom },
     audioPath: audioGenerated ? audioPath : '',
     skipBrowserAudio: audioGenerated ? 'true' : 'false',
   })

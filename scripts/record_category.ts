@@ -171,6 +171,7 @@ type CliOptions = {
   songsDir: string
   usageFile: string
   baseUrl: string | null
+  bloom: boolean
   noLlm: boolean
   model: string | null
   timeoutMs: number | null
@@ -180,7 +181,7 @@ type CliOptions = {
 function parseArgs(argv: string[]): CliOptions {
   const category = argv[0]
   if (!category) {
-    console.error('Usage: bun scripts/record_category.ts <category> [--songs-dir <dir>] [--usage-file <file>] [--dry-run]')
+    console.error('Usage: bun scripts/record_category.ts <category> [--songs-dir <dir>] [--usage-file <file>] [--base-url <url>] [--bloom|-b] [--dry-run]')
     process.exit(2)
   }
 
@@ -189,6 +190,7 @@ function parseArgs(argv: string[]): CliOptions {
     songsDir: category,
     usageFile: DEFAULT_USAGE_FILE,
     baseUrl: null,
+    bloom: false,
     noLlm: false,
     model: null,
     timeoutMs: null,
@@ -201,6 +203,7 @@ function parseArgs(argv: string[]): CliOptions {
     if (a === '--songs-dir' && next) opts.songsDir = next, i++
     else if (a === '--usage-file' && next) opts.usageFile = next, i++
     else if (a === '--base-url' && next) opts.baseUrl = next, i++
+    else if (a === '--bloom' || a === '-b') opts.bloom = true
     else if (a === '--no-llm') opts.noLlm = true
     else if (a === '--model' && next) opts.model = next, i++
     else if (a === '--timeout-ms' && next) opts.timeoutMs = Number(next), i++
@@ -297,6 +300,7 @@ async function main() {
   if (opts.model) fullArgs.push('--model', opts.model)
   if (opts.timeoutMs) fullArgs.push('--timeout-ms', String(opts.timeoutMs))
   if (shouldStripMetaTrailingIndex) fullArgs.push('--strip-meta-trailing-index')
+  if (opts.bloom) fullArgs.push('--bloom')
 
   const result = await run('bun', fullArgs)
   if (result.code !== 0) {
