@@ -38,6 +38,7 @@ interface FrameBasedParticlesProps {
   whiteKeyColor?: number[]
   settings?: ParticleSettings
   zoomAdaptive?: boolean
+  motionScaleMultiplier?: number
 }
 
 const WHITE_KEY_Z = 2.2
@@ -416,7 +417,7 @@ const FrameBasedParticleStream = forwardRef<FrameBasedParticleStreamHandle, Fram
 
 const FrameBasedParticles = forwardRef<FrameBasedParticlesHandle, FrameBasedParticlesProps>(
   function FrameBasedParticles(
-    { midiObject, layout, scaleMultiplier = 1, scaleFillRatio, scaleMax, lookahead = 3, blackKeyColor, whiteKeyColor, settings: settingsProp, zoomAdaptive = false },
+    { midiObject, layout, scaleMultiplier = 1, scaleFillRatio, scaleMax, lookahead = 3, blackKeyColor, whiteKeyColor, settings: settingsProp, zoomAdaptive = false, motionScaleMultiplier = 1 },
     ref
   ) {
     const { viewport } = useThree()
@@ -538,7 +539,7 @@ const FrameBasedParticles = forwardRef<FrameBasedParticlesHandle, FrameBasedPart
     const densityScale = zoomAdaptive ? Math.max(0.25, 1 / Math.max(1, scaleFactor)) : 1
     const perStreamMin = zoomAdaptive ? 80 : 200
     const perStreamCount = Math.max(perStreamMin, Math.floor((settings.count / 4) * densityScale))
-    const motionScale = zoomAdaptive ? densityScale : 1
+    const motionScale = (zoomAdaptive ? densityScale : 1) * (motionScaleMultiplier ?? 1)
 
     // Register stream ref
     const registerStreamRef = useCallback((noteNumber: number, handle: FrameBasedParticleStreamHandle | null) => {

@@ -40,6 +40,8 @@ type LoaderData = {
 // Constants for random position calculation
 const MIN_POSITION_PERCENT = 0.20
 const MAX_POSITION_PERCENT = 0.80
+const MIDI_WINDOW_MS = 30_000
+const MIDI_MAX_NOTES = 20_000
 
 export const meta: MetaFunction = () => {
   return [{ name: 'robots', content: 'noindex' }]
@@ -70,6 +72,28 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
     MIN_POSITION_PERCENT + Math.random() * (MAX_POSITION_PERCENT - MIN_POSITION_PERCENT)
   const timePositionMs = data.durationMs * positionPercent
 
+  // Reduce payload size: keep only notes around the snapshot time (layout still includes extremes).
+  let minNote = 127
+  let maxNote = 0
+  for (const note of data.midiObject) {
+    const n = Math.max(0, Math.min(127, note.NoteNumber))
+    if (n < minNote) minNote = n
+    if (n > maxNote) maxNote = n
+  }
+
+  const windowStartMs = Math.max(0, timePositionMs - MIDI_WINDOW_MS)
+  const windowEndMs = timePositionMs + MIDI_WINDOW_MS
+  let midiObject = data.midiObject.filter((note) => {
+    const deltaMs = note.Delta / 1000
+    return deltaMs >= windowStartMs && deltaMs <= windowEndMs
+  })
+  if (midiObject.length > MIDI_MAX_NOTES) midiObject = midiObject.slice(0, MIDI_MAX_NOTES)
+
+  const hasMin = midiObject.some((n) => n.NoteNumber === minNote)
+  const hasMax = midiObject.some((n) => n.NoteNumber === maxNote)
+  if (!hasMin && minNote >= 0 && minNote <= 127) midiObject.unshift({ NoteNumber: minNote, Velocity: 0, Duration: 0, Delta: 0 })
+  if (!hasMax && maxNote >= 0 && maxNote <= 127) midiObject.unshift({ NoteNumber: maxNote, Velocity: 0, Duration: 0, Delta: 0 })
+
   // Load artist image from manifest
   let artistImagePath: string | null = null
   try {
@@ -91,7 +115,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
     title: data.title,
     artist: data.artist,
     durationMs: data.durationMs,
-    midiObject: data.midiObject,
+    midiObject,
     timePositionMs,
     artistImagePath,
     fontFamily,

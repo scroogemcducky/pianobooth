@@ -10,6 +10,8 @@ import { spawn } from 'node:child_process'
 type Options = {
   baseUrl: string
   outDir: string
+  outFolder: string | null
+  stripMetaTrailingIndex: boolean
   queueDir: string
   publicDir: string
   devMidiPath: string | null
@@ -22,6 +24,8 @@ type Options = {
 const DEFAULTS: Options = {
   baseUrl: process.env.RENDER_BASE_URL || 'http://localhost:5173',
   outDir: 'videos',
+  outFolder: null,
+  stripMetaTrailingIndex: false,
   queueDir: 'midi/video_queue',
   publicDir: 'videos',
   devMidiPath: null,
@@ -38,9 +42,11 @@ function parseArgs(argv: string[]): Options {
     const next = argv[i + 1]
     if (a === '--base-url' && next) opts.baseUrl = next, i++
     else if (a === '--out-dir' && next) opts.outDir = next, i++
+    else if (a === '--out-folder' && next) opts.outFolder = next, i++
     else if (a === '--queue-dir' && next) opts.queueDir = next, i++
     else if (a === '--public-dir' && next) opts.publicDir = next, i++
     else if (a === '--dev-midi' && next) opts.devMidiPath = next, i++
+    else if (a === '--strip-meta-trailing-index') opts.stripMetaTrailingIndex = true
     else if (a === '--no-llm') opts.noLlm = true
     else if (a === '--model' && next) opts.model = next, i++
     else if (a === '--timeout-ms' && next) opts.timeoutMs = Number(next), i++
@@ -101,6 +107,8 @@ async function main() {
   if (opts.model) normalArgs.push('--model', opts.model)
   if (opts.timeoutMs) normalArgs.push('--timeout', String(opts.timeoutMs))
   if (opts.devMidiPath) normalArgs.push('--dev-midi', opts.devMidiPath)
+  if (opts.outFolder) normalArgs.push('--out-folder', opts.outFolder)
+  if (opts.stripMetaTrailingIndex) normalArgs.push('--strip-meta-trailing-index')
 
   console.log(`\n=== Normal (landscape) + thumbnails ===\n`)
   const normal = await run('bun', normalArgs)
@@ -111,12 +119,18 @@ async function main() {
     extractFirstMatch(normal.stdout, /^Dev mode enabled: rendering\s+(.+)$/m) ||
     extractFirstMatch(normal.stdout, /^Rendering:\s+(.+)$/m)
 
+  const outputFolderPath = extractFirstMatch(normal.stdout, /^Output folder path:\s+(.+)\s*$/m)
   const folderName = extractFirstMatch(normal.stdout, /^Output folder:\s+(.+?)\/\s*$/m)
-  if (!folderName) {
+
+  let outputFolder: string
+  if (outputFolderPath) {
+    outputFolder = path.isAbsolute(outputFolderPath) ? outputFolderPath : path.resolve(outputFolderPath)
+  } else if (folderName) {
+    outputFolder = path.join(opts.outDir, folderName)
+  } else {
     console.error('\n❌ Could not determine output folder from render_next_video logs.\n')
     process.exit(2)
   }
-  const outputFolder = path.join(opts.outDir, folderName)
   if (!(await fileExists(outputFolder))) {
     console.error(`\n❌ Output folder not found: ${outputFolder}\n`)
     process.exit(2)
@@ -135,6 +149,7 @@ async function main() {
     '--base-url', opts.baseUrl,
   ]
   if (opts.timeoutMs) mobileArgs.push('--timeout-ms', String(opts.timeoutMs))
+  if (opts.stripMetaTrailingIndex) mobileArgs.push('--strip-meta-trailing-index')
   const mobile = await run('bun', mobileArgs)
   if (mobile.code !== 0) process.exit(mobile.code)
 
@@ -156,4 +171,3 @@ main().catch((err) => {
   console.error(err)
   process.exit(1)
 })
-

@@ -1,7 +1,7 @@
 // Frame-by-frame video recording implementation
 // Renders MIDI piano visualization offline for video creation
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useMemo, useState, useEffect, useRef } from 'react'
 import { Canvas, useThree } from '@react-three/fiber'
 import midiParser from '../utils/MidiParser'
 import useMidiStore from '../store/midiStore'
@@ -17,6 +17,7 @@ import soundFont, { Player } from 'soundfont-player'
 import { computePianoLayout, DEFAULT_PIANO_LAYOUT, type PianoLayout } from '../utils/pianoLayout'
 import { FALL_DURATION_SECONDS, setFallDuration } from '../utils/recordingConstants'
 import { COLOR_PRESETS, parseColorPresetIndex } from '../utils/colorPresets'
+import useParticleSettingsStore from '../store/particleSettingsStore'
 
 
 const KNOWN_COMPOSERS = /(bach|beethoven|chopin|debussy|mozart|liszt|schubert|schumann|rachmaninoff|handel|haydn|tchaikovsky|gershwin|albeniz)/i
@@ -536,6 +537,11 @@ export default function Record() {
 
   // Color presets - selected on mount (client-side only) to avoid SSR hydration issues
   const [colorPreset, setColorPreset] = useState(COLOR_PRESETS[0])
+  const particleSettings = useParticleSettingsStore((state) => state.settings)
+  const recordingParticleSettings = useMemo(
+    () => ({ ...particleSettings, count: Math.floor((particleSettings.count ?? 0) / 2) }),
+    [particleSettings],
+  )
 
   // If `?preset=<index>` is provided, use it; otherwise pick randomly.
   useEffect(() => {
@@ -1461,6 +1467,7 @@ export default function Record() {
             lookahead={fallDuration}
             blackKeyColor={blackKeyColor}
             whiteKeyColor={whiteKeyColor}
+            settings={recordingParticleSettings}
           />
         )}
 

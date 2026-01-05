@@ -72,3 +72,11 @@ soundfonts/
 temp_audio/
 
 videos/
+
+finnish/
+theme/
+pop/
+
+# Local song tracking
+.song_usage.json
+.song_usage.json.tmp

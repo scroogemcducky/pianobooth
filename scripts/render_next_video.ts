@@ -68,6 +68,8 @@ export type Options = {
   queueDir: string
   publicDir: string
   outDir: string
+  outFolder: string | null
+  stripMetaTrailingIndex: boolean
   baseUrl: string
   requireLLM: boolean
   llmModel: string
@@ -85,6 +87,8 @@ export const DEFAULTS: Options = {
   queueDir: 'midi/video_queue',
   publicDir: 'videos', // Changed from 'public' - videos now save directly to videos/
   outDir: 'videos',
+  outFolder: null,
+  stripMetaTrailingIndex: false,
   baseUrl: process.env.RENDER_BASE_URL || 'http://localhost:5173',
   requireLLM: true,
   llmModel: 'gpt-5',
@@ -149,6 +153,33 @@ function inferArtistFromFilename(filePath: string): string | null {
   const candidate = parts[0]
   if (!candidate || candidate.length < 2) return null
   return canonicalizeCommonArtistName(candidate)
+}
+
+const CATEGORY_DIRS = new Set(['pop', 'theme', 'finnish'])
+
+function inferCategoryArtistFromPath(filePath: string): string | null {
+  const parts = path.resolve(filePath).split(path.sep)
+  const idx = parts.findIndex((p) => CATEGORY_DIRS.has(p))
+  if (idx >= 0 && parts[idx + 1]) return parts[idx + 1]!.trim() || null
+  return null
+}
+
+function inferTitleFromFilename(filePath: string): string {
+  const base = path.basename(filePath, path.extname(filePath))
+  return (base || '')
+    .replace(/_/g, ' ')
+    .replace(/\([^)]*\)/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    || 'Untitled'
+}
+
+function isNonInformativeTitle(title: string): boolean {
+  const t = (title || '').trim().toLowerCase()
+  if (!t) return true
+  if (t === 'untitled' || t === 'piano' || t === 'unknown') return true
+  if (/^track\s*\d+$/.test(t)) return true
+  return false
 }
 
 async function extractTitleArtist(filePath: string): Promise<{ title: string; artist: string; trackNames: string[] }> {
@@ -332,16 +363,27 @@ function formatBytes(bytes: number): string {
   return `${sign}${v.toFixed(decimals)} ${units[unitIndex]}`
 }
 
+let lastProgressWriteMs = 0
+let lastProgressLineWidth = 0
+
 function writeInlineProgress(line: string) {
+  const now = Date.now()
+  // When stdout isn't a TTY (some Bun/npm runners), avoid printing a new line each tick.
+  // We still use carriage-return updates, but throttle to keep logs readable.
+  if (!process.stdout.isTTY && now - lastProgressWriteMs < 1500) return
+  lastProgressWriteMs = now
   if (!process.stdout.isTTY) {
-    console.log(line)
+    lastProgressLineWidth = Math.max(lastProgressLineWidth, line.length)
+    process.stdout.write(`\r${line.padEnd(lastProgressLineWidth, ' ')}`)
     return
   }
   process.stdout.write(`\r\x1b[2K${line}`)
 }
 
 function endInlineProgress() {
-  if (process.stdout.isTTY) process.stdout.write('\n')
+  lastProgressWriteMs = 0
+  lastProgressLineWidth = 0
+  process.stdout.write('\n')
 }
 
 async function waitForNewVideo(publicDir: string, sinceMs: number, timeoutMs: number): Promise<string> {
@@ -365,7 +407,7 @@ async function waitForNewVideo(publicDir: string, sinceMs: number, timeoutMs: nu
         const bar = `${'-'.repeat(pos)}#${'-'.repeat(progressBarWidth - pos - 1)}`
         progressTick++
         writeInlineProgress(`Encoding ${path.basename(f.path)} [${bar}] ${formatBytes(f.size)} (+${formatBytes(delta)})`)
-        usedInlineProgress = process.stdout.isTTY
+        usedInlineProgress = true
       } else if (prev === undefined) {
         console.log(`Detected new file: ${path.basename(f.path)} (${f.size} bytes)`)        
       }
@@ -392,6 +434,18 @@ async function pickNextMidi(queueDir: string): Promise<string | null> {
   }
   files.sort((a, b) => a.mtimeMs - b.mtimeMs)
   return files.length ? files[0].path : null
+}
+
+function toPrintablePath(p: string): string {
+  const rel = path.relative(process.cwd(), p)
+  if (rel && !rel.startsWith('..') && !path.isAbsolute(rel)) return rel
+  return p
+}
+
+function stripTrailingIndexForDisplay(title: string): string {
+  const t = (title || '').trim()
+  const stripped = t.replace(/\s+\d+$/g, '').trim()
+  return stripped || t
 }
 
 export async function processOneVideo(opts: Options, videoNumber?: number): Promise<boolean> {
@@ -437,23 +491,44 @@ export async function processOneVideo(opts: Options, videoNumber?: number): Prom
   const refined = await aiRefineMetadata({ filename: path.basename(midiPath), guessedTitle, guessedArtist, trackNames, model: opts.llmModel })
   if (refined?.title) title = refined.title
   if (refined?.artist) artist = refined.artist
+
+  const categoryArtist = inferCategoryArtistFromPath(midiPath)
+  if (categoryArtist && (!artist || /^piano$/i.test(artist))) artist = categoryArtist
+  if (categoryArtist && isNonInformativeTitle(title)) title = inferTitleFromFilename(midiPath)
+
   if (!artist || /^piano$/i.test(artist)) {
-    const inferred = inferArtistFromFilename(midiPath)
+    const inferred = categoryArtist || inferArtistFromFilename(midiPath)
     if (inferred) artist = inferred
   }
   artist = canonicalizeCommonArtistName(artist || 'Piano')
 
   const fileTitle = refined?.title_short ? refined.title_short : simplifyTitle(title)
   const displayName = sanitizeFileName(`${artist} - ${fileTitle}`)
+  const midiFileBase = path.basename(midiPath, path.extname(midiPath))
+  const midiHasTrailingIndex = /_\d+$/.test(midiFileBase)
+  const metaTitle =
+    opts.stripMetaTrailingIndex && midiHasTrailingIndex
+      ? stripTrailingIndexForDisplay(fileTitle)
+      : fileTitle
 
   // Create a unique folder for this video inside videos/
-  const videoFolderPath = await getUniqueFolderPath(opts.outDir, displayName)
+  let videoFolderPath: string
+  if (opts.outFolder) {
+    const resolved = path.resolve(opts.outFolder)
+    const parentDir = path.dirname(resolved)
+    const baseName = path.basename(resolved)
+    await fs.mkdir(parentDir, { recursive: true })
+    videoFolderPath = await getUniqueFolderPath(parentDir, baseName)
+  } else {
+    videoFolderPath = await getUniqueFolderPath(opts.outDir, displayName)
+  }
   await fs.mkdir(videoFolderPath, { recursive: true })
 
   // Video and thumbnail go in the same folder
   const targetPath = path.join(videoFolderPath, `${displayName}.mp4`)
   const targetName = path.basename(targetPath)
   console.log(`${prefix}Output folder: ${path.basename(videoFolderPath)}/`)
+  console.log(`${prefix}Output folder path: ${toPrintablePath(videoFolderPath)}`)
   console.log(`${prefix}Output video: ${targetName}`)
 
   // Generate audio from MIDI using FluidSynth (server-side, much faster than browser)
@@ -519,7 +594,7 @@ export async function processOneVideo(opts: Options, videoNumber?: number): Prom
     }
   }, {
     data: JSON.stringify(midiObject),
-    meta: JSON.stringify({ title: fileTitle, artist }),
+    meta: JSON.stringify({ title: metaTitle, artist }),
     fallDuration: String(opts.fallDuration),
     audioPath: audioGenerated ? audioPath : '',
     skipBrowserAudio: audioGenerated ? 'true' : 'false',
@@ -715,6 +790,7 @@ async function main() {
     const a = args[i]
     if (a === '--queue-dir' && args[i + 1]) opts.queueDir = args[++i]
     else if (a === '--out-dir' && args[i + 1]) opts.outDir = args[++i]
+    else if (a === '--out-folder' && args[i + 1]) opts.outFolder = args[++i]
     else if (a === '--public-dir' && args[i + 1]) opts.publicDir = args[++i]
     else if (a === '--base-url' && args[i + 1]) opts.baseUrl = args[++i]
     else if (a === '--keep-midi') opts.keepMidi = true
@@ -722,6 +798,7 @@ async function main() {
     else if (a === '--no-llm') opts.requireLLM = false
     else if (a === '--model' && args[i + 1]) opts.llmModel = args[++i]
     else if (a === '--timeout' && args[i + 1]) opts.timeoutMs = parseInt(args[++i]!, 10)
+    else if (a === '--strip-meta-trailing-index') opts.stripMetaTrailingIndex = true
     else if (a === '--headful' || a === '--no-headless') opts.headless = false
     else if (a === '--slowmo' && args[i + 1]) opts.slowMo = parseInt(args[++i]!, 10)
     else if (a === '--devtools') opts.devtools = true
@@ -739,6 +816,11 @@ async function main() {
       opts.devMidiPath = path.join('midi', 'test_videos', 'test.mid')
       opts.keepMidi = true
     }
+  }
+
+  if (opts.outFolder && opts.count !== 1) {
+    console.error('Error: --out-folder can only be used when rendering exactly 1 video (use -n 1).')
+    process.exit(2)
   }
 
   if (opts.requireLLM && !process.env.OPENAI_API_KEY) {

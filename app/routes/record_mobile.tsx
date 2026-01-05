@@ -1536,6 +1536,7 @@ export default function Record() {
 		            whiteKeyColor={whiteKeyColor}
 		            settings={mobileParticleSettings}
 		            zoomAdaptive
+                motionScaleMultiplier={2}
 		          />
 		        )}
 

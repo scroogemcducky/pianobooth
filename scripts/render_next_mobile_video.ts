@@ -19,6 +19,7 @@ type Options = {
   publicDir: string
   outDir: string
   baseUrl: string
+  stripMetaTrailingIndex: boolean
   timeoutMs: number
   headless: boolean
   slowMo: number
@@ -35,6 +36,7 @@ const DEFAULTS: Options = {
   publicDir: 'videos',
   outDir: 'videos/mobile',
   baseUrl: process.env.RENDER_BASE_URL || 'http://localhost:5173',
+  stripMetaTrailingIndex: false,
   timeoutMs: 30 * 60 * 1000,
   headless: false,
   slowMo: 0,
@@ -52,6 +54,8 @@ function sanitizeFileName(s: string): string {
   return (s || '').replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, ' ').trim()
 }
 
+const CATEGORY_DIRS = new Set(['pop', 'theme', 'finnish'])
+
 function parseArgs(argv: string[]): Partial<Options> {
   const out: Partial<Options> = {}
   for (let i = 0; i < argv.length; i++) {
@@ -61,6 +65,7 @@ function parseArgs(argv: string[]): Partial<Options> {
     else if (a === '--public-dir' && next) out.publicDir = next, i++
     else if (a === '--out-dir' && next) out.outDir = next, i++
     else if (a === '--base-url' && next) out.baseUrl = next, i++
+    else if (a === '--strip-meta-trailing-index') out.stripMetaTrailingIndex = true
     else if (a === '--timeout-ms' && next) out.timeoutMs = Number(next), i++
     else if (a === '--headless') out.headless = true
     else if (a === '--slow-mo' && next) out.slowMo = Number(next), i++
@@ -87,6 +92,14 @@ async function pickNextMidi(queueDir: string): Promise<string | null> {
 
 function inferMetaFromFilename(filePath: string): { title: string; artist: string } {
   const stripParens = (s: string) => s.replace(/\([^)]*\)/g, ' ').replace(/\s+/g, ' ').trim()
+  const pathParts = path.resolve(filePath).split(path.sep)
+  const idx = pathParts.findIndex((p) => CATEGORY_DIRS.has(p))
+  if (idx >= 0 && pathParts[idx + 1]) {
+    const artist = pathParts[idx + 1]!.trim() || 'Piano'
+    const title = stripParens(path.basename(filePath, path.extname(filePath)).replace(/_/g, ' ').trim()) || 'Untitled'
+    return { artist, title }
+  }
+
   const base = stripParens(path.basename(filePath, path.extname(filePath)).replace(/_/g, ' ').trim())
   const parts = base.split('-').map((p) => p.trim()).filter(Boolean)
 
@@ -112,6 +125,12 @@ function inferMetaFromFilename(filePath: string): { title: string; artist: strin
   }
 
   return { artist: 'Piano', title: stripParens(base) || 'Untitled' }
+}
+
+function stripTrailingIndexForDisplay(title: string): string {
+  const t = (title || '').trim()
+  const stripped = t.replace(/\s+\d+$/g, '').trim()
+  return stripped || t
 }
 
 async function getUniqueFilePath(dir: string, baseName: string, ext: string): Promise<string> {
@@ -354,6 +373,12 @@ async function processOneMobileVideo(opts: Options, videoNumber?: number): Promi
   const midiHash = createHash('sha256').update(midiBuffer).digest('hex').slice(0, 8)
 
   const meta = inferMetaFromFilename(originalMidiPath)
+  const midiFileBase = path.basename(originalMidiPath, path.extname(originalMidiPath))
+  const midiHasTrailingIndex = /_\d+$/.test(midiFileBase)
+  const metaTitle =
+    opts.stripMetaTrailingIndex && midiHasTrailingIndex
+      ? stripTrailingIndexForDisplay(meta.title)
+      : meta.title
   const displayName = sanitizeFileName(`${meta.artist} - ${meta.title}`) || `Piano - Untitled_${midiHash}`
 
   await fs.mkdir(opts.outDir, { recursive: true })
@@ -401,7 +426,7 @@ async function processOneMobileVideo(opts: Options, videoNumber?: number): Promi
     } catch {}
   }, {
     data: JSON.stringify(midiObject),
-    meta: JSON.stringify({ title: meta.title, artist: meta.artist }),
+    meta: JSON.stringify({ title: metaTitle, artist: meta.artist }),
     fallDuration: String(opts.fallDuration),
     audioPath: audioGenerated ? audioPath : '',
     skipBrowserAudio: audioGenerated ? 'true' : 'false',
