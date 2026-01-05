@@ -182,6 +182,48 @@ function isNonInformativeTitle(title: string): boolean {
   return false
 }
 
+function isCategoryMidiPath(filePath: string): boolean {
+  return inferCategoryArtistFromPath(filePath) !== null
+}
+
+function prepareInlineThumbnailMidi(params: {
+  midiObject: MidiNote[]
+  durationMs: number
+  timePositionMs: number
+}): MidiNote[] {
+  const { midiObject, durationMs, timePositionMs } = params
+
+  let minNote = 127
+  let maxNote = 0
+  for (const note of midiObject) {
+    const n = Math.max(0, Math.min(127, note.NoteNumber))
+    if (n < minNote) minNote = n
+    if (n > maxNote) maxNote = n
+  }
+
+  const WINDOW_MS = 30_000
+  const startMs = Math.max(0, timePositionMs - WINDOW_MS)
+  const endMs = Math.min(durationMs, timePositionMs + WINDOW_MS)
+
+  let filtered = midiObject.filter((note) => {
+    const deltaMs = note.Delta / 1000
+    return deltaMs >= startMs && deltaMs <= endMs
+  })
+
+  const MAX_NOTES = 20_000
+  if (filtered.length > MAX_NOTES) filtered = filtered.slice(0, MAX_NOTES)
+
+  const hasMin = filtered.some((n) => n.NoteNumber === minNote)
+  const hasMax = filtered.some((n) => n.NoteNumber === maxNote)
+  if (!hasMin && minNote >= 0 && minNote <= 127) {
+    filtered.unshift({ NoteNumber: minNote, Velocity: 0, Duration: 0, Delta: 0, SoundDuration: 0 })
+  }
+  if (!hasMax && maxNote >= 0 && maxNote <= 127) {
+    filtered.unshift({ NoteNumber: maxNote, Velocity: 0, Duration: 0, Delta: 0, SoundDuration: 0 })
+  }
+  return filtered
+}
+
 async function extractTitleArtist(filePath: string): Promise<{ title: string; artist: string; trackNames: string[] }> {
   const buf = await fs.readFile(filePath)
   const { Midi } = await import('@tonejs/midi')
@@ -695,20 +737,39 @@ export async function processOneVideo(opts: Options, videoNumber?: number): Prom
   // Generate thumbnail for the video
   const artistSlug = slugify(artist)
   const songSlug = slugify(fileTitle)
-  // Save MIDI JSON to public_midi_json for thumbnail route to access
-  const midiJsonDir = path.join('public', 'public_midi_json', artistSlug)
-  const midiJsonPath = path.join(midiJsonDir, `${songSlug}.json`)
-  await fs.mkdir(midiJsonDir, { recursive: true })
+  const isCategoryMidi = isCategoryMidiPath(midiPath)
 
-  const midiJsonData = {
-    title: fileTitle,
-    artist: artist,
-    durationMs,
-    midiSha256: midiHash,
-    midiObject,
+  // Save MIDI JSON to public_midi_json for thumbnail route to access.
+  // For category collections (pop/theme/finnish), avoid writing into public/ and pass data inline to /thumbnail instead.
+  let inlineThumbnailMidiData:
+    | { title: string; artist: string; durationMs: number; timePositionMs: number; midiObject: MidiNote[] }
+    | undefined
+
+  if (!isCategoryMidi) {
+    const midiJsonDir = path.join('public', 'public_midi_json', artistSlug)
+    const midiJsonPath = path.join(midiJsonDir, `${songSlug}.json`)
+    await fs.mkdir(midiJsonDir, { recursive: true })
+
+    const midiJsonData = {
+      title: fileTitle,
+      artist: artist,
+      durationMs,
+      midiSha256: midiHash,
+      midiObject,
+    }
+    await fs.writeFile(midiJsonPath, JSON.stringify(midiJsonData, null, 2))
+    console.log(`${prefix}Saved MIDI JSON: ${midiJsonPath}`)
+  } else {
+    const positionPercent = 0.2 + Math.random() * 0.6
+    const timePositionMs = durationMs * positionPercent
+    inlineThumbnailMidiData = {
+      title: metaTitle,
+      artist,
+      durationMs,
+      timePositionMs,
+      midiObject: prepareInlineThumbnailMidi({ midiObject, durationMs, timePositionMs }),
+    }
   }
-  await fs.writeFile(midiJsonPath, JSON.stringify(midiJsonData, null, 2))
-  console.log(`${prefix}Saved MIDI JSON: ${midiJsonPath}`)
 
   // Get all fonts from the fonts directory
   const fontsDir = path.join('public', 'fonts')
@@ -760,6 +821,7 @@ export async function processOneVideo(opts: Options, videoNumber?: number): Prom
         timeout: 30000,
         font: fontName,
         preset: presetIndex,
+        inlineMidiData: inlineThumbnailMidiData,
       })
 
       if (thumbnailResult.success) {

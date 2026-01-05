@@ -13,6 +13,14 @@ type Options = {
   preset?: number
 }
 
+type InlineMidiData = {
+  title: string
+  artist: string
+  durationMs: number
+  timePositionMs: number
+  midiObject: unknown[]
+}
+
 const DEFAULTS = {
   baseUrl: process.env.THUMBNAIL_BASE_URL || 'http://localhost:5173',
   timeout: 30000,
@@ -62,7 +70,7 @@ export async function captureThumbnail(
   artistSlug: string,
   songSlug: string,
   outputPath: string,
-  options: { baseUrl: string; timeout: number; font?: string; preset?: number }
+  options: { baseUrl: string; timeout: number; font?: string; preset?: number; inlineMidiData?: InlineMidiData }
 ): Promise<{ success: boolean; error?: string }> {
   try {
     // Ensure output directory exists
@@ -75,6 +83,13 @@ export async function captureThumbnail(
     if (options.font) url.searchParams.set('font', options.font)
     if (typeof options.preset === 'number' && Number.isFinite(options.preset)) {
       url.searchParams.set('preset', String(options.preset))
+    }
+    if (options.inlineMidiData) {
+      url.searchParams.set('inline', '1')
+      await page.goto(options.baseUrl, { waitUntil: 'domcontentloaded', timeout: options.timeout })
+      await page.evaluate((payload) => {
+        try { window.localStorage.setItem('thumbnailMidiData', JSON.stringify(payload)) } catch {}
+      }, options.inlineMidiData)
     }
     await page.goto(url.toString(), { waitUntil: 'domcontentloaded', timeout: options.timeout })
 
