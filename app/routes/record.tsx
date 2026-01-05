@@ -535,6 +535,7 @@ export default function Record() {
   const [directionalX, setDirectionalX] = useState(10.5)
   const [directionalY, setDirectionalY] = useState(-5.5)
   const [directionalZ, setDirectionalZ] = useState(107.5)
+  const [bloomEnabled, setBloomEnabled] = useState(true)
   const [bloomStrength, setBloomStrength] = useState(1.6)
   const [bloomRadius, setBloomRadius] = useState(0.6)
   const [bloomThreshold, setBloomThreshold] = useState(0)
@@ -572,6 +573,7 @@ export default function Record() {
       const raw = localStorage.getItem('piano.bloom')
       if (!raw) return
       const parsed = JSON.parse(raw)
+      if (typeof parsed?.enabled === 'boolean') setBloomEnabled(parsed.enabled)
       if (typeof parsed?.strength === 'number') setBloomStrength(parsed.strength)
       if (typeof parsed?.radius === 'number') setBloomRadius(parsed.radius)
       if (typeof parsed?.threshold === 'number') setBloomThreshold(parsed.threshold)
@@ -581,6 +583,7 @@ export default function Record() {
       if (e.key !== 'piano.bloom' || !e.newValue) return
       try {
         const parsed = JSON.parse(e.newValue)
+        if (typeof parsed?.enabled === 'boolean') setBloomEnabled(parsed.enabled)
         if (typeof parsed?.strength === 'number') setBloomStrength(parsed.strength)
         if (typeof parsed?.radius === 'number') setBloomRadius(parsed.radius)
         if (typeof parsed?.threshold === 'number') setBloomThreshold(parsed.threshold)
@@ -1512,7 +1515,9 @@ export default function Record() {
           />
         )}
 
-        <SelectiveBloom strength={bloomStrength} radius={bloomRadius} threshold={bloomThreshold} />
+        {bloomEnabled && (
+          <SelectiveBloom strength={bloomStrength} radius={bloomRadius} threshold={bloomThreshold} />
+        )}
 
         <DeterministicRecorder
           isRecording={isRecording}

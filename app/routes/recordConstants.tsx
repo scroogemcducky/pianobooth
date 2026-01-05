@@ -167,6 +167,7 @@ export default function RecordConstants() {
   const [blackKeyColor, setBlackKeyColor] = useState(initialPreset.blackKeyColor)
   const [whiteKeyColor, setWhiteKeyColor] = useState(initialPreset.whiteKeyColor)
   const [glow, setGlow] = useState(initialPreset.glow) // color intensity boost (0 = normal, 4 = 5x brighter)
+  const [bloomEnabled, setBloomEnabled] = useState(true)
   const [bloomStrength, setBloomStrength] = useState(1.6)
   const [bloomRadius, setBloomRadius] = useState(0.6)
   const [bloomThreshold, setBloomThreshold] = useState(0)
@@ -193,6 +194,7 @@ export default function RecordConstants() {
       const raw = localStorage.getItem('piano.bloom')
       if (!raw) return
       const parsed = JSON.parse(raw)
+      if (typeof parsed?.enabled === 'boolean') setBloomEnabled(parsed.enabled)
       if (typeof parsed?.strength === 'number') setBloomStrength(parsed.strength)
       if (typeof parsed?.radius === 'number') setBloomRadius(parsed.radius)
       if (typeof parsed?.threshold === 'number') setBloomThreshold(parsed.threshold)
@@ -203,10 +205,10 @@ export default function RecordConstants() {
     try {
       localStorage.setItem(
         'piano.bloom',
-        JSON.stringify({ strength: bloomStrength, radius: bloomRadius, threshold: bloomThreshold }),
+        JSON.stringify({ enabled: bloomEnabled, strength: bloomStrength, radius: bloomRadius, threshold: bloomThreshold }),
       )
     } catch {}
-  }, [bloomStrength, bloomRadius, bloomThreshold])
+  }, [bloomEnabled, bloomStrength, bloomRadius, bloomThreshold])
 
   // Fetch MIDI data client-side
   useEffect(() => {
@@ -395,6 +397,10 @@ export default function RecordConstants() {
 
         <div style={{ marginBottom: '16px' }}>
           <div style={{ fontSize: '12px', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Bloom (Active Keys)</div>
+          <label style={{ fontSize: '11px', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+            <input type="checkbox" checked={bloomEnabled} onChange={(e) => setBloomEnabled(e.target.checked)} />
+            Enabled
+          </label>
           <label style={{ display: 'block', fontSize: '11px', marginBottom: '4px' }}>
             Strength: {bloomStrength.toFixed(2)}
           </label>
@@ -406,6 +412,7 @@ export default function RecordConstants() {
             value={bloomStrength}
             onChange={(e) => setBloomStrength(parseFloat(e.target.value))}
             style={{ width: '100%' }}
+            disabled={!bloomEnabled}
           />
           <label style={{ display: 'block', fontSize: '11px', margin: '10px 0 4px' }}>
             Radius: {bloomRadius.toFixed(2)}
@@ -418,6 +425,7 @@ export default function RecordConstants() {
             value={bloomRadius}
             onChange={(e) => setBloomRadius(parseFloat(e.target.value))}
             style={{ width: '100%' }}
+            disabled={!bloomEnabled}
           />
           <label style={{ display: 'block', fontSize: '11px', margin: '10px 0 4px' }}>
             Threshold: {bloomThreshold.toFixed(2)}
@@ -430,6 +438,7 @@ export default function RecordConstants() {
             value={bloomThreshold}
             onChange={(e) => setBloomThreshold(parseFloat(e.target.value))}
             style={{ width: '100%' }}
+            disabled={!bloomEnabled}
           />
         </div>
 
@@ -797,7 +806,9 @@ export default function RecordConstants() {
           whiteKeyColor={whiteKeyColor.map(c => c * (1 + glow))}
         />
 
-        <SelectiveBloom strength={bloomStrength} radius={bloomRadius} threshold={bloomThreshold} />
+        {bloomEnabled && (
+          <SelectiveBloom strength={bloomStrength} radius={bloomRadius} threshold={bloomThreshold} />
+        )}
 
         <FrozenFrame
           frame={frozenFrame}
