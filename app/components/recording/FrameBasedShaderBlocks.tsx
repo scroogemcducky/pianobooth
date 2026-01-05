@@ -12,6 +12,7 @@ import {
 } from '../../utils/pianoLayout'
 
 const FRAME_DURATION_MS = 1000 / 60
+const BLOOM_LAYER = 1
 
 export interface FrameBasedShaderBlocksHandle {
   setFrame: (adjustedFrame: number) => void
@@ -111,6 +112,12 @@ interface FrameBasedInstancesProps {
 const FrameBasedInstances = forwardRef<FrameBasedInstancesHandle, FrameBasedInstancesProps>(
   function FrameBasedInstances({ blocks, scaleFactor, distance, lookahead, blackKeyColor, whiteKeyColor }, ref) {
   const materialRef = useRef<CustomShaderMaterial>(null);
+  const meshRef = useRef<THREE.Mesh | null>(null)
+
+  useEffect(() => {
+    if (!meshRef.current) return
+    meshRef.current.layers.enable(BLOOM_LAYER)
+  }, [])
 
   // Create material with initial colors
   const material = useMemo(() => {
@@ -214,7 +221,7 @@ const FrameBasedInstances = forwardRef<FrameBasedInstancesHandle, FrameBasedInst
   if (!blocks.length || !geometry) return null;
 
   return (
-    <mesh>
+    <mesh ref={meshRef}>
       <primitive object={geometry} />
       <primitive object={material} ref={materialRef} attach="material" />
     </mesh>

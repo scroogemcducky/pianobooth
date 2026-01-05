@@ -9,6 +9,7 @@ import FrameBasedShaderBlocks, { type FrameBasedShaderBlocksHandle } from '../co
 import FrameBasedKeyController, { type FrameBasedKeyControllerHandle } from '../components/recording/FrameBasedKeyController'
 import FrameBasedParticles, { type FrameBasedParticlesHandle } from '../components/recording/FrameBasedParticles'
 import RecordKeys from '../components/recording/FrameBasedKeys'
+import SelectiveBloom from '../components/recording/SelectiveBloom'
 import * as THREE from 'three'
 import { computePianoLayout, DEFAULT_PIANO_LAYOUT, type PianoLayout } from '../utils/pianoLayout'
 import { FALL_DURATION_SECONDS } from '../utils/recordingConstants'
@@ -166,6 +167,9 @@ export default function RecordConstants() {
   const [blackKeyColor, setBlackKeyColor] = useState(initialPreset.blackKeyColor)
   const [whiteKeyColor, setWhiteKeyColor] = useState(initialPreset.whiteKeyColor)
   const [glow, setGlow] = useState(initialPreset.glow) // color intensity boost (0 = normal, 4 = 5x brighter)
+  const [bloomStrength, setBloomStrength] = useState(1.6)
+  const [bloomRadius, setBloomRadius] = useState(0.6)
+  const [bloomThreshold, setBloomThreshold] = useState(0)
 
   // Particle settings
   const [particleSettings, setParticleSettings] = useState<ParticleSettings>({ ...PARTICLE_DEFAULTS })
@@ -183,6 +187,26 @@ export default function RecordConstants() {
     fillRatio: 0.95,
     max: 1.5,
   }
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('piano.bloom')
+      if (!raw) return
+      const parsed = JSON.parse(raw)
+      if (typeof parsed?.strength === 'number') setBloomStrength(parsed.strength)
+      if (typeof parsed?.radius === 'number') setBloomRadius(parsed.radius)
+      if (typeof parsed?.threshold === 'number') setBloomThreshold(parsed.threshold)
+    } catch {}
+  }, [])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        'piano.bloom',
+        JSON.stringify({ strength: bloomStrength, radius: bloomRadius, threshold: bloomThreshold }),
+      )
+    } catch {}
+  }, [bloomStrength, bloomRadius, bloomThreshold])
 
   // Fetch MIDI data client-side
   useEffect(() => {
@@ -367,6 +391,46 @@ export default function RecordConstants() {
               />
             </label>
           </div>
+        </div>
+
+        <div style={{ marginBottom: '16px' }}>
+          <div style={{ fontSize: '12px', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Bloom (Active Keys)</div>
+          <label style={{ display: 'block', fontSize: '11px', marginBottom: '4px' }}>
+            Strength: {bloomStrength.toFixed(2)}
+          </label>
+          <input
+            type="range"
+            min={0}
+            max={5}
+            step={0.05}
+            value={bloomStrength}
+            onChange={(e) => setBloomStrength(parseFloat(e.target.value))}
+            style={{ width: '100%' }}
+          />
+          <label style={{ display: 'block', fontSize: '11px', margin: '10px 0 4px' }}>
+            Radius: {bloomRadius.toFixed(2)}
+          </label>
+          <input
+            type="range"
+            min={0}
+            max={1}
+            step={0.01}
+            value={bloomRadius}
+            onChange={(e) => setBloomRadius(parseFloat(e.target.value))}
+            style={{ width: '100%' }}
+          />
+          <label style={{ display: 'block', fontSize: '11px', margin: '10px 0 4px' }}>
+            Threshold: {bloomThreshold.toFixed(2)}
+          </label>
+          <input
+            type="range"
+            min={0}
+            max={1}
+            step={0.01}
+            value={bloomThreshold}
+            onChange={(e) => setBloomThreshold(parseFloat(e.target.value))}
+            style={{ width: '100%' }}
+          />
         </div>
 
         {/* Reroll button */}
@@ -732,6 +796,8 @@ export default function RecordConstants() {
           blackKeyColor={blackKeyColor.map(c => c * (1 + glow))}
           whiteKeyColor={whiteKeyColor.map(c => c * (1 + glow))}
         />
+
+        <SelectiveBloom strength={bloomStrength} radius={bloomRadius} threshold={bloomThreshold} />
 
         <FrozenFrame
           frame={frozenFrame}

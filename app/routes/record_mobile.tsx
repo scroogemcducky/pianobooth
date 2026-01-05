@@ -9,6 +9,7 @@ import FrameBasedShaderBlocks, { type FrameBasedShaderBlocksHandle } from '../co
 import FrameBasedKeyController, { type FrameBasedKeyControllerHandle } from '../components/recording/FrameBasedKeyController'
 import FrameBasedParticles, { type FrameBasedParticlesHandle } from '../components/recording/FrameBasedParticles'
 import RecordKeys from '../components/recording/FrameBasedKeys'
+import SelectiveBloom from '../components/recording/SelectiveBloom'
 import * as THREE from 'three'
 import { ActionFunctionArgs, json } from '@remix-run/cloudflare'
 import { useFetcher } from '@remix-run/react'
@@ -607,6 +608,9 @@ export default function Record() {
   const [directionalX, setDirectionalX] = useState(10.5)
   const [directionalY, setDirectionalY] = useState(-5.5)
   const [directionalZ, setDirectionalZ] = useState(107.5)
+  const [bloomStrength, setBloomStrength] = useState(1.6)
+  const [bloomRadius, setBloomRadius] = useState(0.6)
+  const [bloomThreshold, setBloomThreshold] = useState(0)
 
   // Color presets - selected on mount (client-side only) to avoid SSR hydration issues
   const [colorPreset, setColorPreset] = useState(COLOR_PRESETS[0])
@@ -634,6 +638,29 @@ export default function Record() {
     // Marker for automation (Playwright) to ensure colors are applied before recording starts.
     ;(window as any).__COLOR_PRESET_INDEX__ = chosenIndex
     ;(window as any).__COLOR_PRESET_READY__ = true
+  }, [])
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('piano.bloom')
+      if (!raw) return
+      const parsed = JSON.parse(raw)
+      if (typeof parsed?.strength === 'number') setBloomStrength(parsed.strength)
+      if (typeof parsed?.radius === 'number') setBloomRadius(parsed.radius)
+      if (typeof parsed?.threshold === 'number') setBloomThreshold(parsed.threshold)
+    } catch {}
+
+    const onStorage = (e: StorageEvent) => {
+      if (e.key !== 'piano.bloom' || !e.newValue) return
+      try {
+        const parsed = JSON.parse(e.newValue)
+        if (typeof parsed?.strength === 'number') setBloomStrength(parsed.strength)
+        if (typeof parsed?.radius === 'number') setBloomRadius(parsed.radius)
+        if (typeof parsed?.threshold === 'number') setBloomThreshold(parsed.threshold)
+      } catch {}
+    }
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
   }, [])
 
   const blackKeyColor = colorPreset.blackKeyColor.map(c => c * (1 + colorPreset.intensity))
@@ -1553,6 +1580,9 @@ export default function Record() {
             whiteKeyColor={whiteKeyColor}
           />
         )}
+
+        <SelectiveBloom strength={bloomStrength} radius={bloomRadius} threshold={bloomThreshold} />
+
         <DeterministicRecorder
           isRecording={isRecording}
           totalFrames={totalFrames}
