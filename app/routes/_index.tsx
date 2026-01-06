@@ -1,14 +1,23 @@
 import { useRef, useState, useEffect} from 'react';
-import { Link, useNavigate } from "@remix-run/react";
+import { Link, useNavigate } from "react-router";
 import  useMidiStore  from '../store/midiStore'
-import type { MetaFunction } from "@remix-run/node";
+import type { MetaFunction } from "react-router";
 import { slugify } from "~/utils/slugify";
 import { composerImages } from "~/data/artists";
 
 export const meta: MetaFunction = () => {
   return [
     { title: "Piano Learning App | Interactive MIDI Piano Practice" },
-    { name: "description", content: "Learn piano with interactive MIDI playback. Upload your MIDI files or browse classical pieces from Bach, Beethoven, Chopin, and more." }
+    { name: "description", content: "Learn piano with interactive MIDI playback. Upload your MIDI files or browse classical pieces from Bach, Beethoven, Chopin, and more." },
+    { property: "og:title", content: "PianoBooth | Interactive MIDI Piano Practice" },
+    { property: "og:description", content: "Learn piano with interactive MIDI playback. Browse classical pieces from Bach, Beethoven, Chopin, and more." },
+    { property: "og:image", content: "https://pianobooth.com/og-images/og_image.png" },
+    { property: "og:image:width", content: "1200" },
+    { property: "og:image:height", content: "630" },
+    { property: "og:type", content: "website" },
+    { property: "og:url", content: "https://pianobooth.com" },
+    { name: "twitter:card", content: "summary_large_image" },
+    { name: "twitter:image", content: "https://pianobooth.com/og-images/og_image.png" },
   ];
 };
 

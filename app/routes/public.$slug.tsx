@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare'
-import { json } from '@remix-run/cloudflare'
-import { useLoaderData } from '@remix-run/react'
+import type { LoaderFunctionArgs, MetaFunction } from 'react-router'
+import { data as json } from 'react-router'
+import { useLoaderData } from 'react-router'
 import EmbeddedPlayView_component from '../components/EmbeddedPlayer'
 import usePlayStore from '../store/playStore'
 

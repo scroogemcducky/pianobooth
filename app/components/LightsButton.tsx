@@ -1,6 +1,6 @@
 import { mdiDeskLampOn, mdiDeskLamp } from '@mdi/js'; 
 import Icon from '@mdi/react';
-import { useHydrated } from "remix-utils/use-hydrated";
+import { useHydrated } from "~/hooks/useHydrated";
 
 const LightsButton = ({ lights, onClick }: { lights: boolean; onClick: () => void }) => {
   const isHydrated = useHydrated();

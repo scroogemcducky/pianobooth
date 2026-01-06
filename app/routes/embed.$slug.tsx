@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
-import { useLoaderData } from '@remix-run/react'
+import type { LoaderFunctionArgs, MetaFunction } from 'react-router'
+import { useLoaderData } from 'react-router'
 import EmbeddedPlayView_component from '../components/EmbeddedPlayer'
 
 type LoaderData = {

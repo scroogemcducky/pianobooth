@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import Icon from '@mdi/react'
 import { mdiCog, mdiClose } from '@mdi/js'
-import { useHydrated } from 'remix-utils/use-hydrated'
+import { useHydrated } from '~/hooks/useHydrated'
 import usePlayStore from '../store/playStore'
 
 type Props = {

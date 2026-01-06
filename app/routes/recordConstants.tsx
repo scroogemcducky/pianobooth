@@ -3,8 +3,8 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { Canvas, useThree, useFrame } from '@react-three/fiber'
-import { json, type LoaderFunctionArgs } from '@remix-run/cloudflare'
-import { useLoaderData } from '@remix-run/react'
+import { data as json, type LoaderFunctionArgs } from 'react-router'
+import { useLoaderData } from 'react-router'
 import FrameBasedShaderBlocks, { type FrameBasedShaderBlocksHandle } from '../components/recording/FrameBasedShaderBlocks'
 import FrameBasedKeyController, { type FrameBasedKeyControllerHandle } from '../components/recording/FrameBasedKeyController'
 import FrameBasedParticles, { type FrameBasedParticlesHandle } from '../components/recording/FrameBasedParticles'

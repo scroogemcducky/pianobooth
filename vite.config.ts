@@ -1,50 +1,25 @@
-import {
-  vitePlugin as remix,
-  cloudflareDevProxyVitePlugin as remixCloudflareDevProxy,
-} from "@remix-run/dev";
-import { defineConfig } from "vite";
+import { reactRouter } from "@react-router/dev/vite";
+import { cloudflare } from "@cloudflare/vite-plugin";
+import { defineConfig, type Plugin } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
-import { setupWebSocketServer } from "./server/websocket";
-import { createServer as createHttpServer } from 'http';
 
-// Global WebSocket server instance to prevent multiple servers
-let globalWsServer: ReturnType<typeof createHttpServer> | null = null;
+// Only use Cloudflare plugin for production builds
+const isProduction = process.env.NODE_ENV === 'production';
 
-declare module "@remix-run/cloudflare" {
-  interface Future {
-    v3_singleFetch: true;
-  }
-}
-
-export default defineConfig({
-  resolve: {
-    dedupe: ['react', 'react-dom', 'scheduler', '@remix-run/react'],
-  },
-  optimizeDeps: {
-    include: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime'],
-  },
-  plugins: [
-    remixCloudflareDevProxy(),
-    remix({
-      future: {
-        v3_fetcherPersist: true,
-        v3_relativeSplatPath: true,
-        v3_throwAbortReason: true,
-        v3_singleFetch: true,
-        v3_lazyRouteDiscovery: true,
-      },
-    }),
-    tsconfigPaths(),
+// Custom plugins for dev server only (Node.js environment)
+function devServerPlugins(): Plugin[] {
+  return [
     // WebSocket server plugin - attach to Vite's HTTP server
     {
       name: 'websocket-server',
-      configureServer(server) {
+      apply: 'serve',
+      async configureServer(server) {
         if (!server.httpServer) {
           console.warn('⚠️ No HTTP server available for WebSocket setup');
           return;
         }
 
-        // Set up WebSocket on Vite's HTTP server (port 5173)
+        const { setupWebSocketServer } = await import('./server/websocket');
         setupWebSocketServer(server.httpServer);
         console.log('✅ WebSocket server attached to Vite dev server (ws://localhost:5173/ws/frames)');
       },
@@ -52,6 +27,7 @@ export default defineConfig({
     // Serve videos directory as static files
     {
       name: 'serve-videos',
+      apply: 'serve',
       configureServer(server) {
         server.middlewares.use('/videos', async (req, res, next) => {
           const fs = await import('fs')
@@ -69,5 +45,15 @@ export default defineConfig({
         })
       },
     },
+  ];
+}
+
+export default defineConfig({
+  plugins: [
+    // Only use Cloudflare plugin in production to avoid miniflare conflicts with Node.js deps
+    ...(isProduction ? [cloudflare({ viteEnvironment: { name: "ssr" } })] : []),
+    reactRouter(),
+    tsconfigPaths(),
+    ...devServerPlugins(),
   ],
 });

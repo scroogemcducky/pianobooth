@@ -1,0 +1,36 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "remix-cloudflare-piano",
+  "main": "./workers/app.ts",
+  "compatibility_date": "2024-11-06",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // Assets configuration for static files
+  "assets": {
+    "directory": "./build/client"
+  }
+
+  // Variable bindings (environment variables)
+  // "vars": {
+  //   "MY_VARIABLE": "production_value"
+  // }
+
+  // D1 database bindings
+  // "d1_databases": [{
+  //   "binding": "MY_DB",
+  //   "database_name": "my-database",
+  //   "database_id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  // }]
+
+  // KV namespace bindings
+  // "kv_namespaces": [{
+  //   "binding": "MY_KV_NAMESPACE",
+  //   "id": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  // }]
+
+  // R2 bucket bindings
+  // "r2_buckets": [{
+  //   "binding": "MY_BUCKET",
+  //   "bucket_name": "my-bucket"
+  // }]
+}

@@ -2,7 +2,7 @@
 // used to be /shader
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
-import type { MetaFunction } from '@remix-run/node'
+import type { MetaFunction } from 'react-router'
 
 import { Canvas } from '@react-three/fiber'
 import midiParser from '../utils/MidiParser'

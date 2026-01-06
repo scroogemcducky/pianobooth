@@ -1,5 +1,5 @@
-import { MetaFunction } from "@remix-run/node";
-import { Link } from "@remix-run/react";
+import type { MetaFunction } from "react-router";
+import { Link } from "react-router";
 import { slugify } from "~/utils/slugify";
 import { allPieces, composerImages } from "~/data/artists";
 

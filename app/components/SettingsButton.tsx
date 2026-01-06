@@ -2,7 +2,7 @@ import { mdiCog, mdiClose } from '@mdi/js';
 import Icon from '@mdi/react';
 import { useState, useEffect, useRef, useCallback } from "react";
 import type { MouseEvent as ReactMouseEvent } from 'react'
-import { useHydrated } from "remix-utils/use-hydrated";
+import { useHydrated } from "~/hooks/useHydrated";
 import usePlayStore from '../store/playStore';
 import useParticleSettingsStore, { type ParticleSettings, PARTICLE_PRESETS } from '../store/particleSettingsStore';
 

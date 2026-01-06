@@ -6,7 +6,7 @@ export const composerImages: Record<string, string> = {
   'Bach': '/images/Bach2.jpg',
   'Balakirev': '/images/Balakirev3.jpg',
   'Haydn': '/images/Haydn5.jpg',
-  'Beethoven': '/images/Beethoven5.jpg',
+  'Beethoven': '/images/Beethoven1.jpg',
   'Borodin': '/images/Borodin1.jpg',
   'Brahms': '/images/Brahms1.jpg',
   'Burgmüller': '/images/Burgmuller4.jpg',
