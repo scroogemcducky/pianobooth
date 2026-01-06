@@ -57,13 +57,23 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   ]
 }
 
-export async function loader({ params, request }: LoaderFunctionArgs) {
+export async function loader({ params, request, context }: LoaderFunctionArgs) {
   const artistSlug = params.artist || ''
   const songSlug = params.song || ''
   if (!artistSlug || !songSlug) throw new Response('Not Found', { status: 404 })
-  const url = new URL(request.url)
-  const jsonUrl = `${url.origin}/public_midi_json/${encodeURIComponent(artistSlug)}/${encodeURIComponent(songSlug)}.json`
-  const res = await fetch(jsonUrl)
+
+  const jsonPath = `/public_midi_json/${encodeURIComponent(artistSlug)}/${encodeURIComponent(songSlug)}.json`
+
+  // Use ASSETS binding if available (production), otherwise fallback to fetch
+  let res: Response
+  const env = context?.cloudflare?.env
+  if (env?.ASSETS) {
+    res = await env.ASSETS.fetch(new Request(`http://assets${jsonPath}`))
+  } else {
+    const url = new URL(request.url)
+    res = await fetch(`${url.origin}${jsonPath}`)
+  }
+
   if (!res.ok) throw new Response('Not Found', { status: 404 })
   const data = await res.json() as LoaderData
   if (!data || !Array.isArray(data.midiObject)) throw new Response('Bad Data', { status: 500 })

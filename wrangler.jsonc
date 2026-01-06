@@ -7,7 +7,8 @@
 
   // Assets configuration for static files
   "assets": {
-    "directory": "./build/client"
+    "directory": "./build/client",
+    "binding": "ASSETS"
   }
 
   // Variable bindings (environment variables)
