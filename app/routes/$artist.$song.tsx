@@ -4,7 +4,6 @@ import { data as json } from 'react-router'
 import { useLoaderData, Link } from 'react-router'
 import EmbeddedPlayView_component from '../components/EmbeddedPlayer'
 import usePlayStore from '../store/playStore'
-import { DEFAULT_MIDI_LICENSE } from '../utils/defaultMidiLicense'
 
 type MidiNote = {
   NoteNumber: number
@@ -78,13 +77,7 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
   if (!res.ok) throw new Response('Not Found', { status: 404 })
   const data = await res.json() as LoaderData
   if (!data || !Array.isArray(data.midiObject)) throw new Response('Bad Data', { status: 500 })
-
-  const isJackSparrow = artistSlug === 'jack-sparrow'
-  const license = isJackSparrow
-    ? data.license
-    : (data.license ? { ...DEFAULT_MIDI_LICENSE, ...data.license } : { ...DEFAULT_MIDI_LICENSE })
-
-  return json<LoaderData>({ ...data, license, artistSlug, songSlug })
+  return json<LoaderData>({ ...data, artistSlug, songSlug })
 }
 
 export default function PublicPieceByArtistSongRoute() {
