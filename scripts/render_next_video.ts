@@ -7,7 +7,7 @@
 import path from 'node:path'
 import fs from 'node:fs/promises'
 import { createHash } from 'node:crypto'
-import { chromium } from 'playwright'
+import { chromium, type Browser } from 'playwright'
 import { spawn, type ChildProcessByStdio } from 'node:child_process'
 import type { Readable } from 'node:stream'
 
@@ -822,40 +822,58 @@ export async function processOneVideo(opts: Options, videoNumber?: number): Prom
   console.log(`${prefix}Generating ${uniqueFonts.length} thumbnails (one per font)...`)
   let thumbnailsGenerated = 0
 
-  // Launch a single browser for all thumbnails (much faster than launching per-thumbnail)
-  // Use 2x device scale factor for higher resolution (2560x1440 effective)
-  const thumbBrowser = await chromium.launch({ headless: true })
-  const thumbContext = await thumbBrowser.newContext({
-    viewport: { width: 1280, height: 720 },
-    deviceScaleFactor: 2,
-  })
-  const thumbPage = await thumbContext.newPage()
-
+  // Launch a single browser for all thumbnails (much faster than launching per-thumbnail).
+  // On some macOS setups, Playwright's headless Chromium can hang/timeout; fall back to headful instead of failing the whole render.
+  let thumbBrowser: Browser | null = null
+  const THUMB_BROWSER_LAUNCH_TIMEOUT_MS = 45_000
   try {
-    for (const fontFile of uniqueFonts) {
-      const fontName = fontNameMap[fontFile] || fontFile.replace(/\.(ttf|otf|woff|woff2)$/i, '')
-
-      // Create thumbnail filename with font name (PNG for lossless quality)
-      const safeFontName = fontName.replace(/\s+/g, '_')
-      const fontThumbnailPath = path.join(videoFolderPath, `${displayName}_${safeFontName}.png`)
-
-      const thumbnailResult = await captureThumbnail(thumbPage, artistSlug, songSlug, fontThumbnailPath, {
-        baseUrl: opts.baseUrl,
-        timeout: 30000,
-        font: fontName,
-        preset: presetIndex,
-        inlineMidiData: inlineThumbnailMidiData,
-      })
-
-      if (thumbnailResult.success) {
-        console.log(`${prefix}  Thumbnail saved: ${path.basename(fontThumbnailPath)}`)
-        thumbnailsGenerated++
-      } else {
-        console.warn(`${prefix}  ⚠️ Thumbnail failed (${fontName}): ${thumbnailResult.error}`)
-      }
+    // Use 2x device scale factor for higher resolution (2560x1440 effective)
+    thumbBrowser = await chromium.launch({ headless: true, timeout: THUMB_BROWSER_LAUNCH_TIMEOUT_MS })
+  } catch (error: any) {
+    console.warn(`${prefix}⚠️ Headless browser launch failed for thumbnails, retrying headful: ${error?.message || String(error)}`)
+    try {
+      thumbBrowser = await chromium.launch({ headless: false, timeout: THUMB_BROWSER_LAUNCH_TIMEOUT_MS })
+    } catch (error2: any) {
+      console.warn(`${prefix}⚠️ Headful browser launch also failed; skipping thumbnails: ${error2?.message || String(error2)}`)
+      thumbBrowser = null
     }
-  } finally {
-    await thumbBrowser.close()
+  }
+
+  if (thumbBrowser) {
+    let thumbContext: any = null
+    try {
+      thumbContext = await thumbBrowser.newContext({
+        viewport: { width: 1280, height: 720 },
+        deviceScaleFactor: 2,
+      })
+      const thumbPage = await thumbContext.newPage()
+
+      for (const fontFile of uniqueFonts) {
+        const fontName = fontNameMap[fontFile] || fontFile.replace(/\.(ttf|otf|woff|woff2)$/i, '')
+
+        // Create thumbnail filename with font name (PNG for lossless quality)
+        const safeFontName = fontName.replace(/\s+/g, '_')
+        const fontThumbnailPath = path.join(videoFolderPath, `${displayName}_${safeFontName}.png`)
+
+        const thumbnailResult = await captureThumbnail(thumbPage, artistSlug, songSlug, fontThumbnailPath, {
+          baseUrl: opts.baseUrl,
+          timeout: 30000,
+          font: fontName,
+          preset: presetIndex,
+          inlineMidiData: inlineThumbnailMidiData,
+        })
+
+        if (thumbnailResult.success) {
+          console.log(`${prefix}  Thumbnail saved: ${path.basename(fontThumbnailPath)}`)
+          thumbnailsGenerated++
+        } else {
+          console.warn(`${prefix}  ⚠️ Thumbnail failed (${fontName}): ${thumbnailResult.error}`)
+        }
+      }
+    } finally {
+      if (thumbContext) await thumbContext.close().catch(() => {})
+      await thumbBrowser.close().catch(() => {})
+    }
   }
 
   console.log(`${prefix}Generated ${thumbnailsGenerated}/${uniqueFonts.length} thumbnails`)

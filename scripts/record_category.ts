@@ -310,7 +310,12 @@ async function main() {
         const safePrefix = path.resolve(categoryVideosDir) + path.sep
         const resolvedOutFolder = path.resolve(outFolder)
         if (resolvedOutFolder.startsWith(safePrefix)) {
-          await fs.rm(resolvedOutFolder, { recursive: true, force: true })
+          const entries = await fs.readdir(resolvedOutFolder).catch(() => [])
+          if (entries.length === 0) {
+            await fs.rm(resolvedOutFolder, { recursive: true, force: true })
+          } else {
+            console.warn(`⚠️ Not deleting output folder after failure (it contains files): ${normalizeRel(resolvedOutFolder)}`)
+          }
         }
       } catch {}
     }
