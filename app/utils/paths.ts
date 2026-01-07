@@ -19,5 +19,10 @@ export const TEMP_FRAMES_DIR = path.join(PROJECT_ROOT, 'temp_frames')
 
 // Sanitize filename to remove invalid characters
 export function sanitizeFileName(s: string): string {
-  return s.replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, ' ').trim()
+  const cleaned = (s || '')
+    .replace(/[\u0000-\u001F\u007F-\u009F]/g, '')
+    .replace(/[\\/:*?"<>|]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+  return cleaned || 'Untitled'
 }

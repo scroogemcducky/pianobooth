@@ -4,7 +4,8 @@
 import path from 'node:path'
 import fs from 'node:fs/promises'
 import { createHash } from 'node:crypto'
-import { spawn } from 'node:child_process'
+import { spawn, type ChildProcessByStdio } from 'node:child_process'
+import type { Readable } from 'node:stream'
 import { chromium } from 'playwright'
 
 import { parseMidiFilePath, type MidiNote } from './parse_midi_to_json'
@@ -54,7 +55,12 @@ const DEFAULTS: Options = {
 const KNOWN_COMPOSERS = /(bach|beethoven|chopin|debussy|mozart|liszt|schubert|schumann|rachmaninoff|handel|haydn|tchaikovsky|gershwin|albeniz)/i
 
 function sanitizeFileName(s: string): string {
-  return (s || '').replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, ' ').trim()
+  const cleaned = (s || '')
+    .replace(/[\u0000-\u001F\u007F-\u009F]/g, '')
+    .replace(/[\\/:*?"<>|]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+  return cleaned || 'Untitled'
 }
 
 const CATEGORY_DIRS = new Set(['pop', 'theme', 'finnish'])
@@ -262,10 +268,19 @@ async function waitForValidMp4(filePath: string, timeoutMs: number): Promise<voi
 
 async function generateAudioFromMidi(midiPath: string, outputPath: string, audioDelaySeconds: number): Promise<boolean> {
   return new Promise((resolve) => {
-    const proc = spawn('uv', ['run', 'scripts/generate_audio.py', midiPath, outputPath, '--delay', String(audioDelaySeconds)], {
-      cwd: process.cwd(),
-      stdio: ['ignore', 'pipe', 'pipe'],
-    })
+    const safeMidiPath = midiPath.replace(/\u0000/g, '')
+    const safeOutputPath = outputPath.replace(/\u0000/g, '')
+    let proc: ChildProcessByStdio<null, Readable, Readable>
+    try {
+      proc = spawn('uv', ['run', 'scripts/generate_audio.py', safeMidiPath, safeOutputPath, '--delay', String(audioDelaySeconds)], {
+        cwd: process.cwd(),
+        stdio: ['ignore', 'pipe', 'pipe'],
+      })
+    } catch (error: any) {
+      console.error(`❌ Failed to spawn audio generator: ${error?.message || String(error)}`)
+      resolve(false)
+      return
+    }
     let stderr = ''
     proc.stdout.on('data', (d) => process.stdout.write(d.toString()))
     proc.stderr.on('data', (d) => { stderr += d.toString() })

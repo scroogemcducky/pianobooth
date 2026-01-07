@@ -57,7 +57,12 @@ const activeSessions = new Map<string, {
 
 // Sanitize filename to remove invalid characters
 function sanitizeFileName(s: string): string {
-  return s.replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, ' ').trim()
+  const cleaned = (s || '')
+    .replace(/[\u0000-\u001F\u007F-\u009F]/g, '')
+    .replace(/[\\/:*?"<>|]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+  return cleaned || 'Untitled'
 }
 
 // Generate video from saved frames

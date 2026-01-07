@@ -8,7 +8,8 @@ import path from 'node:path'
 import fs from 'node:fs/promises'
 import { createHash } from 'node:crypto'
 import { chromium } from 'playwright'
-import { spawn } from 'node:child_process'
+import { spawn, type ChildProcessByStdio } from 'node:child_process'
+import type { Readable } from 'node:stream'
 
 import { parseMidiFilePath, type MidiNote } from './parse_midi_to_json'
 import { createNormalizedMidi } from './normalize_midi'
@@ -39,10 +40,19 @@ async function generateAudioFromMidi(midiPath: string, outputPath: string, audio
   console.log(`   Audio delay: ${audioDelay}s`)
 
   return new Promise((resolve) => {
-    const proc = spawn('uv', ['run', 'scripts/generate_audio.py', midiPath, outputPath, '--delay', String(audioDelay)], {
-      cwd: process.cwd(),
-      stdio: ['ignore', 'pipe', 'pipe'],
-    })
+    const safeMidiPath = midiPath.replace(/\u0000/g, '')
+    const safeOutputPath = outputPath.replace(/\u0000/g, '')
+    let proc: ChildProcessByStdio<null, Readable, Readable>
+    try {
+      proc = spawn('uv', ['run', 'scripts/generate_audio.py', safeMidiPath, safeOutputPath, '--delay', String(audioDelay)], {
+        cwd: process.cwd(),
+        stdio: ['ignore', 'pipe', 'pipe'],
+      })
+    } catch (error: any) {
+      console.error(`❌ Failed to spawn audio generator: ${error?.message || String(error)}`)
+      resolve(false)
+      return
+    }
 
     let stderr = ''
     proc.stdout.on('data', (data) => console.log(`   ${data.toString().trim()}`))
@@ -228,11 +238,12 @@ function prepareInlineThumbnailMidi(params: {
 }
 
 async function extractTitleArtist(filePath: string): Promise<{ title: string; artist: string; trackNames: string[] }> {
+  const cleanMeta = (s: string) => (s || '').replace(/[\u0000-\u001F\u007F-\u009F]/g, '').replace(/\s+/g, ' ').trim()
   const buf = await fs.readFile(filePath)
   const { Midi } = await import('@tonejs/midi')
   const midi = new Midi(buf)
-  const headerName = (midi as any)?.header?.name?.trim?.() || ''
-  const trackNames = midi.tracks.map((t: any) => (t.name || '').trim()).filter(Boolean)
+  const headerName = cleanMeta((midi as any)?.header?.name || '')
+  const trackNames = midi.tracks.map((t: any) => cleanMeta(t.name || '')).filter(Boolean)
   let title = headerName || ''
   if (!title && trackNames.length) {
     title = trackNames.reduce((a: string, b: string) => (b.length > a.length ? b : a), trackNames[0])
@@ -322,7 +333,13 @@ async function aiRefineMetadata(params: {
 }
 
 function sanitizeFileName(s: string): string {
-  return s.replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, ' ').trim()
+  const cleaned = (s || '')
+    // Node rejects paths containing null bytes; MIDI metadata can include them.
+    .replace(/[\u0000-\u001F\u007F-\u009F]/g, '')
+    .replace(/[\\/:*?"<>|]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+  return cleaned || 'Untitled'
 }
 
 async function getUniqueFilePath(dir: string, baseName: string, ext: string): Promise<string> {

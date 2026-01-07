@@ -57,6 +57,7 @@ async function listMidiFilesRecursive(rootDir: string): Promise<string[]> {
 
 function sanitizePathSegment(s: string): string {
   return (s || '')
+    .replace(/[\u0000-\u001F\u007F-\u009F]/g, '')
     .replace(/[\\/:*?"<>|]/g, '')
     .replace(/\s+/g, ' ')
     .trim()
