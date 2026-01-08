@@ -43,7 +43,9 @@ async function pruneStaleSessions(maxAgeMs = 6 * 60 * 60 * 1000) {
 }
 
 // Store active recording sessions
-const activeSessions = new Map<string, {
+type SessionStatus = 'recording' | 'finalizing' | 'encoding' | 'done' | 'failed'
+
+type RecordingSession = {
   sessionId: string
   sessionDir: string
   fps: number
@@ -53,7 +55,13 @@ const activeSessions = new Map<string, {
   artist: string
   audioPath?: string
   ws: WebSocket
-}>()
+  status: SessionStatus
+  finalizeReceived?: boolean
+  encodePromise?: Promise<string>
+  encodingStartedAt?: number
+}
+
+const activeSessions = new Map<string, RecordingSession>()
 
 // Sanitize filename to remove invalid characters
 function sanitizeFileName(s: string): string {
@@ -153,6 +161,42 @@ async function generateVideo(session: {
   })
 }
 
+function safeWsSend(ws: WebSocket, message: unknown) {
+  try {
+    if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(message))
+  } catch (error) {
+    console.warn('⚠️ Failed to send WS message:', error)
+  }
+}
+
+function ensureVideoEncoded(sessionId: string, reason: string): Promise<string> {
+  const session = activeSessions.get(sessionId)
+  if (!session) return Promise.reject(new Error(`Session not found: ${sessionId}`))
+
+  if (session.encodePromise) return session.encodePromise
+
+  session.status = 'encoding'
+  session.encodingStartedAt = Date.now()
+  console.log(`🎬 [WS] Starting encoding for session ${sessionId} (reason: ${reason})`)
+
+  session.encodePromise = (async () => {
+    try {
+      const videoFileName = await generateVideo(session)
+      session.status = 'done'
+      return videoFileName
+    } catch (error) {
+      session.status = 'failed'
+      // Best-effort cleanup if ffmpeg didn't remove the temp dir.
+      await removeDirRecursive(session.sessionDir).catch(() => {})
+      throw error
+    } finally {
+      activeSessions.delete(sessionId)
+    }
+  })()
+
+  return session.encodePromise
+}
+
 export function setupWebSocketServer(server: any) {
   // Create WebSocket server without automatic server attachment
   const wss = new WebSocketServer({ noServer: true })
@@ -239,7 +283,8 @@ export function setupWebSocketServer(server: any) {
               expectedFrames: message.expectedFrames || 0,
               title: message.title || 'Untitled',
               artist: message.artist || 'Piano',
-              ws
+              ws,
+              status: 'recording',
             })
 
             // Save metadata
@@ -264,35 +309,33 @@ export function setupWebSocketServer(server: any) {
           }
 
           // Handle finalize request
-        else if (message.type === 'finalize') {
+          else if (message.type === 'finalize') {
           console.log(`📦 [WS] Received finalize message for session ${message.sessionId}`)
           const session = activeSessions.get(message.sessionId)
           if (session) {
+            session.finalizeReceived = true
+            if (session.status === 'recording') session.status = 'finalizing'
             console.log(`✅ [WS] Session finalized: ${message.sessionId}`)
             console.log(`   [WS] Frame count: ${session.frameCount}`)
             console.log(`   [WS] Has audio: ${!!session.audioPath}`)
 
-            // Generate video
-            try {
-              const videoFileName = await generateVideo(session)
-
-              ws.send(JSON.stringify({
-                type: 'video-ready',
-                sessionId: message.sessionId,
-                videoUrl: `/videos/${videoFileName}`,
-                frameCount: session.frameCount
-              }))
-
-              // Clean up session
-              activeSessions.delete(message.sessionId)
-            } catch (error) {
-              console.error(`❌ Video generation failed:`, error)
-              await removeDirRecursive(session.sessionDir)
-              ws.send(JSON.stringify({
-                type: 'error',
-                error: error instanceof Error ? error.message : 'Video generation failed'
-              }))
-            }
+            // Trigger encoding (idempotent); don't block the message handler.
+            ensureVideoEncoded(message.sessionId, 'finalize')
+              .then((videoFileName) => {
+                safeWsSend(ws, {
+                  type: 'video-ready',
+                  sessionId: message.sessionId,
+                  videoUrl: `/videos/${videoFileName}`,
+                  frameCount: session.frameCount,
+                })
+              })
+              .catch((error) => {
+                console.error(`❌ Video generation failed:`, error)
+                safeWsSend(ws, {
+                  type: 'error',
+                  error: error instanceof Error ? error.message : 'Video generation failed',
+                })
+              })
           }
           }
 
@@ -311,17 +354,11 @@ export function setupWebSocketServer(server: any) {
                 console.log(`   [WS] Audio file exists: ${(stat.size / 1024).toFixed(1)} KB`)
                 session.audioPath = audioPath
 
-                ws.send(JSON.stringify({
-                  type: 'audio-ack',
-                  sessionId: message.sessionId
-                }))
+                safeWsSend(ws, { type: 'audio-ack', sessionId: message.sessionId })
                 console.log(`   [WS] Audio-ack sent to client`)
               } catch (error) {
                 console.error(`   [WS] ❌ Audio file not found: ${audioPath}`)
-                ws.send(JSON.stringify({
-                  type: 'error',
-                  error: `Audio file not found: ${audioPath}`
-                }))
+                safeWsSend(ws, { type: 'error', error: `Audio file not found: ${audioPath}` })
               }
             } else {
               console.error(`   [WS] ❌ Session not found for audio-path: ${message.sessionId}`)
@@ -350,10 +387,7 @@ export function setupWebSocketServer(server: any) {
 
               console.log(`🎵 [WS] Audio saved: ${audioPath}`)
 
-              ws.send(JSON.stringify({
-                type: 'audio-ack',
-                sessionId: message.sessionId
-              }))
+              safeWsSend(ws, { type: 'audio-ack', sessionId: message.sessionId })
               console.log(`   [WS] Audio-ack sent to client`)
             } else {
               console.error(`   [WS] ❌ Session not found for audio: ${message.sessionId}`)
@@ -386,20 +420,13 @@ export function setupWebSocketServer(server: any) {
           session.frameCount++
 
           // Send progress update
-          ws.send(JSON.stringify({
-            type: 'frame-ack',
-            frameNumber,
-            totalFrames: session.frameCount
-          }))
+          safeWsSend(ws, { type: 'frame-ack', frameNumber, totalFrames: session.frameCount })
 
 	          renderSaveProgress({ frameCount: session.frameCount, expectedFrames: session.expectedFrames })
 	        }
 	      } catch (error) {
 	        console.error('❌ Error processing message:', error)
-	        ws.send(JSON.stringify({
-	          type: 'error',
-          error: error instanceof Error ? error.message : 'Unknown error'
-        }))
+	        safeWsSend(ws, { type: 'error', error: error instanceof Error ? error.message : 'Unknown error' })
       }
     })
 
@@ -416,7 +443,7 @@ export function setupWebSocketServer(server: any) {
       if (currentSessionId) {
         const session = activeSessions.get(currentSessionId)
         if (session && session.frameCount > 0) {
-          console.log(`📦 [WS] Session ${currentSessionId} - generating video on disconnect`)
+          console.log(`📦 [WS] Session ${currentSessionId} - ensuring video on disconnect`)
           console.log(`   [WS] Frame count: ${session.frameCount}`)
           console.log(`   [WS] Has audio: ${!!session.audioPath}`)
           if (session.audioPath) {
@@ -425,14 +452,14 @@ export function setupWebSocketServer(server: any) {
             console.warn(`   [WS] ⚠️ NO AUDIO - video will be silent!`)
           }
 
-          // Generate video automatically on disconnect
-          try {
-            const videoFileName = await generateVideo(session)
-            console.log(`✅ [WS] Video generated on disconnect: ${videoFileName}`)
-            activeSessions.delete(currentSessionId)
-          } catch (error) {
-            console.error(`❌ [WS] Video generation failed on disconnect:`, error)
-          }
+          // Ensure encoding happens at most once per session.
+          ensureVideoEncoded(currentSessionId, 'disconnect')
+            .then((videoFileName) => {
+              console.log(`✅ [WS] Video generated on disconnect: ${videoFileName}`)
+            })
+            .catch((error) => {
+              console.error(`❌ [WS] Video generation failed on disconnect:`, error)
+            })
         } else if (session) {
           // No frames captured; clean up the empty session directory
           console.log(`   [WS] Session has no frames, cleaning up empty directory`)
