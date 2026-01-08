@@ -86,8 +86,12 @@ async function generateVideo(session: {
   console.log(`   Audio path: ${session.audioPath || '(none - video will have no audio)'}`)
 
   return new Promise<string>((resolve, reject) => {
+    const ffmpegLogLevel = (process.env.PIANO_FFMPEG_LOGLEVEL || 'error').trim() || 'error'
     const ffmpegArgs = [
-        '-y',
+      '-y',
+      '-hide_banner',
+      '-loglevel', ffmpegLogLevel,
+      '-nostats',
       '-framerate', session.fps.toString(),
       '-i', path.join(session.sessionDir, 'frame_%06d.jpg')
     ]
@@ -118,7 +122,8 @@ async function generateVideo(session: {
     const ffmpeg = spawn('ffmpeg', ffmpegArgs)
 
     ffmpeg.stderr.on('data', (data) => {
-      console.log(`ffmpeg: ${data.toString().trim()}`)
+      const line = data.toString().trim()
+      if (line) console.log(`ffmpeg: ${line}`)
     })
 
     ffmpeg.on('close', async (code) => {

@@ -342,6 +342,22 @@ function sanitizeFileName(s: string): string {
   return cleaned || 'Untitled'
 }
 
+async function closeWithTimeout(promise: Promise<unknown>, ms: number, label: string): Promise<void> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined
+  try {
+    await Promise.race([
+      promise,
+      new Promise((_, reject) => {
+        timeoutId = setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms)
+      }),
+    ])
+  } catch (error: any) {
+    console.warn(`⚠️ ${label} failed: ${error?.message || String(error)}`)
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId)
+  }
+}
+
 async function getUniqueFilePath(dir: string, baseName: string, ext: string): Promise<string> {
   // Check if base file exists
   const basePath = path.join(dir, `${baseName}${ext}`)
@@ -821,6 +837,7 @@ export async function processOneVideo(opts: Options, videoNumber?: number): Prom
 
   console.log(`${prefix}Generating ${uniqueFonts.length} thumbnails (one per font)...`)
   let thumbnailsGenerated = 0
+  let consecutiveNavigationFailures = 0
 
   // Launch a single browser for all thumbnails (much faster than launching per-thumbnail).
   // On some macOS setups, Playwright's headless Chromium can hang/timeout; fall back to headful instead of failing the whole render.
@@ -866,13 +883,21 @@ export async function processOneVideo(opts: Options, videoNumber?: number): Prom
         if (thumbnailResult.success) {
           console.log(`${prefix}  Thumbnail saved: ${path.basename(fontThumbnailPath)}`)
           thumbnailsGenerated++
+          consecutiveNavigationFailures = 0
         } else {
           console.warn(`${prefix}  ⚠️ Thumbnail failed (${fontName}): ${thumbnailResult.error}`)
+          const err = thumbnailResult.error || ''
+          if (/goto: Timeout/i.test(err) || /navigating to/i.test(err)) consecutiveNavigationFailures++
+          else consecutiveNavigationFailures = 0
+          if (consecutiveNavigationFailures >= 2) {
+            console.warn(`${prefix}⚠️ Thumbnail navigation is timing out; skipping remaining thumbnails.`)
+            break
+          }
         }
       }
     } finally {
-      if (thumbContext) await thumbContext.close().catch(() => {})
-      await thumbBrowser.close().catch(() => {})
+      if (thumbContext) await closeWithTimeout(thumbContext.close(), 10_000, 'Thumbnail context close')
+      await closeWithTimeout(thumbBrowser.close(), 10_000, 'Thumbnail browser close')
     }
   }
 

@@ -199,7 +199,7 @@ export default function ThumbnailView({
         <h1
           style={{
             margin: 0,
-            fontSize: '56px',
+            fontSize: '84px',
             fontWeight: 600,
             textShadow: '0 3px 30px rgba(0,0,0,0.9), 0 1px 3px rgba(0,0,0,1)',
             maxWidth: '85%',
@@ -210,8 +210,8 @@ export default function ThumbnailView({
         </h1>
         <p
           style={{
-            marginTop: '16px',
-            fontSize: '36px',
+            marginTop: '24px',
+            fontSize: '54px',
             color: '#cccccc',
             textShadow: '0 2px 15px rgba(0,0,0,0.8)',
           }}

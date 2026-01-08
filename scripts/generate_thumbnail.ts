@@ -86,8 +86,8 @@ export async function captureThumbnail(
     }
     if (options.inlineMidiData) {
       url.searchParams.set('inline', '1')
-      await page.goto(options.baseUrl, { waitUntil: 'domcontentloaded', timeout: options.timeout })
-      await page.evaluate((payload) => {
+      // Avoid an extra navigation to baseUrl; set localStorage before the /thumbnail page scripts run.
+      await page.addInitScript((payload) => {
         try { window.localStorage.setItem('thumbnailMidiData', JSON.stringify(payload)) } catch {}
       }, options.inlineMidiData)
     }

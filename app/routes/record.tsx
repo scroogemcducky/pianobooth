@@ -413,11 +413,15 @@ export async function action({ request }: ActionFunctionArgs) {
     // Generate video with ffmpeg (with or without audio)
     const outputPath = path.join(process.cwd(), 'videos', `piano_video_${Date.now()}.mp4`)
     
-    return new Promise((resolve) => {
-      const ffmpegArgs = [
-        '-framerate', fps.toString(),
-        '-i', path.join(tempDir, 'frame_%06d.png')
-      ]
+	    return new Promise((resolve) => {
+	      const ffmpegLogLevel = (process.env.PIANO_FFMPEG_LOGLEVEL || 'error').trim() || 'error'
+	      const ffmpegArgs = [
+	        '-hide_banner',
+	        '-loglevel', ffmpegLogLevel,
+	        '-nostats',
+	        '-framerate', fps.toString(),
+	        '-i', path.join(tempDir, 'frame_%06d.png')
+	      ]
       
       // Add audio input if provided
       if (audioPath) {
@@ -444,11 +448,12 @@ export async function action({ request }: ActionFunctionArgs) {
       
       ffmpegArgs.push(outputPath)
       
-      const ffmpeg = spawn('ffmpeg', ffmpegArgs)
-      
-      ffmpeg.stderr.on('data', (data) => {
-        console.log(`ffmpeg: ${data}`)
-      })
+	      const ffmpeg = spawn('ffmpeg', ffmpegArgs)
+	      
+	      ffmpeg.stderr.on('data', (data) => {
+	        const line = data.toString().trim()
+	        if (line) console.log(`ffmpeg: ${line}`)
+	      })
       
       ffmpeg.on('close', async (code) => {
         // Clean up temporary files
