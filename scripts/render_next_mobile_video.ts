@@ -303,11 +303,17 @@ async function rotateClockwise90(inputPath: string, outputPath: string): Promise
     const args = [
       '-y',
       '-i', inputPath,
-      '-vf', 'transpose=1',
+      // Ensure standard video levels + metadata for YouTube compatibility.
+      // Many sources are full-range (e.g. yuvj420p from JPEG-derived frames); convert to limited range to avoid crushed/washed playback.
+      '-vf', 'transpose=1,scale=iw:ih:in_range=auto:out_range=tv',
       '-map', '0:v:0',
       '-map', '0:a?',
       '-c:v', 'libx264',
       '-pix_fmt', 'yuv420p',
+      '-color_range', 'tv',
+      '-colorspace', 'bt709',
+      '-color_primaries', 'bt709',
+      '-color_trc', 'bt709',
       '-preset', 'fast',
       '-crf', '18',
       '-c:a', 'aac',
@@ -335,7 +341,8 @@ async function createTeaserVideo(params: {
 }): Promise<void> {
   const hasAudio = await probeHasAudio(params.inputPath)
   await new Promise<void>((resolve, reject) => {
-    const vf = `fade=t=out:st=${params.fadeStartSeconds}:d=${params.fadeDurationSeconds}`
+    // Convert to limited range and tag bt709 for consistent playback after YouTube transcode.
+    const vf = `fade=t=out:st=${params.fadeStartSeconds}:d=${params.fadeDurationSeconds},scale=iw:ih:in_range=auto:out_range=tv`
     const args = [
       '-y',
       '-i', params.inputPath,
@@ -351,6 +358,10 @@ async function createTeaserVideo(params: {
     args.push(
       '-c:v', 'libx264',
       '-pix_fmt', 'yuv420p',
+      '-color_range', 'tv',
+      '-colorspace', 'bt709',
+      '-color_primaries', 'bt709',
+      '-color_trc', 'bt709',
       '-preset', 'fast',
       '-crf', '18',
       '-c:a', 'aac',

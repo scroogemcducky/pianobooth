@@ -650,37 +650,41 @@ export async function processOneVideo(opts: Options, videoNumber?: number): Prom
   const presetIndex = Math.floor(Math.random() * COLOR_PRESETS.length)
   console.log(`${prefix}🎨 Using color preset index for this render: ${presetIndex}`)
   const browser = await chromium.launch({ headless: opts.headless, slowMo: opts.slowMo, devtools: opts.devtools })
-  const context = await browser.newContext({ viewport: { width: 1920, height: 1080 } })
-  // Preload localStorage with processed MIDI
-  console.log(`${prefix}Setting fallDuration in localStorage: ${opts.fallDuration}`)
-  await context.addInitScript((payload) => {
-    try { window.localStorage.setItem('processedMidiData', payload.data as string) } catch {}
-    try { window.localStorage.setItem('midiMeta', payload.meta as string) } catch {}
-    try {
-      window.localStorage.setItem('fallDuration', payload.fallDuration as string)
-      console.log('✅ localStorage.fallDuration set to:', payload.fallDuration)
-    } catch (e) {
-      console.error('❌ Failed to set fallDuration:', e)
-    }
-    try { window.localStorage.setItem(payload.bloomKey as string, JSON.stringify(payload.bloom)) } catch {}
-    // Tell browser to skip audio generation - we have pre-generated audio
-    try {
-      window.localStorage.setItem('preGeneratedAudioPath', payload.audioPath as string)
-      window.localStorage.setItem('skipBrowserAudio', payload.skipBrowserAudio as string)
-      console.log('✅ Pre-generated audio path set:', payload.audioPath)
-    } catch (e) {
-      console.error('❌ Failed to set audio path:', e)
-    }
-  }, {
-    data: JSON.stringify(midiObject),
-    meta: JSON.stringify({ title: metaTitle, artist }),
-    fallDuration: String(opts.fallDuration),
-    bloomKey: BLOOM_STORAGE_KEY,
-    bloom: { ...BLOOM_DEFAULTS, enabled: opts.bloom },
-    audioPath: audioGenerated ? audioPath : '',
-    skipBrowserAudio: audioGenerated ? 'true' : 'false',
-  })
-  const page = await context.newPage()
+  let context: any = null
+  let page: any = null
+  let thumbContext: any = null
+  try {
+    context = await browser.newContext({ viewport: { width: 1920, height: 1080 } })
+    // Preload localStorage with processed MIDI
+    console.log(`${prefix}Setting fallDuration in localStorage: ${opts.fallDuration}`)
+    await context.addInitScript((payload) => {
+      try { window.localStorage.setItem('processedMidiData', payload.data as string) } catch {}
+      try { window.localStorage.setItem('midiMeta', payload.meta as string) } catch {}
+      try {
+        window.localStorage.setItem('fallDuration', payload.fallDuration as string)
+        console.log('✅ localStorage.fallDuration set to:', payload.fallDuration)
+      } catch (e) {
+        console.error('❌ Failed to set fallDuration:', e)
+      }
+      try { window.localStorage.setItem(payload.bloomKey as string, JSON.stringify(payload.bloom)) } catch {}
+      // Tell browser to skip audio generation - we have pre-generated audio
+      try {
+        window.localStorage.setItem('preGeneratedAudioPath', payload.audioPath as string)
+        window.localStorage.setItem('skipBrowserAudio', payload.skipBrowserAudio as string)
+        console.log('✅ Pre-generated audio path set:', payload.audioPath)
+      } catch (e) {
+        console.error('❌ Failed to set audio path:', e)
+      }
+    }, {
+      data: JSON.stringify(midiObject),
+      meta: JSON.stringify({ title: metaTitle, artist }),
+      fallDuration: String(opts.fallDuration),
+      bloomKey: BLOOM_STORAGE_KEY,
+      bloom: { ...BLOOM_DEFAULTS, enabled: opts.bloom },
+      audioPath: audioGenerated ? audioPath : '',
+      skipBrowserAudio: audioGenerated ? 'true' : 'false',
+    })
+    page = await context.newPage()
 
   // Listen for page errors
   page.on('pageerror', (error) => {
@@ -752,26 +756,27 @@ export async function processOneVideo(opts: Options, videoNumber?: number): Prom
     return (window as any).__FINALIZATION_COMPLETE__ === true
   }, undefined, { timeout: opts.timeoutMs })
 
-  console.log(`${prefix}Finalization complete, closing browser...`)
+    console.log(`${prefix}Finalization complete, closing recording page...`)
 
-  // Close browser - this triggers the WebSocket disconnect which generates the video
-  await page.close()
-  await context.close()
-  await browser.close()
+    // Closing the page/context triggers the WebSocket disconnect which generates the video.
+    await closeWithTimeout(page.close(), 10_000, 'Recording page close')
+    page = null
+    await closeWithTimeout(context.close(), 10_000, 'Recording context close')
+    context = null
 
-  console.log(`${prefix}Waiting for video generation...`)
+    console.log(`${prefix}Waiting for video generation...`)
 
-  // Wait for new mp4 file in videos directory to stabilize
-  const newVideoPath = await waitForNewVideo(opts.publicDir, since, opts.timeoutMs)
-  console.log(`${prefix}New video detected: ${path.basename(newVideoPath)}`)
+    // Wait for new mp4 file in videos directory to stabilize
+    const newVideoPath = await waitForNewVideo(opts.publicDir, since, opts.timeoutMs)
+    console.log(`${prefix}New video detected: ${path.basename(newVideoPath)}`)
 
   // Move/rename into videos directory (only if paths differ)
-  if (path.resolve(newVideoPath) !== path.resolve(targetPath)) {
-    await fs.rename(newVideoPath, targetPath)
-    console.log(`${prefix}Saved video: ${targetPath}`)
-  } else {
-    console.log(`${prefix}Video already in correct location: ${targetPath}`)
-  }
+    if (path.resolve(newVideoPath) !== path.resolve(targetPath)) {
+      await fs.rename(newVideoPath, targetPath)
+      console.log(`${prefix}Saved video: ${targetPath}`)
+    } else {
+      console.log(`${prefix}Video already in correct location: ${targetPath}`)
+    }
 
   // Generate thumbnail for the video
   const artistSlug = slugify(artist)
@@ -839,27 +844,9 @@ export async function processOneVideo(opts: Options, videoNumber?: number): Prom
   let thumbnailsGenerated = 0
   let consecutiveNavigationFailures = 0
 
-  // Launch a single browser for all thumbnails (much faster than launching per-thumbnail).
-  // On some macOS setups, Playwright's headless Chromium can hang/timeout; fall back to headful instead of failing the whole render.
-  let thumbBrowser: Browser | null = null
-  const THUMB_BROWSER_LAUNCH_TIMEOUT_MS = 45_000
-  try {
-    // Use 2x device scale factor for higher resolution (2560x1440 effective)
-    thumbBrowser = await chromium.launch({ headless: true, timeout: THUMB_BROWSER_LAUNCH_TIMEOUT_MS })
-  } catch (error: any) {
-    console.warn(`${prefix}⚠️ Headless browser launch failed for thumbnails, retrying headful: ${error?.message || String(error)}`)
+    // Reuse the already-launched recording browser to avoid a second Playwright launch (a common source of multi-minute hangs on macOS).
     try {
-      thumbBrowser = await chromium.launch({ headless: false, timeout: THUMB_BROWSER_LAUNCH_TIMEOUT_MS })
-    } catch (error2: any) {
-      console.warn(`${prefix}⚠️ Headful browser launch also failed; skipping thumbnails: ${error2?.message || String(error2)}`)
-      thumbBrowser = null
-    }
-  }
-
-  if (thumbBrowser) {
-    let thumbContext: any = null
-    try {
-      thumbContext = await thumbBrowser.newContext({
+      thumbContext = await browser.newContext({
         viewport: { width: 1280, height: 720 },
         deviceScaleFactor: 2,
       })
@@ -895,11 +882,12 @@ export async function processOneVideo(opts: Options, videoNumber?: number): Prom
           }
         }
       }
+    } catch (error: any) {
+      console.warn(`${prefix}⚠️ Thumbnail generation skipped due to error: ${error?.message || String(error)}`)
     } finally {
       if (thumbContext) await closeWithTimeout(thumbContext.close(), 10_000, 'Thumbnail context close')
-      await closeWithTimeout(thumbBrowser.close(), 10_000, 'Thumbnail browser close')
+      thumbContext = null
     }
-  }
 
   console.log(`${prefix}Generated ${thumbnailsGenerated}/${uniqueFonts.length} thumbnails`)
 
@@ -908,7 +896,13 @@ export async function processOneVideo(opts: Options, videoNumber?: number): Prom
     try { await fs.unlink(midiPath); console.log(`${prefix}Deleted source MIDI: ${midiPath}`) } catch {}
   }
 
-  return true
+    return true
+  } finally {
+    if (page) await closeWithTimeout(page.close(), 10_000, 'Recording page close')
+    if (context) await closeWithTimeout(context.close(), 10_000, 'Recording context close')
+    if (thumbContext) await closeWithTimeout(thumbContext.close(), 10_000, 'Thumbnail context close')
+    await closeWithTimeout(browser.close(), 10_000, 'Recording browser close')
+  }
 }
 
 async function main() {
