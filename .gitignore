@@ -62,7 +62,10 @@ WEBSOCKET_COMPARISON.md
 pyproject.toml
 uv.lock
 main.py
-.python_verision
+.python-version
+
+# Local MIDI source files (JSON is generated via prebuild)
+midi/
 
 # Temporary files
 temp_frames/
