@@ -68,6 +68,9 @@ main.py
 temp_frames/
 *.mp4
 
+# MIDI files in root (keep midi/public tracked)
+/*.mid
+
 # Offline recording / large files
 soundfonts/
 temp_audio/
