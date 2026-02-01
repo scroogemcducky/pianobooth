@@ -1,7 +1,7 @@
 // Test script for WebSocket video streaming
 // Uses the same logic as render_next_video.ts but with a test MIDI file and doesn't delete it
 import path from 'node:path'
-import { processOneVideo, DEFAULTS, type Options } from './render_next_video'
+import { processOneVideo, DEFAULTS, type Options } from '../scripts/render_next_video'
 
 async function main() {
   console.log('🧪 Testing WebSocket streaming with production logic...')

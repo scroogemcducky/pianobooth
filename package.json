@@ -15,7 +15,7 @@
     "pop": "bun scripts/record_category.ts pop",
     "finnish": "bun scripts/record_category.ts finnish",
     "theme": "bun scripts/record_category.ts theme",
-    "test": "bun scripts/test_websocket_stream.ts",
+    "test": "bun tests/test_websocket_stream.ts",
     "generate:og": "bun scripts/generate_og_images.ts",
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
     "start": "wrangler dev",
