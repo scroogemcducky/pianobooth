@@ -491,21 +491,23 @@ async function buildOne(filePath: string, opts: BuildOptions) {
   let artist = guessedArtist
   let slugTitleHint: string | undefined
   let slugArtistHint: string | undefined
-  const apiKeyPresent = !!process.env.OPENAI_API_KEY
-  if (apiKeyPresent) {
+  if (opts.requireLLM) {
+    const apiKey = process.env.OPENAI_API_KEY
+    if (!apiKey) {
+      throw new Error('OPENAI_API_KEY not set but --require-llm specified')
+    }
     const refined = await aiRefineMetadata({
       filename: path.basename(filePath),
       guessedTitle,
       guessedArtist,
       trackNames,
       model: opts.llmModel,
+      apiKey,
     })
     if (refined?.title) title = refined.title
     if (refined?.artist) artist = refined.artist
     if (refined?.title_short) slugTitleHint = refined.title_short
     if (refined?.artist_short) slugArtistHint = refined.artist_short
-  } else if (opts.requireLLM) {
-    throw new Error('OPENAI_API_KEY not set but --require-llm specified')
   }
   artist = canonicalizeCommonArtistName(artist)
   title = simplifyTitle(title)
