@@ -37,13 +37,6 @@ Start the development server:
 bun run dev
 ```
 
-Build and deploy to Cloudflare Pages:
-
-```bash
-bun run build
-bun run deploy
-```
-
 Other commands:
 
 ```bash
@@ -55,6 +48,7 @@ bun run generate:og   # Generate Open Graph images
 ### Video recording commands
 
 > **Note**: The following commands (`record`, `pop`, `finnish`, `theme`, etc.) require local folders and tools — MIDI source files, FluidSynth, ffmpeg, and a Playwright-compatible browser — that are not committed to the repository. They are intended for local/offline use only.
+For the recording you need to have a separate server up when running these commands.
 
 ```bash
 bun run record          # Record the next video in the queue
