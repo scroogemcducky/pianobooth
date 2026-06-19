@@ -93,6 +93,7 @@ export type Options = {
   devMidiPath: string | null
   count: number
   fallDuration: number
+  thumbnailStyle: 'full' | 'side' | 'cutout'
 }
 
 export const DEFAULTS: Options = {
@@ -113,6 +114,7 @@ export const DEFAULTS: Options = {
   devMidiPath: null,
   count: 1,
   fallDuration: 3, // Default fall duration in seconds
+  thumbnailStyle: 'cutout',
 }
 
 const KNOWN_COMPOSERS = /(bach|beethoven|chopin|debussy|mozart|liszt|schubert|schumann|rachmaninoff|handel|haydn|tchaikovsky|gershwin)/i
@@ -269,6 +271,8 @@ async function extractTitleArtist(filePath: string): Promise<{ title: string; ar
 
 async function aiRefineMetadata(params: {
   filename: string
+  relativePath?: string
+  pathArtist?: string | null
   guessedTitle: string
   guessedArtist: string
   trackNames: string[]
@@ -277,14 +281,14 @@ async function aiRefineMetadata(params: {
 }): Promise<{ title?: string; artist?: string; title_short?: string; artist_short?: string } | null> {
   const apiKey = process.env.OPENAI_API_KEY
   if (!apiKey) return null
-  const { filename, guessedTitle, guessedArtist, trackNames } = params
+  const { filename, relativePath, pathArtist, guessedTitle, guessedArtist, trackNames } = params
   const model = params.model || 'gpt-5'
   const timeoutMs = params.timeoutMs || 30000
   try {
     const controller = new AbortController()
     const id = setTimeout(() => controller.abort(), timeoutMs)
     const system = (
-      'You are a precise metadata normalizer for classical piano MIDI files. ' +
+      'You are a precise metadata normalizer for piano MIDI files (classical, pop, film/TV themes, Finnish music). ' +
       'Respond with a strict JSON object only. ' +
       "For classical composers, use the most common short canonical name for the artist (last name only), e.g., 'Bach', 'Beethoven', 'Chopin', 'Mozart', 'Debussy', 'Liszt', 'Schubert', 'Schumann', 'Rachmaninoff', 'Handel', 'Haydn', 'Tchaikovsky', 'Gershwin'. " +
       'Return both a display title/artist and concise short variants for filenames. '
@@ -292,12 +296,18 @@ async function aiRefineMetadata(params: {
     const user = {
       instruction:
         "Given MIDI hints, return best-guess fields artist and title. " +
+        "file_path follows <category>/<Artist>/<Song>.mid for the categories pop, finnish and theme, and path_artist is taken from it. " +
+        "When path_artist is non-empty it is authoritative: the file is that artist's song, so resolve ambiguous titles to that artist's catalog " +
+        "(e.g., 'August.mid' under 'pop/Taylor Swift/' is Taylor Swift's 'August', NOT Tchaikovsky's 'August'). " +
+        "Only contradict path_artist if the MIDI metadata explicitly names a different artist. " +
         "Favor the most common short canonical name for the artist (e.g., 'Bach' not 'Johann Sebastian Bach'). " +
         "Provide short variants optimized for filenames: 'artist_short' and 'title_short'. " +
         "Do NOT include collection names like 'Well-Tempered Clavier' (WTC) or 'Book I/II' markers in title_short. " +
         "Keep catalog numbers (e.g., 'BWV 846') and key (e.g., 'in C major') when known. " +
         'If unknown, use empty string.',
       filename,
+      file_path: relativePath || '',
+      path_artist: pathArtist || '',
       guessed: { artist: guessedArtist, title: guessedTitle },
       track_names: trackNames.slice(0, 25),
       output_schema: { artist: 'string', title: 'string', artist_short: 'string', title_short: 'string' },
@@ -566,11 +576,21 @@ export async function processOneVideo(opts: Options, videoNumber?: number): Prom
   const { title: guessedTitle, artist: guessedArtist, trackNames } = await extractTitleArtist(midiPath)
   let title = guessedTitle
   let artist = guessedArtist
-  const refined = await aiRefineMetadata({ filename: path.basename(midiPath), guessedTitle, guessedArtist, trackNames, model: opts.llmModel })
+  const categoryArtist = inferCategoryArtistFromPath(midiPath)
+  const refined = await aiRefineMetadata({
+    filename: path.basename(midiPath),
+    relativePath: path.relative(process.cwd(), path.resolve(midiPath)),
+    pathArtist: categoryArtist,
+    guessedTitle,
+    guessedArtist,
+    trackNames,
+    model: opts.llmModel,
+  })
   if (refined?.title) title = refined.title
   if (refined?.artist) artist = refined.artist
-
-  const categoryArtist = inferCategoryArtistFromPath(midiPath)
+  if (categoryArtist && refined?.artist && refined.artist.trim().toLowerCase() !== categoryArtist.trim().toLowerCase()) {
+    console.warn(`${prefix}⚠️ LLM artist "${refined.artist}" disagrees with path artist "${categoryArtist}" for ${midiPath} — check the output name before publishing`)
+  }
   if (categoryArtist && (!artist || /^piano$/i.test(artist))) artist = categoryArtist
   if (categoryArtist && isNonInformativeTitle(title)) title = inferTitleFromFilename(midiPath)
 
@@ -864,6 +884,7 @@ export async function processOneVideo(opts: Options, videoNumber?: number): Prom
           timeout: 30000,
           font: fontName,
           preset: presetIndex,
+          style: opts.thumbnailStyle,
           inlineMidiData: inlineThumbnailMidiData,
         })
 
@@ -934,6 +955,10 @@ async function main() {
     else if (a === '-t' && args[i + 1]) {
       const fallDuration = parseFloat(args[++i]!)
       if (!isNaN(fallDuration) && fallDuration > 0) opts.fallDuration = fallDuration
+    }
+    else if (a === '--style' && args[i + 1]) {
+      const v = args[++i] as string
+      if (v === 'full' || v === 'side' || v === 'cutout') opts.thumbnailStyle = v
     }
     else if (a === '--dev') {
       opts.devMidiPath = path.join('midi', 'test_videos', 'test.mid')

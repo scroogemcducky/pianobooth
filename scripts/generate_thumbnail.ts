@@ -11,6 +11,7 @@ type Options = {
   headless?: boolean
   font?: string
   preset?: number
+  style?: 'full' | 'side' | 'cutout'
 }
 
 type InlineMidiData = {
@@ -51,6 +52,7 @@ export async function generateThumbnail(
       baseUrl: opts.baseUrl,
       timeout: opts.timeout,
       font: opts.font,
+      style: opts.style,
     })
 
     await browser.close()
@@ -70,7 +72,7 @@ export async function captureThumbnail(
   artistSlug: string,
   songSlug: string,
   outputPath: string,
-  options: { baseUrl: string; timeout: number; font?: string; preset?: number; inlineMidiData?: InlineMidiData }
+  options: { baseUrl: string; timeout: number; font?: string; preset?: number; style?: 'full' | 'side' | 'cutout'; inlineMidiData?: InlineMidiData }
 ): Promise<{ success: boolean; error?: string }> {
   try {
     // Ensure output directory exists
@@ -84,6 +86,7 @@ export async function captureThumbnail(
     if (typeof options.preset === 'number' && Number.isFinite(options.preset)) {
       url.searchParams.set('preset', String(options.preset))
     }
+    if (options.style) url.searchParams.set('style', options.style)
     if (options.inlineMidiData) {
       url.searchParams.set('inline', '1')
       // Avoid an extra navigation to baseUrl; set localStorage before the /thumbnail page scripts run.
@@ -135,10 +138,11 @@ async function main() {
     console.log('Usage: bun run scripts/generate_thumbnail.ts <artist-slug> <song-slug> <output-path>')
     console.log('')
     console.log('Options:')
-    console.log('  --base-url <url>  Base URL (default: http://localhost:5173)')
-    console.log('  --timeout <ms>    Timeout in milliseconds (default: 30000)')
-    console.log('  --headful         Run browser in headful mode')
-    console.log('  --preset <index>  Color preset index (default: 0)')
+    console.log('  --base-url <url>       Base URL (default: http://localhost:5173)')
+    console.log('  --timeout <ms>         Timeout in milliseconds (default: 30000)')
+    console.log('  --headful              Run browser in headful mode')
+    console.log('  --preset <index>       Color preset index (default: 0)')
+    console.log('  --style <full|side|cutout>  Image style (default: cutout)')
     console.log('')
     console.log('Example:')
     console.log('  bun run scripts/generate_thumbnail.ts bach prelude-in-c-major ./thumbnails/bach-prelude.jpg')
@@ -161,6 +165,9 @@ async function main() {
       options.headless = false
     } else if (arg === '--preset' && args[i + 1]) {
       options.preset = parseInt(args[++i], 10)
+    } else if (arg === '--style' && args[i + 1]) {
+      const v = args[++i] as string
+      if (v === 'full' || v === 'side' || v === 'cutout') options.style = v
     }
   }
 

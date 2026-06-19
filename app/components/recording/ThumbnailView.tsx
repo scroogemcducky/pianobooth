@@ -15,6 +15,13 @@ type MidiNote = {
   SoundDuration?: number
 }
 
+type CutoutOverrides = {
+  maxHeight?: string
+  maxWidth?: string
+  right?: string
+  bottom?: string
+}
+
 type Props = {
   midiObject: MidiNote[]
   title: string
@@ -24,6 +31,8 @@ type Props = {
   fontFamily?: string
   blackKeyColor?: [number, number, number]
   whiteKeyColor?: [number, number, number]
+  style?: 'full' | 'side' | 'cutout'
+  cutoutOverrides?: CutoutOverrides | null
 }
 
 // Thumbnail visualization for YouTube thumbnails (1280x720)
@@ -37,6 +46,8 @@ export default function ThumbnailView({
   fontFamily = 'EB Garamond',
   blackKeyColor,
   whiteKeyColor,
+  style = 'cutout',
+  cutoutOverrides,
 }: Props) {
   const [isReady, setIsReady] = useState(false)
   const [pianoLayout, setPianoLayout] = useState<PianoLayout>(DEFAULT_PIANO_LAYOUT)
@@ -154,11 +165,12 @@ export default function ThumbnailView({
           style={{
             position: 'absolute',
             inset: 0,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
             pointerEvents: 'none',
             zIndex: 10,
+            ...(style === 'side' ? {
+              maskImage: 'linear-gradient(to right, transparent 0%, black 55%)',
+              WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 55%)',
+            } : {}),
           }}
         >
           <img
@@ -169,9 +181,27 @@ export default function ThumbnailView({
               setImageError(true)
               setImageLoaded(true)
             }}
-            style={{
-              maxWidth: '100%',
-              maxHeight: '100%',
+            style={style === 'cutout' ? {
+              position: 'absolute',
+              right: cutoutOverrides?.right ?? '3%',
+              bottom: cutoutOverrides?.bottom ?? '0',
+              maxHeight: cutoutOverrides?.maxHeight ?? '100%',
+              maxWidth: cutoutOverrides?.maxWidth ?? '60%',
+              width: 'auto',
+              height: 'auto',
+              objectFit: 'contain',
+              objectPosition: 'right bottom',
+              filter: 'drop-shadow(0 0 12px rgba(255,255,255,0.7)) drop-shadow(0 0 4px rgba(255,255,255,0.9))',
+            } : style === 'side' ? {
+              position: 'absolute',
+              right: 0,
+              top: 0,
+              height: '100%',
+              width: 'auto',
+              objectFit: 'contain',
+              objectPosition: 'right center',
+              opacity: 0.4,
+            } : {
               width: '100%',
               height: '100%',
               objectFit: 'cover',
@@ -199,9 +229,9 @@ export default function ThumbnailView({
         <h1
           style={{
             margin: 0,
-            fontSize: '84px',
+            fontSize: '97px',
             fontWeight: 600,
-            textShadow: '0 3px 30px rgba(0,0,0,0.9), 0 1px 3px rgba(0,0,0,1)',
+            textShadow: '0 4px 36px rgba(0,0,0,1), 0 2px 6px rgba(0,0,0,1), 0 0 60px rgba(0,0,0,0.8)',
             maxWidth: '85%',
             lineHeight: 1.2,
           }}
@@ -211,9 +241,9 @@ export default function ThumbnailView({
         <p
           style={{
             marginTop: '24px',
-            fontSize: '54px',
-            color: '#cccccc',
-            textShadow: '0 2px 15px rgba(0,0,0,0.8)',
+            fontSize: '62px',
+            color: 'white',
+            textShadow: '0 4px 36px rgba(0,0,0,1), 0 2px 6px rgba(0,0,0,1), 0 0 60px rgba(0,0,0,0.8)',
           }}
         >
           {artist || ''}

@@ -69,7 +69,15 @@ midi/
 
 # Temporary files
 temp_frames/
+tmp/
+__pycache__/
 *.mp4
+
+# Local recording thumbnail source images and manifest
+recording/thumbnail_images/
+
+# Generated MIDI JSON (new files should not be tracked)
+public/public_midi_json/
 
 # MIDI files in root (keep midi/public tracked)
 /*.mid
@@ -88,3 +96,5 @@ non_finnish/
 # Local song tracking
 .song_usage.json
 .song_usage.json.tmp
+
+agent/

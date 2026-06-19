@@ -21,8 +21,20 @@ type MidiData = {
   midiObject: MidiNote[]
 }
 
+type CutoutOverrides = {
+  maxHeight?: string
+  maxWidth?: string
+  right?: string
+  bottom?: string
+}
+
+type ArtistManifestEntry = {
+  images: string[]
+  cutout?: CutoutOverrides
+}
+
 type ImageManifest = {
-  [artistSlug: string]: string[]
+  [artistSlug: string]: ArtistManifestEntry | string[]
 }
 
 type LoaderData = {
@@ -36,6 +48,8 @@ type LoaderData = {
   blackKeyColor: [number, number, number]
   whiteKeyColor: [number, number, number]
   inline: boolean
+  style: 'full' | 'side' | 'cutout'
+  cutoutOverrides: CutoutOverrides | null
 }
 
 // Constants for random position calculation
@@ -43,6 +57,7 @@ const MIN_POSITION_PERCENT = 0.20
 const MAX_POSITION_PERCENT = 0.80
 const MIDI_WINDOW_MS = 30_000
 const MIDI_MAX_NOTES = 20_000
+const RECORDING_THUMBNAIL_ASSET_PATH = '/recording-assets/thumbnail_images'
 
 export const meta: MetaFunction = () => {
   return [{ name: 'robots', content: 'noindex' }]
@@ -56,7 +71,9 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
   const inline = url.searchParams.get('inline') === '1'
 
-  // Get font from query parameter (default to EB Garamond)
+  // Get style and font from query parameters
+  const styleParam = url.searchParams.get('style')
+  const style = (styleParam === 'full' ? 'full' : styleParam === 'side' ? 'side' : 'cutout') as 'full' | 'side' | 'cutout'
   const fontFamily = url.searchParams.get('font') || 'EB Garamond'
   const presetIndex = parseColorPresetIndex(url.searchParams.get('preset'))
   const { blackKeyColor, whiteKeyColor } = getEffectivePresetColors(presetIndex)
@@ -108,17 +125,30 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
     durationMs = data.durationMs
   }
 
-  // Load artist image from manifest
+  // Load artist image and per-artist settings from manifest
   let artistImagePath: string | null = null
+  let cutoutOverrides: CutoutOverrides | null = null
   try {
-    const manifestUrl = `${url.origin}/thumbnail_images/manifest.json`
+    const manifestUrl = `${url.origin}${RECORDING_THUMBNAIL_ASSET_PATH}/manifest.json`
     const manifestRes = await fetch(manifestUrl)
     if (manifestRes.ok) {
       const manifest = (await manifestRes.json()) as ImageManifest
-      const images = manifest[artistSlug] || []
+      const entry = manifest[artistSlug]
+      let images: string[] = []
+      if (Array.isArray(entry)) {
+        images = entry
+      } else if (entry) {
+        images = entry.images || []
+        if (entry.cutout) cutoutOverrides = entry.cutout
+      }
       if (images.length > 0) {
         const randomImage = images[Math.floor(Math.random() * images.length)]
-        artistImagePath = `/thumbnail_images/${artistSlug}/${randomImage}`
+        if (style === 'cutout') {
+          const cutoutName = randomImage.replace(/\.[^.]+$/, '.png')
+          artistImagePath = `${RECORDING_THUMBNAIL_ASSET_PATH}/${artistSlug}/cutout/${cutoutName}`
+        } else {
+          artistImagePath = `${RECORDING_THUMBNAIL_ASSET_PATH}/${artistSlug}/${randomImage}`
+        }
       }
     }
   } catch {
@@ -136,6 +166,8 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
     blackKeyColor,
     whiteKeyColor,
     inline,
+    style,
+    cutoutOverrides,
   })
 }
 
@@ -205,6 +237,8 @@ export default function ThumbnailRoute() {
         fontFamily={data.fontFamily}
         blackKeyColor={data.blackKeyColor}
         whiteKeyColor={data.whiteKeyColor}
+        style={data.style}
+        cutoutOverrides={data.cutoutOverrides}
       />
     </div>
   )

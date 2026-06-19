@@ -177,12 +177,13 @@ type CliOptions = {
   model: string | null
   timeoutMs: number | null
   dryRun: boolean
+  count: number
 }
 
 function parseArgs(argv: string[]): CliOptions {
   const category = argv[0]
   if (!category) {
-    console.error('Usage: bun scripts/record_category.ts <category> [--songs-dir <dir>] [--usage-file <file>] [--base-url <url>] [--bloom|-b] [--dry-run]')
+    console.error('Usage: bun scripts/record_category.ts <category> [-n <count>] [--songs-dir <dir>] [--usage-file <file>] [--base-url <url>] [--bloom|-b] [--dry-run]')
     process.exit(2)
   }
 
@@ -196,6 +197,7 @@ function parseArgs(argv: string[]): CliOptions {
     model: null,
     timeoutMs: null,
     dryRun: false,
+    count: 1,
   }
 
   for (let i = 1; i < argv.length; i++) {
@@ -209,6 +211,15 @@ function parseArgs(argv: string[]): CliOptions {
     else if (a === '--model' && next) opts.model = next, i++
     else if (a === '--timeout-ms' && next) opts.timeoutMs = Number(next), i++
     else if (a === '--dry-run') opts.dryRun = true
+    else if ((a === '-n' || a === '--count') && next) {
+      const parsed = Number(next)
+      if (!Number.isFinite(parsed) || parsed < 1 || !Number.isInteger(parsed)) {
+        console.error(`Error: invalid --count value: ${next}`)
+        process.exit(2)
+      }
+      opts.count = parsed
+      i++
+    }
   }
 
   return opts
@@ -255,81 +266,94 @@ async function main() {
   const usage = await readUsageFile(opts.usageFile)
   const usedForCategory = new Set((usage.used[opts.category] || []).map((e) => e.midi))
 
-  const candidates = allMidis
-    .map((p) => ({ abs: p, rel: normalizeRel(p) }))
-    .filter((m) => !usedForCategory.has(m.rel))
-
-  if (!candidates.length) {
-    console.log(`No unused songs left for "${opts.category}".`)
-    process.exit(0)
-  }
-
-  const picked = candidates[Math.floor(Math.random() * candidates.length)]!
-  const { artist, song } = inferArtistAndSong(categoryDir, picked.abs)
-  const artistDirName = sanitizePathSegment(artist)
-  const songDirName = sanitizePathSegment(song)
-
   const categoryVideosDir = path.join('videos', opts.category)
-  const artistVideosDir = path.join(categoryVideosDir, artistDirName)
-  const desiredSongDir = path.join(artistVideosDir, songDirName)
-  const outFolder = await getUniqueFolderPath(path.resolve(artistVideosDir), path.basename(desiredSongDir))
 
-  console.log(`\nPicked: ${picked.rel}`)
-  console.log(`Output: ${normalizeRel(outFolder)}\n`)
+  for (let iter = 0; iter < opts.count; iter++) {
+    const candidates = allMidis
+      .map((p) => ({ abs: p, rel: normalizeRel(p) }))
+      .filter((m) => !usedForCategory.has(m.rel))
 
-  if (opts.dryRun) return
-
-  const reachable = await canReachBaseUrl(baseUrl)
-  if (!reachable) {
-    console.error(`Error: could not reach render server at ${baseUrl}`)
-    console.error(`- Start it with: bun run dev`)
-    console.error(`- Or pass a reachable URL: bun run ${opts.category} -- --base-url http://localhost:5173`)
-    process.exit(2)
-  }
-
-  await fs.mkdir(path.dirname(outFolder), { recursive: true })
-  const outFolderExisted = await fileExists(outFolder)
-
-  const fullArgs: string[] = [
-    'run',
-    'record:full',
-    '--dev-midi', picked.abs,
-    '--out-folder', outFolder,
-    '--base-url', baseUrl,
-  ]
-  if (opts.noLlm) fullArgs.push('--no-llm')
-  if (opts.model) fullArgs.push('--model', opts.model)
-  if (opts.timeoutMs) fullArgs.push('--timeout-ms', String(opts.timeoutMs))
-  if (shouldStripMetaTrailingIndex) fullArgs.push('--strip-meta-trailing-index')
-  if (opts.bloom) fullArgs.push('--bloom')
-
-  const result = await run('bun', fullArgs)
-  if (result.code !== 0) {
-    if (!outFolderExisted) {
-      try {
-        const safePrefix = path.resolve(categoryVideosDir) + path.sep
-        const resolvedOutFolder = path.resolve(outFolder)
-        if (resolvedOutFolder.startsWith(safePrefix)) {
-          const entries = await fs.readdir(resolvedOutFolder).catch(() => [])
-          if (entries.length === 0) {
-            await fs.rm(resolvedOutFolder, { recursive: true, force: true })
-          } else {
-            console.warn(`⚠️ Not deleting output folder after failure (it contains files): ${normalizeRel(resolvedOutFolder)}`)
-          }
-        }
-      } catch {}
+    if (!candidates.length) {
+      if (iter === 0) {
+        console.log(`No unused songs left for "${opts.category}".`)
+        process.exit(0)
+      }
+      console.log(`\nNo unused songs left for "${opts.category}" after ${iter} recording(s). Stopping.`)
+      return
     }
-    process.exit(result.code)
-  }
 
-  usage.used[opts.category] ||= []
-  if (!usage.used[opts.category]!.some((e) => e.midi === picked.rel)) {
-    usage.used[opts.category]!.push({
-      midi: picked.rel,
-      outFolder: normalizeRel(outFolder),
-      usedAt: new Date().toISOString(),
-    })
-    await writeUsageFile(opts.usageFile, usage)
+    if (opts.count > 1) console.log(`\n=== Recording ${iter + 1}/${opts.count} ===`)
+
+    const picked = candidates[Math.floor(Math.random() * candidates.length)]!
+    const { artist, song } = inferArtistAndSong(categoryDir, picked.abs)
+    const artistDirName = sanitizePathSegment(artist)
+    const songDirName = sanitizePathSegment(song)
+
+    const artistVideosDir = path.join(categoryVideosDir, artistDirName)
+    const desiredSongDir = path.join(artistVideosDir, songDirName)
+    const outFolder = await getUniqueFolderPath(path.resolve(artistVideosDir), path.basename(desiredSongDir))
+
+    console.log(`\nPicked: ${picked.rel}`)
+    console.log(`Output: ${normalizeRel(outFolder)}\n`)
+
+    if (opts.dryRun) {
+      usedForCategory.add(picked.rel)
+      continue
+    }
+
+    const reachable = await canReachBaseUrl(baseUrl)
+    if (!reachable) {
+      console.error(`Error: could not reach render server at ${baseUrl}`)
+      console.error(`- Start it with: bun run dev`)
+      console.error(`- Or pass a reachable URL: bun run ${opts.category} -- --base-url http://localhost:5173`)
+      process.exit(2)
+    }
+
+    await fs.mkdir(path.dirname(outFolder), { recursive: true })
+    const outFolderExisted = await fileExists(outFolder)
+
+    const fullArgs: string[] = [
+      'run',
+      'record:full',
+      '--dev-midi', picked.abs,
+      '--out-folder', outFolder,
+      '--base-url', baseUrl,
+    ]
+    if (opts.noLlm) fullArgs.push('--no-llm')
+    if (opts.model) fullArgs.push('--model', opts.model)
+    if (opts.timeoutMs) fullArgs.push('--timeout-ms', String(opts.timeoutMs))
+    if (shouldStripMetaTrailingIndex) fullArgs.push('--strip-meta-trailing-index')
+    if (opts.bloom) fullArgs.push('--bloom')
+
+    const result = await run('bun', fullArgs)
+    if (result.code !== 0) {
+      if (!outFolderExisted) {
+        try {
+          const safePrefix = path.resolve(categoryVideosDir) + path.sep
+          const resolvedOutFolder = path.resolve(outFolder)
+          if (resolvedOutFolder.startsWith(safePrefix)) {
+            const entries = await fs.readdir(resolvedOutFolder).catch(() => [])
+            if (entries.length === 0) {
+              await fs.rm(resolvedOutFolder, { recursive: true, force: true })
+            } else {
+              console.warn(`⚠️ Not deleting output folder after failure (it contains files): ${normalizeRel(resolvedOutFolder)}`)
+            }
+          }
+        } catch {}
+      }
+      process.exit(result.code)
+    }
+
+    usage.used[opts.category] ||= []
+    if (!usage.used[opts.category]!.some((e) => e.midi === picked.rel)) {
+      usage.used[opts.category]!.push({
+        midi: picked.rel,
+        outFolder: normalizeRel(outFolder),
+        usedAt: new Date().toISOString(),
+      })
+      await writeUsageFile(opts.usageFile, usage)
+    }
+    usedForCategory.add(picked.rel)
   }
 }
 

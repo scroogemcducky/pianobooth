@@ -45,10 +45,63 @@ function devServerPlugins(): Plugin[] {
         })
       },
     },
+    // Serve local-only recording thumbnail assets.
+    {
+      name: 'serve-recording-thumbnail-assets',
+      apply: 'serve',
+      configureServer(server) {
+        server.middlewares.use('/recording-assets/thumbnail_images', async (req, res, next) => {
+          const fs = await import('fs')
+          const path = await import('path')
+          const url = new URL(req.url || '', 'http://localhost')
+          const relativePath = decodeURIComponent(url.pathname).replace(/^\/+/, '')
+          const baseDir = path.resolve(process.cwd(), 'recording', 'thumbnail_images')
+          const filePath = path.resolve(baseDir, relativePath)
+
+          if (filePath !== baseDir && !filePath.startsWith(baseDir + path.sep)) {
+            next()
+            return
+          }
+
+          if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+            const ext = path.extname(filePath).toLowerCase()
+            const contentTypes: Record<string, string> = {
+              '.json': 'application/json',
+              '.jpg': 'image/jpeg',
+              '.jpeg': 'image/jpeg',
+              '.png': 'image/png',
+              '.webp': 'image/webp',
+            }
+            res.setHeader('Content-Type', contentTypes[ext] || 'application/octet-stream')
+            fs.createReadStream(filePath).pipe(res)
+          } else {
+            next()
+          }
+        })
+      },
+    },
   ];
 }
 
 export default defineConfig({
+  server: {
+    watch: {
+      ignored: [
+        '**/agent/**',
+        '**/logs/**',
+        '**/tmp/**',
+        '**/temp_audio/**',
+        '**/temp_frames/**',
+        '**/recording/thumbnail_images/**',
+        '**/videos/**',
+        '**/pop/**',
+        '**/finnish/**',
+        '**/theme/**',
+        '**/non_finnish/**',
+        '**/midi/**',
+      ],
+    },
+  },
   plugins: [
     // Only use Cloudflare plugin in production to avoid miniflare conflicts with Node.js deps
     ...(isProduction ? [cloudflare({ viteEnvironment: { name: "ssr" } })] : []),
