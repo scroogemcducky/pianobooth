@@ -9,6 +9,7 @@ dist/
 
 # Logs and diagnostics
 logs/
+state/
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -17,12 +18,22 @@ pnpm-debug.log*
 lerna-debug.log*
 .eslintcache
 
-# Environment files
+# Environment files and credentials
 .env
 .env.*
-!.env.example
-!.env.sample
 .dev.vars
+*.pem
+*.key
+*.p8
+*.p12
+*.crt
+*.cer
+*.jks
+*secret*
+*secrets*
+*credential*
+*credentials*
+*token*
 
 # OS files
 .DS_Store
@@ -48,14 +59,22 @@ Icon?
 # Local documentation
 tests.md
 
-# Agents
+# Agents and local AI tooling
 .playwright-home
 .claude
+.codex/
+AGENTS.md
 CLAUDE.md
 PLAN.md
 error.md
 todos.md
 WEBSOCKET_COMPARISON.md
+agent/
+agents/
+.flue/
+flue.config.*
+tsconfig.flue.json
+scripts/youtube-*.ts
 
 
 # Local Python tooling
@@ -96,5 +115,3 @@ non_finnish/
 # Local song tracking
 .song_usage.json
 .song_usage.json.tmp
-
-agent/

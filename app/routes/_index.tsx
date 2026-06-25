@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { DragEvent } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { Link } from 'react-router'
 import type { MetaFunction } from 'react-router'
 import useMidiStore from '../store/midiStore'
 import PlayRoute from './play'
@@ -31,8 +31,8 @@ export const meta: MetaFunction = () => {
 export default function Home() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [overlayReady, setOverlayReady] = useState(false)
+  const [hasAcceptedMidi, setHasAcceptedMidi] = useState(false)
   const setMidiStore = useMidiStore((state) => state.setMidiFile)
-  const navigate = useNavigate()
 
   useEffect(() => {
     let cancelled = false
@@ -68,9 +68,9 @@ export default function Home() {
       }
 
       setMidiStore(file)
-      navigate('/play')
+      setHasAcceptedMidi(true)
     },
-    [navigate, setMidiStore],
+    [setMidiStore],
   )
 
   const handleDrop = useCallback(
@@ -95,48 +95,50 @@ export default function Home() {
         <PlayRoute />
       </div>
 
-      <section className="pointer-events-none absolute inset-0 z-[1100] flex items-center justify-center px-6">
-        <div
-          className="pointer-events-auto isolate flex max-w-xl flex-col items-center gap-4 text-center text-white"
-          style={{
-            opacity: overlayReady ? 1 : 0,
-            transform: 'translate3d(0,0,0)',
-            backfaceVisibility: 'hidden',
-            contain: 'layout paint',
-            textShadow: '0 2px 10px rgba(0,0,0,0.9)',
-          }}
-        >
-          <input
-            type="file"
-            ref={fileInputRef}
-            accept=".mid,.midi,.kar,audio/midi,audio/x-midi,application/x-midi"
-            onChange={(event) => handleMidiFile(event.currentTarget.files?.item(0))}
-            className="hidden"
-          />
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="font-garamond text-3xl text-white hover:text-white/80 md:text-4xl"
+      {!hasAcceptedMidi && (
+        <section className="pointer-events-none absolute inset-0 z-[1100] flex items-center justify-center px-6">
+          <div
+            className="pointer-events-auto isolate flex max-w-xl flex-col items-center gap-4 text-center text-white"
+            style={{
+              opacity: overlayReady ? 1 : 0,
+              transform: 'translate3d(0,0,0)',
+              backfaceVisibility: 'hidden',
+              contain: 'layout paint',
+              textShadow: '0 2px 10px rgba(0,0,0,0.9)',
+            }}
           >
-            Drop a MIDI file here.
-          </button>
-          <p className="font-garamond text-xl text-white/80 md:text-2xl">
-            Or{' '}
-            <Link
-              to="/classical"
-              className="group relative inline-block pb-0.5 italic text-white hover:text-white/80"
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept=".mid,.midi,.kar,audio/midi,audio/x-midi,application/x-midi"
+              onChange={(event) => handleMidiFile(event.currentTarget.files?.item(0))}
+              className="hidden"
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="font-garamond text-3xl text-white hover:text-white/80 md:text-4xl"
             >
-              <span>browse classical pieces</span>
-              <span
-                aria-hidden="true"
-                className="absolute inset-x-0 bottom-0 block h-px bg-white group-hover:bg-white/80"
-                style={{ transform: 'translate3d(0,0,0)', backfaceVisibility: 'hidden' }}
-              />
-            </Link>
-            .
-          </p>
-        </div>
-      </section>
+              Drop a MIDI file here.
+            </button>
+            <p className="font-garamond text-xl text-white/80 md:text-2xl">
+              Or{' '}
+              <Link
+                to="/classical"
+                className="group relative inline-block pb-0.5 italic text-white hover:text-white/80"
+              >
+                <span>browse classical pieces</span>
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-x-0 bottom-0 block h-px bg-white group-hover:bg-white/80"
+                  style={{ transform: 'translate3d(0,0,0)', backfaceVisibility: 'hidden' }}
+                />
+              </Link>
+              .
+            </p>
+          </div>
+        </section>
+      )}
     </main>
   )
 }
