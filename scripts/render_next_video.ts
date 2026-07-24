@@ -6,7 +6,10 @@
 
 import path from 'node:path'
 import fs from 'node:fs/promises'
+import fsSync from 'node:fs'
+import os from 'node:os'
 import { createHash } from 'node:crypto'
+import Anthropic from '@anthropic-ai/sdk'
 import { chromium, type Browser } from 'playwright'
 import { spawn, type ChildProcessByStdio } from 'node:child_process'
 import type { Readable } from 'node:stream'
@@ -16,6 +19,8 @@ import { createNormalizedMidi } from './normalize_midi'
 import { captureThumbnail } from './generate_thumbnail'
 import { COLOR_PRESETS } from '../app/utils/colorPresets'
 import { BLOOM_DEFAULTS, BLOOM_STORAGE_KEY } from '../app/utils/bloomDefaults'
+
+const MIDI_EXTENSIONS = ['.mid', '.midi', '.kar']
 
 // Slugify function for generating URL-safe slugs (matches app/utils/slugify.ts)
 function slugify(value: string): string {
@@ -279,8 +284,7 @@ async function aiRefineMetadata(params: {
   model?: string
   timeoutMs?: number
 }): Promise<{ title?: string; artist?: string; title_short?: string; artist_short?: string } | null> {
-  const apiKey = process.env.OPENAI_API_KEY
-  if (!apiKey) return null
+  const openaiKey = process.env.OPENAI_API_KEY
   const { filename, relativePath, pathArtist, guessedTitle, guessedArtist, trackNames } = params
   const model = params.model || 'gpt-5'
   const timeoutMs = params.timeoutMs || 30000
@@ -312,23 +316,57 @@ async function aiRefineMetadata(params: {
       track_names: trackNames.slice(0, 25),
       output_schema: { artist: 'string', title: 'string', artist_short: 'string', title_short: 'string' },
     }
-    const resp = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model,
-        response_format: { type: 'json_object' },
-        messages: [
-          { role: 'system', content: system },
-          { role: 'user', content: JSON.stringify(user) },
-        ],
-      }),
-      signal: controller.signal,
-    })
-    clearTimeout(id)
-    if (!resp.ok) return null
-    const data = await resp.json()
-    const content = (data?.choices?.[0]?.message?.content || '').trim()
+    let content: string
+    if (openaiKey) {
+      const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${openaiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model,
+          response_format: { type: 'json_object' },
+          messages: [
+            { role: 'system', content: system },
+            { role: 'user', content: JSON.stringify(user) },
+          ],
+        }),
+        signal: controller.signal,
+      })
+      clearTimeout(id)
+      if (!resp.ok) return null
+      const data = await resp.json()
+      content = (data?.choices?.[0]?.message?.content || '').trim()
+    } else {
+      // No apiKey option: the SDK resolves ANTHROPIC_API_KEY, ANTHROPIC_AUTH_TOKEN,
+      // or an `ant auth login` profile on its own; with none of those, construction
+      // throws and we fall through to the guessed metadata.
+      const anthropic = new Anthropic({ timeout: timeoutMs })
+      const anthropicModel = model.startsWith('claude') ? model : 'claude-opus-4-8'
+      const response = await anthropic.messages.create({
+        model: anthropicModel,
+        max_tokens: 1024,
+        system,
+        output_config: {
+          format: {
+            type: 'json_schema',
+            schema: {
+              type: 'object',
+              properties: {
+                artist: { type: 'string' },
+                title: { type: 'string' },
+                artist_short: { type: 'string' },
+                title_short: { type: 'string' },
+              },
+              required: ['artist', 'title', 'artist_short', 'title_short'],
+              additionalProperties: false,
+            },
+          },
+        },
+        messages: [{ role: 'user', content: JSON.stringify(user) }],
+      })
+      clearTimeout(id)
+      const textBlock = response.content.find((block) => block.type === 'text')
+      content = (textBlock?.type === 'text' ? textBlock.text : '').trim()
+    }
     if (!content) return null
     const obj = JSON.parse(content)
     return {
@@ -339,6 +377,20 @@ async function aiRefineMetadata(params: {
     }
   } catch {
     return null
+  }
+}
+
+// Presence check only, mirroring the SDK's resolution sources (env key, auth
+// token, or an `ant auth login` profile on disk). The SDK itself only fails at
+// request time, too late for the startup gate.
+function hasAnthropicAuth(): boolean {
+  if (process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN) return true
+  const configDir =
+    process.env.ANTHROPIC_CONFIG_DIR || path.join(os.homedir(), '.config', 'anthropic')
+  try {
+    return fsSync.readdirSync(path.join(configDir, 'credentials')).some((f) => f.endsWith('.json'))
+  } catch {
+    return false
   }
 }
 
@@ -536,6 +588,23 @@ function stripTrailingIndexForDisplay(title: string): string {
   return stripped || t
 }
 
+async function hasUnsuffixedSourceSibling(filePath: string): Promise<boolean> {
+  const parsed = path.parse(path.resolve(filePath))
+  const match = parsed.name.match(/^(.*)_\d+$/)
+  const unsuffixedBase = match?.[1]
+  if (!unsuffixedBase) return false
+
+  for (const ext of MIDI_EXTENSIONS) {
+    const candidate = path.join(parsed.dir, `${unsuffixedBase}${ext}`)
+    try {
+      await fs.access(candidate)
+      return true
+    } catch {}
+  }
+
+  return false
+}
+
 export async function processOneVideo(opts: Options, videoNumber?: number): Promise<boolean> {
   const prefix = videoNumber !== undefined ? `[${videoNumber}] ` : ''
 
@@ -601,13 +670,16 @@ export async function processOneVideo(opts: Options, videoNumber?: number): Prom
   artist = canonicalizeCommonArtistName(artist || 'Piano')
 
   const fileTitle = refined?.title_short ? refined.title_short : simplifyTitle(title)
-  const displayName = sanitizeFileName(`${artist} - ${fileTitle}`)
   const midiFileBase = path.basename(midiPath, path.extname(midiPath))
   const midiHasTrailingIndex = /_\d+$/.test(midiFileBase)
-  const metaTitle =
-    opts.stripMetaTrailingIndex && midiHasTrailingIndex
+  const shouldStripSourceIndex =
+    opts.stripMetaTrailingIndex && midiHasTrailingIndex && await hasUnsuffixedSourceSibling(midiPath)
+  const displayTitle =
+    shouldStripSourceIndex
       ? stripTrailingIndexForDisplay(fileTitle)
       : fileTitle
+  const displayName = sanitizeFileName(`${artist} - ${displayTitle}`)
+  const metaTitle = displayTitle
 
   // Create a unique folder for this video inside videos/
   let videoFolderPath: string
@@ -800,7 +872,7 @@ export async function processOneVideo(opts: Options, videoNumber?: number): Prom
 
   // Generate thumbnail for the video
   const artistSlug = slugify(artist)
-  const songSlug = slugify(fileTitle)
+  const songSlug = slugify(displayTitle)
   const isCategoryMidi = isCategoryMidiPath(midiPath)
 
   // Save MIDI JSON to public_midi_json for thumbnail route to access.
@@ -815,7 +887,7 @@ export async function processOneVideo(opts: Options, videoNumber?: number): Prom
     await fs.mkdir(midiJsonDir, { recursive: true })
 
     const midiJsonData = {
-      title: fileTitle,
+      title: displayTitle,
       artist: artist,
       durationMs,
       midiSha256: midiHash,
@@ -971,8 +1043,10 @@ async function main() {
     process.exit(2)
   }
 
-  if (opts.requireLLM && !process.env.OPENAI_API_KEY) {
-    console.error('Error: OPENAI_API_KEY is required (or pass --no-llm to proceed without it).')
+  if (opts.requireLLM && !process.env.OPENAI_API_KEY && !hasAnthropicAuth()) {
+    console.error(
+      'Error: OPENAI_API_KEY or Anthropic credentials (ANTHROPIC_API_KEY / `ant auth login`) are required (or pass --no-llm to proceed without them).',
+    )
     process.exit(2)
   }
 

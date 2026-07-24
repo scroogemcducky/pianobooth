@@ -15,6 +15,7 @@ import { BLOOM_DEFAULTS, BLOOM_STORAGE_KEY } from '../app/utils/bloomDefaults'
 
 const TEASER_FADE_START_SECONDS = 40
 const TEASER_FADE_DURATION_SECONDS = 2
+const MIDI_EXTENSIONS = ['.mid', '.midi', '.kar']
 
 type Options = {
   queueDir: string
@@ -141,6 +142,23 @@ function stripTrailingIndexForDisplay(title: string): string {
   const t = (title || '').trim()
   const stripped = t.replace(/\s+\d+$/g, '').trim()
   return stripped || t
+}
+
+async function hasUnsuffixedSourceSibling(filePath: string): Promise<boolean> {
+  const parsed = path.parse(path.resolve(filePath))
+  const match = parsed.name.match(/^(.*)_\d+$/)
+  const unsuffixedBase = match?.[1]
+  if (!unsuffixedBase) return false
+
+  for (const ext of MIDI_EXTENSIONS) {
+    const candidate = path.join(parsed.dir, `${unsuffixedBase}${ext}`)
+    try {
+      await fs.access(candidate)
+      return true
+    } catch {}
+  }
+
+  return false
 }
 
 async function getUniqueFilePath(dir: string, baseName: string, ext: string): Promise<string> {
@@ -405,11 +423,13 @@ async function processOneMobileVideo(opts: Options, videoNumber?: number): Promi
   const meta = inferMetaFromFilename(originalMidiPath)
   const midiFileBase = path.basename(originalMidiPath, path.extname(originalMidiPath))
   const midiHasTrailingIndex = /_\d+$/.test(midiFileBase)
+  const shouldStripSourceIndex =
+    opts.stripMetaTrailingIndex && midiHasTrailingIndex && await hasUnsuffixedSourceSibling(originalMidiPath)
   const metaTitle =
-    opts.stripMetaTrailingIndex && midiHasTrailingIndex
+    shouldStripSourceIndex
       ? stripTrailingIndexForDisplay(meta.title)
       : meta.title
-  const displayName = sanitizeFileName(`${meta.artist} - ${meta.title}`) || `Piano - Untitled_${midiHash}`
+  const displayName = sanitizeFileName(`${meta.artist} - ${metaTitle}`) || `Piano - Untitled_${midiHash}`
 
   await fs.mkdir(opts.outDir, { recursive: true })
   const portraitTargetPath = await getUniqueFilePath(opts.outDir, displayName, '.mp4')

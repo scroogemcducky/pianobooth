@@ -15,6 +15,7 @@ type UsageFile = {
 
 const DEFAULT_USAGE_FILE = '.song_usage.json'
 const DEFAULT_BASE_URL = 'http://localhost:5173'
+const MIDI_EXTENSIONS = ['.mid', '.midi', '.kar']
 
 async function fileExists(p: string): Promise<boolean> {
   try {
@@ -76,8 +77,28 @@ function normalizeForCompare(s: string): string {
     .replace(/[^a-z0-9]+/g, '')
 }
 
-function cleanSongNameFromFileBase(fileBase: string, artist: string): string {
-  const base = stripParens(fileBase)
+function sourceMidiKey(p: string): string {
+  return path.resolve(p).toLowerCase()
+}
+
+function stripDuplicateSourceIndex(fileBase: string, midiPath: string, sourceMidiKeys: Set<string>): string {
+  const match = fileBase.match(/^(.*)_\d+$/)
+  const unsuffixedBase = match?.[1]
+  if (!unsuffixedBase) return fileBase
+
+  const dir = path.dirname(path.resolve(midiPath))
+  for (const ext of MIDI_EXTENSIONS) {
+    if (sourceMidiKeys.has(sourceMidiKey(path.join(dir, `${unsuffixedBase}${ext}`)))) {
+      return unsuffixedBase
+    }
+  }
+
+  return fileBase
+}
+
+function cleanSongNameFromFileBase(fileBase: string, artist: string, midiPath: string, sourceMidiKeys: Set<string>): string {
+  const sourceBase = stripDuplicateSourceIndex(fileBase, midiPath, sourceMidiKeys)
+  const base = stripParens(sourceBase)
     .replace(/_/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
@@ -139,18 +160,19 @@ function normalizeRel(p: string): string {
 
 const KNOWN_COMPOSERS = /(bach|beethoven|chopin|debussy|mozart|liszt|schubert|schumann|rachmaninov|rachmaninoff|handel|haydn|tchaikovsky|chaikovsky|gershwin|albeniz)/i
 
-function inferArtistAndSong(categoryDir: string, midiPath: string): { artist: string; song: string } {
+function inferArtistAndSong(categoryDir: string, midiPath: string, sourceMidiKeys: Set<string>): { artist: string; song: string } {
   const rel = path.relative(categoryDir, midiPath)
   const parts = rel.split(path.sep).filter(Boolean)
   const fileBase = path.basename(rel, path.extname(rel)) || 'Untitled'
 
   if (parts.length >= 2) {
     const artist = parts[0] || 'Unknown'
-    const song = cleanSongNameFromFileBase(fileBase, artist)
+    const song = cleanSongNameFromFileBase(fileBase, artist, midiPath, sourceMidiKeys)
     return { artist, song }
   }
 
-  const base = stripParens(fileBase.replace(/_/g, ' ').trim()).replace(/\s+/g, ' ').trim()
+  const sourceBase = stripDuplicateSourceIndex(fileBase, midiPath, sourceMidiKeys)
+  const base = stripParens(sourceBase.replace(/_/g, ' ').trim()).replace(/\s+/g, ' ').trim()
   const nameParts = base.split('-').map((p) => p.trim()).filter(Boolean)
   if (nameParts.length >= 2) {
     const first = stripParens(nameParts[0]!)
@@ -262,6 +284,7 @@ async function main() {
     console.error(`Error: no MIDI files found under: ${categoryDir}`)
     process.exit(2)
   }
+  const sourceMidiKeys = new Set(allMidis.map(sourceMidiKey))
 
   const usage = await readUsageFile(opts.usageFile)
   const usedForCategory = new Set((usage.used[opts.category] || []).map((e) => e.midi))
@@ -285,7 +308,7 @@ async function main() {
     if (opts.count > 1) console.log(`\n=== Recording ${iter + 1}/${opts.count} ===`)
 
     const picked = candidates[Math.floor(Math.random() * candidates.length)]!
-    const { artist, song } = inferArtistAndSong(categoryDir, picked.abs)
+    const { artist, song } = inferArtistAndSong(categoryDir, picked.abs, sourceMidiKeys)
     const artistDirName = sanitizePathSegment(artist)
     const songDirName = sanitizePathSegment(song)
 

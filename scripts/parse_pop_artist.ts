@@ -8,6 +8,7 @@ import { parseMidiFilePath, type MidiNote } from './parse_midi_to_json'
 
 const DEFAULT_OUT_ROOT = path.join('tmp', 'recording_midi_json', 'pop')
 const PUBLIC_MIDI_JSON_ROOT = path.resolve('public', 'public_midi_json')
+const MIDI_EXTENSIONS = ['.mid', '.midi']
 
 function slugify(s: string): string {
   return (s || '')
@@ -21,8 +22,20 @@ function slugify(s: string): string {
     .replace(/(^-|-$)/g, '')
 }
 
-function titleFromFilename(filename: string): string {
-  const base = path.basename(filename, path.extname(filename))
+function stripDuplicateSourceIndex(fileBase: string, sourceNames: Set<string>): string {
+  const match = fileBase.match(/^(.*)_\d+$/)
+  const unsuffixedBase = match?.[1]
+  if (!unsuffixedBase) return fileBase
+
+  for (const ext of MIDI_EXTENSIONS) {
+    if (sourceNames.has(`${unsuffixedBase}${ext}`.toLowerCase())) return unsuffixedBase
+  }
+
+  return fileBase
+}
+
+function titleFromFilename(filename: string, sourceNames: Set<string>): string {
+  const base = stripDuplicateSourceIndex(path.basename(filename, path.extname(filename)), sourceNames)
   // Replace underscores with spaces, clean up
   return base
     .replace(/_/g, ' ')
@@ -89,6 +102,7 @@ async function main() {
 
   const entries = await fs.readdir(srcDir)
   const midiFiles = entries.filter(f => /\.(mid|midi)$/i.test(f)).sort()
+  const sourceNames = new Set(midiFiles.map((f) => f.toLowerCase()))
 
   if (midiFiles.length === 0) {
     console.log(`No MIDI files found in ${srcDir}`)
@@ -103,7 +117,7 @@ async function main() {
 
   for (const file of midiFiles) {
     const filePath = path.join(srcDir, file)
-    const title = titleFromFilename(file)
+    const title = titleFromFilename(file, sourceNames)
     let songSlug = slugify(title)
 
     // Handle duplicate slugs by appending a number

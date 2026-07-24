@@ -25,11 +25,12 @@
     "cf-typegen": "wrangler types"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.112.3",
     "@mdi/js": "^7.4.47",
     "@mdi/react": "^1.6.1",
+    "@react-router/cloudflare": "^7.1.1",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "9",
-    "@react-router/cloudflare": "^7.1.1",
     "@tonejs/midi": "^2.0.28",
     "isbot": "^3.6.8",
     "react": "19",
