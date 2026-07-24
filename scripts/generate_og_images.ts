@@ -71,7 +71,7 @@ async function generateOGImage(
   baseUrl: string,
   timeout: number
 ): Promise<{ success: boolean; error?: string }> {
-  const { artistSlug, songSlug, title, artist } = entry
+  const { artistSlug, songSlug } = entry
   if (!artistSlug || !songSlug) {
     return { success: false, error: 'Missing artistSlug or songSlug' }
   }
@@ -187,7 +187,7 @@ async function main() {
 
   // Process entries
   const queue = [...entries]
-  const workers = pages.map(async (page, workerIndex) => {
+  const workers = pages.map(async (page) => {
     while (queue.length > 0) {
       const entry = queue.shift()
       if (!entry) break

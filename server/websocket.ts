@@ -422,11 +422,11 @@ export function setupWebSocketServer(server: any) {
           // Send progress update
           safeWsSend(ws, { type: 'frame-ack', frameNumber, totalFrames: session.frameCount })
 
-	          renderSaveProgress({ frameCount: session.frameCount, expectedFrames: session.expectedFrames })
-	        }
-	      } catch (error) {
-	        console.error('❌ Error processing message:', error)
-	        safeWsSend(ws, { type: 'error', error: error instanceof Error ? error.message : 'Unknown error' })
+            renderSaveProgress({ frameCount: session.frameCount, expectedFrames: session.expectedFrames })
+          }
+        } catch (error) {
+          console.error('❌ Error processing message:', error)
+          safeWsSend(ws, { type: 'error', error: error instanceof Error ? error.message : 'Unknown error' })
       }
     })
 

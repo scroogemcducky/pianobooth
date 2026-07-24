@@ -112,29 +112,18 @@ const normalizeOverlappingNotes = (
     return normalized;
 };
 
-const convertToNoteEventsJSON = (midi: any, microsecondsPerQuarter: number, staticMidiFileData: any) => {
-    let tickTime = microsecondsPerQuarter / staticMidiFileData.division;
-    let pianoKeys = CreateMidiNoteEventsArray(88, 21);
+const convertToNoteEventsJSON = (midi: any, _microsecondsPerQuarter: number, _staticMidiFileData: any) => {
+    const pianoKeys = CreateMidiNoteEventsArray(88, 21);
     let sustainOn = false;
     let waitingQueue: any[] = [];
-    let finalNotes: any[] = [];
-    let noteOnCount = 0;
-    let noteOffCount = 0;
-    let sustainEvents = 0;
-    let trackNoteCounts: number[] = [];
-
-    // Process tempo changes
-    const processTempoChange = (tempo: any, timePassed: number) => {
-        microsecondsPerQuarter = tempo.microsecondsPerQuarter;
-        tickTime = microsecondsPerQuarter / staticMidiFileData.division;
-    };
+    const finalNotes: any[] = [];
+    const trackNoteCounts: number[] = [];
 
     // Process sustain pedal events
     const processSustainPedal = (controlChange: any, timePassed: number) => {
         if (controlChange.number === 64) { // Sustain pedal
             const wasSustainOn = sustainOn;
             sustainOn = controlChange.value > 63;
-            sustainEvents++;
             
             if (wasSustainOn && !sustainOn) {
                 waitingQueue.forEach(note => {
@@ -169,13 +158,10 @@ const convertToNoteEventsJSON = (midi: any, microsecondsPerQuarter: number, stat
         } else {
             waitingQueue.push({...noteEvent});
         }
-        
-        noteOnCount++;
-        noteOffCount++;
     };
     
     // Process all tracks in the MIDI file
-    midi.tracks.forEach((track: any, trackIndex: number) => {
+    midi.tracks.forEach((track: any) => {
         let trackNoteCount = 0;
         const notesBefore = finalNotes.length;
         
@@ -183,13 +169,6 @@ const convertToNoteEventsJSON = (midi: any, microsecondsPerQuarter: number, stat
         track.notes.forEach((note: any) => {
             processNote(note, note.time, note.time + note.duration);
         });
-        
-        // Process tempo changes in this track
-        if (track.tempos) {
-            track.tempos.forEach((tempo: any) => {
-                processTempoChange(tempo, tempo.time * 1000000);
-            });
-        }
         
         // Process control changes (sustain pedal) in this track
         if (track.controlChanges) {

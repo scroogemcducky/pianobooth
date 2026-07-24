@@ -1,9 +1,9 @@
 // Static frozen view for testing note colors and visualization
 // Picks a random MIDI song and random time, displays frozen (no animation)
 
-import React, { useState, useEffect, useRef, useMemo } from 'react'
-import { Canvas, useThree, useFrame } from '@react-three/fiber'
-import { data as json, type LoaderFunctionArgs } from 'react-router'
+import { useState, useEffect, useRef } from 'react'
+import { Canvas, useFrame } from '@react-three/fiber'
+import { data as json } from 'react-router'
 import { useLoaderData } from 'react-router'
 import FrameBasedShaderBlocks, { type FrameBasedShaderBlocksHandle } from '../components/recording/FrameBasedShaderBlocks'
 import FrameBasedKeyController, { type FrameBasedKeyControllerHandle } from '../components/recording/FrameBasedKeyController'
@@ -31,14 +31,8 @@ interface MidiData {
   midiObject: MidiNote[]
 }
 
-interface LoaderData {
-  midiData: MidiData
-  randomTimeMs: number
-  songPath: string
-}
-
 // Server-side loader to pick random song and time
-export async function loader({ context }: LoaderFunctionArgs) {
+export async function loader() {
   // List of available songs (verified to exist in public_midi_json)
   const songs = [
     'bach/prelude-and-fugue-in-c-minor-bwv-847',
@@ -757,11 +751,8 @@ export default function RecordConstants() {
         }}
         dpr={1}
       >
-        {/* @ts-ignore */}
         <color attach="background" args={['#000000']} />
-        {/* @ts-ignore */}
         <ambientLight intensity={ambientIntensity} />
-        {/* @ts-ignore */}
         <directionalLight
           position={[directionalX, directionalY, directionalZ]}
           intensity={directionalIntensity}

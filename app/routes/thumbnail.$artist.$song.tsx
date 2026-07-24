@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { LoaderFunctionArgs, MetaFunction } from 'react-router'
-import { data as json } from 'react-router'
-import { useLoaderData } from 'react-router'
+import { data as json , useLoaderData } from 'react-router'
 import ThumbnailView from '../components/recording/ThumbnailView'
 import { getEffectivePresetColors, parseColorPresetIndex } from '../utils/colorPresets'
 

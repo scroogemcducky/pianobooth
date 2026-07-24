@@ -1,6 +1,6 @@
 import type { MetaFunction, LoaderFunctionArgs } from "react-router";
 import { Link, useLoaderData } from "react-router";
-import { allPieces, composerImages, findArtistBySlug } from "~/data/artists";
+import { composerImages, findArtistBySlug } from "~/data/artists";
 
 export const loader = ({ params }: LoaderFunctionArgs) => {
   const artistSlug = params.artist;

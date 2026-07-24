@@ -15,7 +15,7 @@ import { type ActionFunctionArgs, data as json } from 'react-router'
 import { useFetcher } from 'react-router'
 import soundFont, { Player } from 'soundfont-player'
 import { computePianoLayout, DEFAULT_PIANO_LAYOUT, type PianoLayout } from '../utils/pianoLayout'
-import { FALL_DURATION_SECONDS, setFallDuration } from '../utils/recordingConstants'
+import { setFallDuration } from '../utils/recordingConstants'
 import { COLOR_PRESETS, parseColorPresetIndex } from '../utils/colorPresets'
 import useParticleSettingsStore from '../store/particleSettingsStore'
 import { BLOOM_DEFAULTS, BLOOM_STORAGE_KEY } from '../utils/bloomDefaults'
@@ -404,12 +404,12 @@ export async function action({ request }: ActionFunctionArgs) {
     // Generate video with ffmpeg (with or without audio)
     const outputPath = path.join(process.cwd(), 'videos', `piano_video_${Date.now()}.mp4`)
     
-	    return new Promise((resolve) => {
-	      const ffmpegArgs = [
-	        '-hide_banner',
-	        '-framerate', fps.toString(),
-	        '-i', path.join(tempDir, 'frame_%06d.png')
-	      ]
+      return new Promise((resolve) => {
+        const ffmpegArgs = [
+          '-hide_banner',
+          '-framerate', fps.toString(),
+          '-i', path.join(tempDir, 'frame_%06d.png')
+        ]
       
       // Add audio input if provided
       if (audioPath) {
@@ -421,105 +421,105 @@ export async function action({ request }: ActionFunctionArgs) {
         console.log('🔇 No audio - creating video without sound')
       }
       
-	      // Video encoding settings
-	      ffmpegArgs.push(
-	        '-c:v', 'libx264',
-	        '-pix_fmt', 'yuv420p',
-	        '-preset', 'fast',
-	        '-crf', '18' // High quality
-	      )
+        // Video encoding settings
+        ffmpegArgs.push(
+          '-c:v', 'libx264',
+          '-pix_fmt', 'yuv420p',
+          '-preset', 'fast',
+          '-crf', '18' // High quality
+        )
 
-	      // Emit machine-readable progress to stderr (so we can render a single-line progress bar).
-	      ffmpegArgs.push('-progress', 'pipe:2', '-nostats')
+        // Emit machine-readable progress to stderr (so we can render a single-line progress bar).
+        ffmpegArgs.push('-progress', 'pipe:2', '-nostats')
       
       // If audio is provided, ensure video and audio are same length
       if (audioPath) {
         ffmpegArgs.push('-shortest')
       }
       
-	      ffmpegArgs.push(outputPath)
-	      
-	      const ffmpeg = spawn('ffmpeg', ffmpegArgs)
-	      const totalFrameCount = Math.max(1, frames.length)
-	      const isTTY = !!process.stdout.isTTY
-	      let buffered = ''
-	      let currentFrame = 0
-	      let currentSpeed = ''
-	      let currentOutTimeMs: number | null = null
-	      let lastRenderedAt = 0
-	      let lastLineLength = 0
+        ffmpegArgs.push(outputPath)
+        
+        const ffmpeg = spawn('ffmpeg', ffmpegArgs)
+        const totalFrameCount = Math.max(1, frames.length)
+        const isTTY = !!process.stdout.isTTY
+        let buffered = ''
+        let currentFrame = 0
+        let currentSpeed = ''
+        let currentOutTimeMs: number | null = null
+        let lastRenderedAt = 0
+        let lastLineLength = 0
 
-	      const renderProgress = () => {
-	        const now = Date.now()
-	        if (now - lastRenderedAt < 200) return
-	        lastRenderedAt = now
+        const renderProgress = () => {
+          const now = Date.now()
+          if (now - lastRenderedAt < 200) return
+          lastRenderedAt = now
 
-	        const ratio = Math.min(1, Math.max(0, currentFrame / totalFrameCount))
-	        const pct = Math.floor(ratio * 100)
-	        const width = 30
-	        const filled = Math.round(ratio * width)
-	        const bar = `${'='.repeat(filled)}${' '.repeat(Math.max(0, width - filled))}`
+          const ratio = Math.min(1, Math.max(0, currentFrame / totalFrameCount))
+          const pct = Math.floor(ratio * 100)
+          const width = 30
+          const filled = Math.round(ratio * width)
+          const bar = `${'='.repeat(filled)}${' '.repeat(Math.max(0, width - filled))}`
 
-	        const timeSeconds = typeof currentOutTimeMs === 'number' ? currentOutTimeMs / 1_000_000 : null
-	        const timeLabel = timeSeconds === null ? '' : ` t=${timeSeconds.toFixed(1)}s`
-	        const speedLabel = currentSpeed ? ` ${currentSpeed}` : ''
-	        const line = `[${bar}] ${pct}% (${currentFrame}/${totalFrameCount})${timeLabel}${speedLabel}`
+          const timeSeconds = typeof currentOutTimeMs === 'number' ? currentOutTimeMs / 1_000_000 : null
+          const timeLabel = timeSeconds === null ? '' : ` t=${timeSeconds.toFixed(1)}s`
+          const speedLabel = currentSpeed ? ` ${currentSpeed}` : ''
+          const line = `[${bar}] ${pct}% (${currentFrame}/${totalFrameCount})${timeLabel}${speedLabel}`
 
-	        if (isTTY) {
-	          const padding = lastLineLength > line.length ? ' '.repeat(lastLineLength - line.length) : ''
-	          process.stdout.write(`\r${line}${padding}`)
-	          lastLineLength = line.length
-	        } else {
-	          // Non-TTY: avoid spamming logs; print every ~10%.
-	          if (pct % 10 === 0) console.log(`ffmpeg: ${line}`)
-	        }
-	      }
+          if (isTTY) {
+            const padding = lastLineLength > line.length ? ' '.repeat(lastLineLength - line.length) : ''
+            process.stdout.write(`\r${line}${padding}`)
+            lastLineLength = line.length
+          } else {
+            // Non-TTY: avoid spamming logs; print every ~10%.
+            if (pct % 10 === 0) console.log(`ffmpeg: ${line}`)
+          }
+        }
 
-	      ffmpeg.stderr.on('data', (data) => {
-	        buffered += data.toString()
-	        let idx: number
-	        while ((idx = buffered.indexOf('\n')) !== -1) {
-	          const raw = buffered.slice(0, idx).trim()
-	          buffered = buffered.slice(idx + 1)
-	          if (!raw) continue
+        ffmpeg.stderr.on('data', (data) => {
+          buffered += data.toString()
+          let idx: number
+          while ((idx = buffered.indexOf('\n')) !== -1) {
+            const raw = buffered.slice(0, idx).trim()
+            buffered = buffered.slice(idx + 1)
+            if (!raw) continue
 
-	          // ffmpeg -progress emits key=value lines.
-	          const eq = raw.indexOf('=')
-	          if (eq > 0) {
-	            const key = raw.slice(0, eq).trim()
-	            const value = raw.slice(eq + 1).trim()
-	            if (key === 'frame') {
-	              const n = Number(value)
-	              if (Number.isFinite(n)) currentFrame = n
-	              renderProgress()
-	              continue
-	            }
-	            if (key === 'speed') {
-	              currentSpeed = value
-	              renderProgress()
-	              continue
-	            }
-	            if (key === 'out_time_ms') {
-	              const n = Number(value)
-	              if (Number.isFinite(n)) currentOutTimeMs = n
-	              renderProgress()
-	              continue
-	            }
-	            if (key === 'progress') {
-	              if (value === 'end') {
-	                currentFrame = totalFrameCount
-	                renderProgress()
-	                if (isTTY) process.stdout.write('\n')
-	              }
-	              continue
-	            }
-	            continue
-	          }
+            // ffmpeg -progress emits key=value lines.
+            const eq = raw.indexOf('=')
+            if (eq > 0) {
+              const key = raw.slice(0, eq).trim()
+              const value = raw.slice(eq + 1).trim()
+              if (key === 'frame') {
+                const n = Number(value)
+                if (Number.isFinite(n)) currentFrame = n
+                renderProgress()
+                continue
+              }
+              if (key === 'speed') {
+                currentSpeed = value
+                renderProgress()
+                continue
+              }
+              if (key === 'out_time_ms') {
+                const n = Number(value)
+                if (Number.isFinite(n)) currentOutTimeMs = n
+                renderProgress()
+                continue
+              }
+              if (key === 'progress') {
+                if (value === 'end') {
+                  currentFrame = totalFrameCount
+                  renderProgress()
+                  if (isTTY) process.stdout.write('\n')
+                }
+                continue
+              }
+              continue
+            }
 
-	          // Anything else: surface it (likely an error).
-	          console.log(`ffmpeg: ${raw}`)
-	        }
-	      })
+            // Anything else: surface it (likely an error).
+            console.log(`ffmpeg: ${raw}`)
+          }
+        })
       
       ffmpeg.on('close', async (code) => {
         // Clean up temporary files
@@ -573,7 +573,7 @@ export default function Record() {
   })()
   
   // Local state for fall duration (lookahead time)
-  const [fallDuration, setFallDurationState] = useState(initialFallDuration)
+  const [fallDuration] = useState(initialFallDuration)
   
   // Update global variable for backwards compatibility
   useEffect(() => {
@@ -593,7 +593,7 @@ export default function Record() {
   const particlesRef = useRef<FrameBasedParticlesHandle>(null)
   const midiFile = useMidiStore((state) => state.midiFile)
   const [isProcessingVideo, setIsProcessingVideo] = useState(false)
-  const [audioFile, setAudioFile] = useState<File | null>(null)
+  const [audioFile] = useState<File | null>(null)
 
   // WebSocket streaming state
   const [ws, setWs] = useState<WebSocket | null>(null)
@@ -601,7 +601,7 @@ export default function Record() {
   const [recordingSessionId, setRecordingSessionId] = useState<string | null>(null)
   const [uploadedFrameCount, setUploadedFrameCount] = useState(0)
   const [ac, setAc] = useState<AudioContext | null>(null)
-  const [instrument, setInstrument] = useState<Player | null>(null)
+  const [, setInstrument] = useState<Player | null>(null)
   const [title, setTitle] = useState('Untitled')
   const [artist, setArtist] = useState('Piano')
   const [ambientIntensity, setAmbientIntensity] = useState(11.70)
@@ -1260,66 +1260,6 @@ export default function Record() {
     }
   }
 
-  // OLD: Process frames into video using server action (DEPRECATED)
-  const processVideo = async () => {
-    setIsProcessingVideo(true)
-    
-    const formData = new FormData()
-    formData.append('frames', JSON.stringify(capturedFrames))
-    formData.append('fps', FPS.toString())
-    
-    const blobToBase64 = (blob: Blob): Promise<string> => {
-      return new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-              const base64String = (reader.result as string).split(',')[1];
-              resolve(base64String);
-          };
-          reader.onerror = reject;
-          reader.readAsDataURL(blob);
-      });
-    };
-
-    // Add audio file if selected, or generate from MIDI
-    if (audioFile) {
-      console.log(`📎 Adding uploaded audio file: ${audioFile.size} bytes`)
-      const audioBase64 = await blobToBase64(audioFile);
-      formData.append('audio_base64', audioBase64);
-    } else if (midiObject && ac && instrument) {
-      try {
-        console.log('Generating soundfont audio...')
-        const audioBlob = await generateAudioFromMIDI()
-        if (audioBlob) {
-          console.log(`📎 Converting generated audio to base64...`);
-          const audioBase64 = await blobToBase64(audioBlob);
-          formData.append('audio_base64', audioBase64);
-          console.log('✅ Generated audio converted and added to form data');
-        } else {
-          console.error('❌ Failed to generate audio blob')
-        }
-      } catch (error) {
-        console.error('❌ Failed to generate audio:', error)
-      }
-    } else {
-      console.log('⚠️ No audio will be included - missing dependencies')
-    }
-    
-    // Log total form data size
-    let totalSize = 0;
-    for (const [key, value] of formData.entries()) {
-      if (value instanceof File) {
-        totalSize += value.size;
-        console.log(`FormData entry "${key}": ${value.size} bytes (${value.type})`);
-      } else {
-        totalSize += value.length;
-        console.log(`FormData entry "${key}": ${value.length} characters`);
-      }
-    }
-    console.log(`📦 Total form data size: ${(totalSize / 1024 / 1024).toFixed(2)} MB`);
-    
-    fetcher.submit(formData, { method: 'POST' })
-  }
-
   // Handle server response (DEPRECATED - using WebSocket streaming now)
   useEffect(() => {
     if (fetcher.data) {
@@ -1525,19 +1465,16 @@ export default function Record() {
         dpr={1} // Force pixel ratio to 1 for consistent output
       >
         {/* Force an opaque canvas background so fades persist in captured frames */}
-        {/* @ts-ignore */}
         <color attach="background" args={['#000000']} />
-        {/* @ts-ignore */}
         <ambientLight intensity={ambientIntensity} /> 
-	        {/* @ts-ignore */}
-	        <directionalLight 
-	          position={[directionalX, directionalY, directionalZ]} 
-	          intensity={directionalIntensity}
-	        />
+          <directionalLight 
+            position={[directionalX, directionalY, directionalZ]} 
+            intensity={directionalIntensity}
+          />
 
-	        <RecordKeys
-	          layout={pianoLayout}
-	          scaleMultiplier={keyboardScaleOptions.multiplier}
+          <RecordKeys
+            layout={pianoLayout}
+            scaleMultiplier={keyboardScaleOptions.multiplier}
           scaleFillRatio={keyboardScaleOptions.fillRatio}
           scaleMax={keyboardScaleOptions.max}
           blackKeyColor={blackKeyColor}
@@ -1550,22 +1487,22 @@ export default function Record() {
           lookahead={fallDuration}
         />
 
-	        {midiObject && (
-		          <FrameBasedParticles
-		            ref={particlesRef}
-		            midiObject={midiObject}
-		            layout={pianoLayout}
-		            scaleMultiplier={keyboardScaleOptions.multiplier}
-		            scaleFillRatio={keyboardScaleOptions.fillRatio}
-		            scaleMax={keyboardScaleOptions.max}
-			            lookahead={fallDuration}
-			            blackKeyColor={blackKeyColor}
-			            whiteKeyColor={whiteKeyColor}
-			            settings={particleSettings}
-			            zoomAdaptive
+          {midiObject && (
+              <FrameBasedParticles
+                ref={particlesRef}
+                midiObject={midiObject}
+                layout={pianoLayout}
+                scaleMultiplier={keyboardScaleOptions.multiplier}
+                scaleFillRatio={keyboardScaleOptions.fillRatio}
+                scaleMax={keyboardScaleOptions.max}
+                  lookahead={fallDuration}
+                  blackKeyColor={blackKeyColor}
+                  whiteKeyColor={whiteKeyColor}
+                  settings={particleSettings}
+                  zoomAdaptive
                 motionScaleMultiplier={2}
-			          />
-			        )}
+                />
+              )}
 
         {midiObject && (
           <FrameBasedShaderBlocks
@@ -1591,13 +1528,13 @@ export default function Record() {
           noteStartDelayFrames={NOTE_START_DELAY_FRAMES}
           onComplete={() => finalizeRecording()}
           wsRef={wsRef}
-	          sessionId={recordingSessionId}
-	          setIsRecording={setIsRecording}
-	          blocksRef={blocksRef}
-	          keysRef={keysRef}
-	          particlesRef={particlesRef}
-	        />
-	      </Canvas>
+            sessionId={recordingSessionId}
+            setIsRecording={setIsRecording}
+            blocksRef={blocksRef}
+            keysRef={keysRef}
+            particlesRef={particlesRef}
+          />
+        </Canvas>
     </div>
   )
 }

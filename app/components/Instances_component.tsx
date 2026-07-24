@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import { ShaderMaterial } from 'three'
-import { extend, useFrame, type ThreeElements } from '@react-three/fiber'
+import { extend, useFrame } from '@react-three/fiber'
 import React, { useMemo, useRef, useEffect, type Ref } from 'react'
 import usePlayStore from '../store/playStore'
 import { BLACK_KEY_COLOR, WHITE_KEY_COLOR } from '../utils/constants'

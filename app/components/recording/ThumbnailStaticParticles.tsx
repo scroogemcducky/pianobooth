@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect } from 'react'
+import { useMemo, useEffect } from 'react'
 import * as THREE from 'three'
 import { useThree } from '@react-three/fiber'
 import { scalingFactor, isBlack } from '../../utils/functions'

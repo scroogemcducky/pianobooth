@@ -10,7 +10,7 @@ import fsSync from 'node:fs'
 import os from 'node:os'
 import { createHash } from 'node:crypto'
 import Anthropic from '@anthropic-ai/sdk'
-import { chromium, type Browser } from 'playwright'
+import { chromium } from 'playwright'
 import { spawn, type ChildProcessByStdio } from 'node:child_process'
 import type { Readable } from 'node:stream'
 
@@ -153,7 +153,7 @@ function simplifyTitle(title: string): string {
     t = t.replace(re, '').replace(/\s{2,}/g, ' ').trim()
   }
   t = t.replace(/^[\s\-:–]+/, '').replace(/[\s\-:–]+$/, '')
-  t = t.replace(/[\-–]{2,}/g, '-').replace(/\s+/g, ' ').trim()
+  t = t.replace(/[-–]{2,}/g, '-').replace(/\s+/g, ' ').trim()
   return t
 }
 
@@ -417,30 +417,6 @@ async function closeWithTimeout(promise: Promise<unknown>, ms: number, label: st
     console.warn(`⚠️ ${label} failed: ${error?.message || String(error)}`)
   } finally {
     if (timeoutId) clearTimeout(timeoutId)
-  }
-}
-
-async function getUniqueFilePath(dir: string, baseName: string, ext: string): Promise<string> {
-  // Check if base file exists
-  const basePath = path.join(dir, `${baseName}${ext}`)
-  try {
-    await fs.access(basePath)
-  } catch {
-    // File doesn't exist, use base name
-    return basePath
-  }
-
-  // File exists, find next available number
-  let counter = 2
-  while (true) {
-    const numberedPath = path.join(dir, `${baseName}_${counter}${ext}`)
-    try {
-      await fs.access(numberedPath)
-      counter++
-    } catch {
-      // This numbered path doesn't exist, use it
-      return numberedPath
-    }
   }
 }
 

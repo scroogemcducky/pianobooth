@@ -1,7 +1,5 @@
-import React from 'react'
 import type { LoaderFunctionArgs, MetaFunction } from 'react-router'
-import { data as json } from 'react-router'
-import { useLoaderData } from 'react-router'
+import { data as json , useLoaderData } from 'react-router'
 import OGImageView from '../components/og/ImageView'
 
 type MidiNote = {

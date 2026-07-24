@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
@@ -169,7 +169,7 @@ export default function SelectiveBloom({
     bloomComposer.render()
 
     for (const [obj, matAny] of swapped.entries()) {
-      ;(obj as any).material = matAny
+      (obj as any).material = matAny
     }
 
     for (const [material, saved] of originals.entries()) {

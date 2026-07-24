@@ -50,9 +50,7 @@ const getConstantDataFromMidiFile = (midi: any) => {
 // Yield helper (kept for parity with existing logic)
 const yieldToMain = () => {
   return new Promise((resolve) => {
-    // @ts-ignore requestIdleCallback may not exist in Node
     if (typeof requestIdleCallback !== 'undefined') {
-      // @ts-ignore
       requestIdleCallback(resolve)
     } else {
       setTimeout(resolve, 0)

@@ -413,15 +413,15 @@ export async function action({ request }: ActionFunctionArgs) {
     // Generate video with ffmpeg (with or without audio)
     const outputPath = path.join(process.cwd(), 'videos', `piano_video_${Date.now()}.mp4`)
     
-	    return new Promise((resolve) => {
-	      const ffmpegLogLevel = (process.env.PIANO_FFMPEG_LOGLEVEL || 'error').trim() || 'error'
-	      const ffmpegArgs = [
-	        '-hide_banner',
-	        '-loglevel', ffmpegLogLevel,
-	        '-nostats',
-	        '-framerate', fps.toString(),
-	        '-i', path.join(tempDir, 'frame_%06d.png')
-	      ]
+      return new Promise((resolve) => {
+        const ffmpegLogLevel = (process.env.PIANO_FFMPEG_LOGLEVEL || 'error').trim() || 'error'
+        const ffmpegArgs = [
+          '-hide_banner',
+          '-loglevel', ffmpegLogLevel,
+          '-nostats',
+          '-framerate', fps.toString(),
+          '-i', path.join(tempDir, 'frame_%06d.png')
+        ]
       
       // Add audio input if provided
       if (audioPath) {
@@ -448,12 +448,12 @@ export async function action({ request }: ActionFunctionArgs) {
       
       ffmpegArgs.push(outputPath)
       
-	      const ffmpeg = spawn('ffmpeg', ffmpegArgs)
-	      
-	      ffmpeg.stderr.on('data', (data) => {
-	        const line = data.toString().trim()
-	        if (line) console.log(`ffmpeg: ${line}`)
-	      })
+        const ffmpeg = spawn('ffmpeg', ffmpegArgs)
+        
+        ffmpeg.stderr.on('data', (data) => {
+          const line = data.toString().trim()
+          if (line) console.log(`ffmpeg: ${line}`)
+        })
       
       ffmpeg.on('close', async (code) => {
         // Clean up temporary files
@@ -505,7 +505,7 @@ export default function Record() {
   })()
   
   // Local state for fall duration (lookahead time)
-  const [fallDuration, setFallDurationState] = useState(initialFallDuration)
+  const [fallDuration] = useState(initialFallDuration)
   
   // Update global variable for backwards compatibility
   useEffect(() => {
@@ -525,7 +525,7 @@ export default function Record() {
   const particlesRef = useRef<FrameBasedParticlesHandle>(null)
   const midiFile = useMidiStore((state) => state.midiFile)
   const [isProcessingVideo, setIsProcessingVideo] = useState(false)
-  const [audioFile, setAudioFile] = useState<File | null>(null)
+  const [audioFile] = useState<File | null>(null)
 
   // WebSocket streaming state
   const [ws, setWs] = useState<WebSocket | null>(null)
@@ -533,7 +533,7 @@ export default function Record() {
   const [recordingSessionId, setRecordingSessionId] = useState<string | null>(null)
   const [uploadedFrameCount, setUploadedFrameCount] = useState(0)
   const [ac, setAc] = useState<AudioContext | null>(null)
-  const [instrument, setInstrument] = useState<Player | null>(null)
+  const [, setInstrument] = useState<Player | null>(null)
   const [title, setTitle] = useState('Untitled')
   const [artist, setArtist] = useState('Piano')
   const [ambientIntensity, setAmbientIntensity] = useState(11.70)
@@ -1191,67 +1191,6 @@ export default function Record() {
       ;(window as any).__FINALIZATION_COMPLETE__ = true
     }
   }
-
-  // OLD: Process frames into video using server action (DEPRECATED)
-  const processVideo = async () => {
-    setIsProcessingVideo(true)
-    
-    const formData = new FormData()
-    formData.append('frames', JSON.stringify(capturedFrames))
-    formData.append('fps', FPS.toString())
-    
-    const blobToBase64 = (blob: Blob): Promise<string> => {
-      return new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-              const base64String = (reader.result as string).split(',')[1];
-              resolve(base64String);
-          };
-          reader.onerror = reject;
-          reader.readAsDataURL(blob);
-      });
-    };
-
-    // Add audio file if selected, or generate from MIDI
-    if (audioFile) {
-      console.log(`📎 Adding uploaded audio file: ${audioFile.size} bytes`)
-      const audioBase64 = await blobToBase64(audioFile);
-      formData.append('audio_base64', audioBase64);
-    } else if (midiObject && ac && instrument) {
-      try {
-        console.log('Generating soundfont audio...')
-        const audioBlob = await generateAudioFromMIDI()
-        if (audioBlob) {
-          console.log(`📎 Converting generated audio to base64...`);
-          const audioBase64 = await blobToBase64(audioBlob);
-          formData.append('audio_base64', audioBase64);
-          console.log('✅ Generated audio converted and added to form data');
-        } else {
-          console.error('❌ Failed to generate audio blob')
-        }
-      } catch (error) {
-        console.error('❌ Failed to generate audio:', error)
-      }
-    } else {
-      console.log('⚠️ No audio will be included - missing dependencies')
-    }
-    
-    // Log total form data size
-    let totalSize = 0;
-    for (const [key, value] of formData.entries()) {
-      if (value instanceof File) {
-        totalSize += value.size;
-        console.log(`FormData entry "${key}": ${value.size} bytes (${value.type})`);
-      } else {
-        totalSize += value.length;
-        console.log(`FormData entry "${key}": ${value.length} characters`);
-      }
-    }
-    console.log(`📦 Total form data size: ${(totalSize / 1024 / 1024).toFixed(2)} MB`);
-    
-    fetcher.submit(formData, { method: 'POST' })
-  }
-
   // Handle server response (DEPRECATED - using WebSocket streaming now)
   useEffect(() => {
     if (fetcher.data) {
@@ -1457,11 +1396,8 @@ export default function Record() {
         dpr={1} // Force pixel ratio to 1 for consistent output
       >
         {/* Force an opaque canvas background so fades persist in captured frames */}
-        {/* @ts-ignore */}
         <color attach="background" args={['#000000']} />
-        {/* @ts-ignore */}
         <ambientLight intensity={ambientIntensity} /> 
-        {/* @ts-ignore */}
         <directionalLight 
           position={[directionalX, directionalY, directionalZ]} 
           intensity={directionalIntensity}

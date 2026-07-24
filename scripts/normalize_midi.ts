@@ -10,24 +10,12 @@
  * This ensures FluidSynth produces audio with identical timing to the video visualization.
  */
 
-import { Midi, Track, Header } from '@tonejs/midi'
+import { Midi } from '@tonejs/midi'
 import fs from 'node:fs/promises'
-import path from 'node:path'
 
 // Fixed tempo for normalized MIDI (in BPM)
 const NORMALIZED_BPM = 120
 // Standard ticks per quarter note
-const TICKS_PER_QUARTER = 480
-
-/**
- * Convert absolute time (seconds) to MIDI ticks at the normalized tempo
- */
-function secondsToTicks(seconds: number): number {
-  // At 120 BPM, one quarter note = 0.5 seconds
-  // So 1 second = 2 quarter notes = 2 * TICKS_PER_QUARTER ticks
-  const ticksPerSecond = (NORMALIZED_BPM / 60) * TICKS_PER_QUARTER
-  return Math.round(seconds * ticksPerSecond)
-}
 
 /**
  * Create a normalized MIDI file from parsed note data.
@@ -46,7 +34,7 @@ export async function createNormalizedMidi(
   // Create a new MIDI with fixed tempo
   const outputMidi = new Midi()
 
-  // Set up header with our normalized tempo (PPQ defaults to 480 which matches TICKS_PER_QUARTER)
+  // Set up header with our normalized tempo (PPQ defaults to 480)
   outputMidi.header.setTempo(NORMALIZED_BPM)
 
   // Create a single track for all notes

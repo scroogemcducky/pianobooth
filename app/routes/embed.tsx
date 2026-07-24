@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { MetaFunction } from 'react-router'
 import EmbeddedPlayView_component from '../components/EmbeddedPlayer'
 import useMidiStore from '../store/midiStore'
@@ -111,12 +111,6 @@ export default function EmbedRoute() {
       if (nextTitle) setTitle(nextTitle)
       if (nextArtist) setArtist(nextArtist)
     } catch {}
-  }, [title, artist])
-
-  const slug = useMemo(() => {
-    const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
-    if (!title && !artist) return ''
-    return `${slugify(title || 'untitled')}-${slugify(artist || 'piano')}`
   }, [title, artist])
 
   return (

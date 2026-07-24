@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { LoaderFunctionArgs, MetaFunction } from 'react-router'
-import { data as json } from 'react-router'
-import { useLoaderData } from 'react-router'
+import { data as json , useLoaderData } from 'react-router'
 import EmbeddedPlayView_component from '../components/EmbeddedPlayer'
 import usePlayStore from '../store/playStore'
 

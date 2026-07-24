@@ -393,7 +393,7 @@ function simplifyTitle(title: string): string {
   // Remove leftover leading/trailing punctuation from removed tokens
   t = t.replace(/^[\s\-:–]+/, '').replace(/[\s\-:–]+$/, '')
   // Collapse repeated separators
-  t = t.replace(/[\-–]{2,}/g, '-').replace(/\s+/g, ' ').trim()
+  t = t.replace(/[-–]{2,}/g, '-').replace(/\s+/g, ' ').trim()
   return t
 }
 
@@ -484,7 +484,7 @@ async function buildOne(filePath: string, opts: BuildOptions) {
   const durationMs = computeDurationMs(midiObject)
   const absPath = path.resolve(filePath)
   const externalMeta = opts.externalMeta?.get(absPath)
-  const { title: guessedTitle, artist: guessedArtist, trackNames, headerName } = await extractTitleArtistFromFile(filePath, externalMeta)
+  const { title: guessedTitle, artist: guessedArtist, trackNames } = await extractTitleArtistFromFile(filePath, externalMeta)
 
   // Optionally refine via LLM
   let title = guessedTitle

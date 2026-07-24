@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import * as THREE from 'three'
 
@@ -64,7 +64,7 @@ export default function OGImageView({ midiObject, title, artist }: Props) {
         <directionalLight position={[11, -4, 90]} intensity={0.15} />
         <EmbeddedKeys layout={pianoLayout} />
         {midiObject && midiObject.length > 0 && (
-          <OGStaticBlocks midiObject={midiObject} layout={pianoLayout} />
+          <StaticBlocks midiObject={midiObject} layout={pianoLayout} />
         )}
       </Canvas>
 

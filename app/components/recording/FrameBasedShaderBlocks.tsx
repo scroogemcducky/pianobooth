@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo, useRef, forwardRef, useImperativeHandle } from 'react'
 import * as THREE from 'three'
 import { extend, useThree } from '@react-three/fiber'
-import { factor, speed, black_width, white_width, BLACK_KEY_COLOR, WHITE_KEY_COLOR } from '../../utils/constants'
+import { speed, black_width, white_width, BLACK_KEY_COLOR, WHITE_KEY_COLOR } from '../../utils/constants'
 import { calculateHeight, isBlack, scalingFactor } from '../../utils/functions.js'
 import {
   type PianoLayout,
@@ -84,12 +84,10 @@ class CustomShaderMaterial extends THREE.ShaderMaterial {
   }
 }
 
-// Extend so JSX knows about customShaderMaterial
+// Extend so JSX knows about customShaderMaterial (R3F v9 pattern)
 declare module '@react-three/fiber' {
-  namespace JSX {
-    interface IntrinsicElements {
-      customShaderMaterial: any;
-    }
+  interface ThreeElements {
+    customShaderMaterial: ThreeElements['shaderMaterial']
   }
 }
 

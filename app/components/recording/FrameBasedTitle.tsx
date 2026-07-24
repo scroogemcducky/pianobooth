@@ -1,7 +1,7 @@
-import React, { useRef, forwardRef, useImperativeHandle, useCallback } from 'react'
+import { useRef, forwardRef, useImperativeHandle, useCallback } from 'react'
 import { Text } from '@react-three/drei'
 import { useThree } from '@react-three/fiber'
-import { Color, Mesh } from 'three'
+import { Mesh } from 'three'
 
 export interface FrameBasedTitleHandle {
   setFrame: (rawFrame: number) => void
@@ -20,14 +20,6 @@ const DEFAULT_FPS = 60
 const DISPLAY_DURATION_SECONDS = 0
 const FADE_DURATION_SECONDS = RECORD_TITLE_FADE_SECONDS
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value))
-const fadedHex = (baseHex: string, intensity: number) => {
-  const amount = clamp01(intensity)
-  if (amount >= 0.999) return baseHex
-  if (amount <= 0) return '#000000'
-  const color = new Color(baseHex)
-  color.multiplyScalar(amount)
-  return `#${color.getHexString()}`
-}
 
 const FrameBasedTitle = forwardRef<FrameBasedTitleHandle, Props>(
   function FrameBasedTitle({ title, artist, fps = DEFAULT_FPS }, ref) {

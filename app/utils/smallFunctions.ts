@@ -9,7 +9,7 @@ const getEmptyNoteEvent = (noteNumber) => {
 }
 
 const CreateEmptyArray = (Keys, startNumber) =>{
-    let Keys_Array = [];
+    const Keys_Array = [];
     for(let x = startNumber; x < Keys + startNumber; x++){
         Keys_Array.push(getEmptyNoteEvent(x));
     }
@@ -32,7 +32,7 @@ const ReadFromLocalStorageBase64 = (storageName) =>{
         const Content = base64Parts !== undefined ? base64Parts[1] : null;
         if(Content){
             const binary_string = window.atob(Content);
-            let bytes = new Uint8Array(binary_string.length);
+            const bytes = new Uint8Array(binary_string.length);
             for(let x = 0; x < binary_string.length; x++){
                 bytes[x] = binary_string.charCodeAt(x);
             }
@@ -49,8 +49,8 @@ const SaveAsBase64 = (element, storageName, json) => {
             })
         } else {
             return new Promise(resolve =>{
-                var file = element
-                var reader = new FileReader()
+                const file = element
+                const reader = new FileReader()
                 reader.onload = function(base64) {
                     if(typeof base64.target?.result == 'string')
                         localStorage.setItem(storageName, base64.target?.result);
