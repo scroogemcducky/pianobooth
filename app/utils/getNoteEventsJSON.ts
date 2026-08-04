@@ -1,12 +1,22 @@
-import { CreateMidiNoteEventsArray, getEmptyNoteEvent } from "./smallFunctions";
-
-type NoteEvent = {
+export type NoteEvent = {
     NoteNumber: number;
     Delta: number; // microseconds from start
     Duration: number; // microseconds (key-down duration)
     SoundDuration?: number; // microseconds (optional longer sounding duration)
-    Velocity?: number;
+    Velocity: number;
 };
+
+// Lowest and highest MIDI note numbers on a standard 88-key piano (A0 to C8)
+const LOWEST_PIANO_NOTE = 21;
+const PIANO_KEY_COUNT = 88;
+
+const getEmptyNoteEvent = (noteNumber: number): NoteEvent => ({
+    NoteNumber: noteNumber,
+    Velocity: -1,
+    Duration: -1,
+    SoundDuration: -1,
+    Delta: -1,
+});
 
 const normalizeOverlappingNotes = (
     notes: NoteEvent[],
@@ -113,11 +123,9 @@ const normalizeOverlappingNotes = (
 };
 
 const convertToNoteEventsJSON = (midi: any, _microsecondsPerQuarter: number, _staticMidiFileData: any) => {
-    const pianoKeys = CreateMidiNoteEventsArray(88, 21);
     let sustainOn = false;
     let waitingQueue: any[] = [];
     const finalNotes: any[] = [];
-    const trackNoteCounts: number[] = [];
 
     // Process sustain pedal events
     const processSustainPedal = (controlChange: any, timePassed: number) => {
@@ -139,9 +147,9 @@ const convertToNoteEventsJSON = (midi: any, _microsecondsPerQuarter: number, _st
 
     // Process note events
     const processNote = (note: any, startTime: number, endTime: number) => {
-        const noteNumber = note.midi - 21;
-        // Check range to avoid out of bounds error
-        if (noteNumber < 0 || noteNumber >= pianoKeys.length) {
+        const keyIndex = note.midi - LOWEST_PIANO_NOTE;
+        // Ignore notes outside the piano's range
+        if (keyIndex < 0 || keyIndex >= PIANO_KEY_COUNT) {
             return;
         }
 
@@ -162,14 +170,11 @@ const convertToNoteEventsJSON = (midi: any, _microsecondsPerQuarter: number, _st
     
     // Process all tracks in the MIDI file
     midi.tracks.forEach((track: any) => {
-        let trackNoteCount = 0;
-        const notesBefore = finalNotes.length;
-        
         // Process notes in this track
         track.notes.forEach((note: any) => {
             processNote(note, note.time, note.time + note.duration);
         });
-        
+
         // Process control changes (sustain pedal) in this track
         if (track.controlChanges) {
             // Sustain pedal is typically CC 64
@@ -179,9 +184,6 @@ const convertToNoteEventsJSON = (midi: any, _microsecondsPerQuarter: number, _st
                 });
             }
         }
-        
-        trackNoteCount = finalNotes.length - notesBefore;
-        trackNoteCounts.push(trackNoteCount);
     });
 
 
