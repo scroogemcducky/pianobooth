@@ -17,6 +17,8 @@
     ],
     "isolatedModules": true,
     "esModuleInterop": true,
+    // Scripts are run directly by bun/vite, never emitted by tsc
+    "allowImportingTsExtensions": true,
     "jsx": "react-jsx",
     "module": "ESNext",
     "moduleResolution": "Bundler",

@@ -1,4 +1,12 @@
-const getEmptyNoteEvent = (noteNumber) => {
+export type NoteEvent = {
+    NoteNumber: number;
+    Velocity: number;
+    Duration: number;
+    SoundDuration: number;
+    Delta: number;
+}
+
+const getEmptyNoteEvent = (noteNumber: number): NoteEvent => {
     return{
         NoteNumber: noteNumber,
         Velocity: -1,
@@ -8,26 +16,26 @@ const getEmptyNoteEvent = (noteNumber) => {
     }
 }
 
-const CreateEmptyArray = (Keys, startNumber) =>{
-    const Keys_Array = [];
+const CreateEmptyArray = (Keys: number, startNumber: number): NoteEvent[] =>{
+    const Keys_Array: NoteEvent[] = [];
     for(let x = startNumber; x < Keys + startNumber; x++){
         Keys_Array.push(getEmptyNoteEvent(x));
     }
     return Keys_Array;
 }
 
-const checkExtension = (file, extension) =>{
+const checkExtension = (file: File | null | undefined, extension: string): boolean =>{
     if(file){
         const ext = file.name.split('.').pop();
-        if(ext.toLowerCase() === extension.replace('.','').toLowerCase()){
+        if(ext?.toLowerCase() === extension.replace('.','').toLowerCase()){
             return true;
         }
     }
     return false;
 }
 
-const ReadFromLocalStorageBase64 = (storageName) =>{
-        const base64 = localStorage.getItem(storageName);   
+const ReadFromLocalStorageBase64 = (storageName: string): ArrayBuffer =>{
+        const base64 = localStorage.getItem(storageName);
         const base64Parts = base64?.split(',');
         const Content = base64Parts !== undefined ? base64Parts[1] : null;
         if(Content){
@@ -41,7 +49,7 @@ const ReadFromLocalStorageBase64 = (storageName) =>{
         return new ArrayBuffer(1);
 }
 
-const SaveAsBase64 = (element, storageName, json) => {
+const SaveAsBase64 = (element: unknown, storageName: string, json: boolean): Promise<boolean> => {
         if(json){
             return new Promise(resolve =>{
                 localStorage.setItem(storageName, JSON.stringify(element));
@@ -49,9 +57,9 @@ const SaveAsBase64 = (element, storageName, json) => {
             })
         } else {
             return new Promise(resolve =>{
-                const file = element
+                const file = element as Blob
                 const reader = new FileReader()
-                reader.onload = function(base64) {
+                reader.onload = function(base64: ProgressEvent<FileReader>) {
                     if(typeof base64.target?.result == 'string')
                         localStorage.setItem(storageName, base64.target?.result);
                     resolve(true);
@@ -60,11 +68,6 @@ const SaveAsBase64 = (element, storageName, json) => {
             })
     }
 }
-
-// const restoreDefaults = () =>{
-//     localStorage.setItem('options', JSON.stringify(data));
-//     window.location.reload();
-// }
 
 export {CreateEmptyArray as CreateMidiNoteEventsArray};
 export {getEmptyNoteEvent};
