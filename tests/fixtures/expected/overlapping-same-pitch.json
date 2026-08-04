@@ -1,0 +1,37 @@
+[
+  {
+    "NoteNumber": 64,
+    "Velocity": 101,
+    "Duration": 400000,
+    "SoundDuration": 400000,
+    "Delta": 0
+  },
+  {
+    "NoteNumber": 64,
+    "Velocity": 76,
+    "Duration": 600000,
+    "SoundDuration": 600000,
+    "Delta": 500000
+  },
+  {
+    "NoteNumber": 64,
+    "Velocity": 114,
+    "Duration": 500000,
+    "SoundDuration": 500000,
+    "Delta": 1200000
+  },
+  {
+    "NoteNumber": 67,
+    "Velocity": 88,
+    "Duration": 450000,
+    "SoundDuration": 450000,
+    "Delta": 2000000
+  },
+  {
+    "NoteNumber": 67,
+    "Velocity": 88,
+    "Duration": 500000,
+    "SoundDuration": 500000,
+    "Delta": 2500000
+  }
+]

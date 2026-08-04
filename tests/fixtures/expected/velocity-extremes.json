@@ -1,0 +1,23 @@
+[
+  {
+    "NoteNumber": 60,
+    "Velocity": 1,
+    "Duration": 500000,
+    "SoundDuration": 500000,
+    "Delta": 0
+  },
+  {
+    "NoteNumber": 62,
+    "Velocity": 64,
+    "Duration": 500000,
+    "SoundDuration": 500000,
+    "Delta": 500000
+  },
+  {
+    "NoteNumber": 64,
+    "Velocity": 127,
+    "Duration": 500000,
+    "SoundDuration": 500000,
+    "Delta": 1000000
+  }
+]

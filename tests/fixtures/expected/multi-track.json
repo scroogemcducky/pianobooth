@@ -1,0 +1,58 @@
+[
+  {
+    "NoteNumber": 72,
+    "Velocity": 114,
+    "Duration": 400000,
+    "SoundDuration": 400000,
+    "Delta": 0
+  },
+  {
+    "NoteNumber": 48,
+    "Velocity": 76,
+    "Duration": 450000,
+    "SoundDuration": 450000,
+    "Delta": 0
+  },
+  {
+    "NoteNumber": 73,
+    "Velocity": 114,
+    "Duration": 400000,
+    "SoundDuration": 400000,
+    "Delta": 500000
+  },
+  {
+    "NoteNumber": 47,
+    "Velocity": 76,
+    "Duration": 449999,
+    "SoundDuration": 449999,
+    "Delta": 500000
+  },
+  {
+    "NoteNumber": 74,
+    "Velocity": 114,
+    "Duration": 399999,
+    "SoundDuration": 399999,
+    "Delta": 1000000
+  },
+  {
+    "NoteNumber": 46,
+    "Velocity": 76,
+    "Duration": 449999,
+    "SoundDuration": 449999,
+    "Delta": 1000000
+  },
+  {
+    "NoteNumber": 75,
+    "Velocity": 114,
+    "Duration": 399999,
+    "SoundDuration": 399999,
+    "Delta": 1500000
+  },
+  {
+    "NoteNumber": 45,
+    "Velocity": 76,
+    "Duration": 449999,
+    "SoundDuration": 449999,
+    "Delta": 1500000
+  }
+]
