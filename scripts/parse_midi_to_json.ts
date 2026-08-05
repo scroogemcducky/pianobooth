@@ -10,43 +10,7 @@ const readMidiFromArrayBuffer = async (arrayBuffer: ArrayBuffer) => {
   return midi
 }
 
-interface TimeSignature {
-  numerator: number
-  denominator: number
-  metronome: number
-  thirtyseconds: number
-}
-
 // Same constant extraction as app/utils/MidiParser.ts
-const getConstantDataFromMidiFile = (midi: any) => {
-  const { header } = midi
-
-  // Tone.js provides time signature data per track as events
-  let timeSignature: TimeSignature | undefined
-
-  // Look for time signature in tracks
-  for (const track of midi.tracks) {
-    if (track.timeSignatures && track.timeSignatures.length > 0) {
-      const ts = track.timeSignatures[0]
-      timeSignature = {
-        numerator: ts.numerator,
-        denominator: ts.denominator,
-        metronome: ts.metronome ?? 24,
-        thirtyseconds: ts.thirtyseconds ?? 8,
-      }
-      break
-    }
-  }
-
-  return {
-    denominator: timeSignature?.denominator ?? 4,
-    numerator: timeSignature?.numerator ?? 4,
-    metronome: timeSignature?.metronome ?? 24,
-    thirtyseconds: timeSignature?.thirtyseconds ?? 8,
-    division: header.ticksPerQuarter,
-  }
-}
-
 // Yield helper (kept for parity with existing logic)
 const yieldToMain = () => {
   return new Promise((resolve) => {
@@ -70,9 +34,8 @@ export type MidiNote = {
 export async function parseMidiArrayBuffer(arrayBuffer: ArrayBuffer): Promise<MidiNote[]> {
   await yieldToMain()
   const midiObject = await readMidiFromArrayBuffer(arrayBuffer)
-  const constantData = getConstantDataFromMidiFile(midiObject)
   await yieldToMain()
-  const noteEvents = ConvertToNoteEventsJSON(midiObject, 500000, constantData)
+  const noteEvents = ConvertToNoteEventsJSON(midiObject)
   return noteEvents
 }
 

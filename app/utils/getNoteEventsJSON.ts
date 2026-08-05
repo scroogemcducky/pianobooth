@@ -1,9 +1,8 @@
 import type { Midi, Track } from '@tonejs/midi';
 
-// `Note` and `ControlChange` are not re-exported from the package root, so derive
-// them from `Track` rather than deep-importing into the package's dist/ folder.
+// `Note` is not re-exported from the package root, so derive it from `Track`
+// rather than deep-importing into the package's dist/ folder.
 type ToneNote = Track['notes'][number];
-type ToneControlChange = Track['controlChanges'][number][number];
 
 export type NoteEvent = {
     NoteNumber: number;
@@ -13,17 +12,12 @@ export type NoteEvent = {
     Velocity: number;
 };
 
-// Lowest and highest MIDI note numbers on a standard 88-key piano (A0 to C8)
+// Lowest MIDI note on a standard 88-key piano (A0); the range runs to C8.
 const LOWEST_PIANO_NOTE = 21;
 const PIANO_KEY_COUNT = 88;
-
-const getEmptyNoteEvent = (noteNumber: number): NoteEvent => ({
-    NoteNumber: noteNumber,
-    Velocity: -1,
-    Duration: -1,
-    SoundDuration: -1,
-    Delta: -1,
-});
+// MIDI data bytes are 7-bit, so velocity tops out at 127.
+const MAX_MIDI_VELOCITY = 127;
+const MICROSECONDS_PER_SECOND = 1000000;
 
 const normalizeOverlappingNotes = (
     notes: NoteEvent[],
@@ -129,70 +123,35 @@ const normalizeOverlappingNotes = (
     return normalized;
 };
 
-const convertToNoteEventsJSON = (midi: Midi, _microsecondsPerQuarter: number, _staticMidiFileData: unknown) => {
-    let sustainOn = false;
-    let waitingQueue: NoteEvent[] = [];
+// Sustain (CC64) is intentionally ignored: Duration drives the visual falling
+// blocks, and pedal-extended notes would overlap. Audio is rendered separately by
+// FluidSynth from the source .mid, which applies the pedal itself.
+const convertToNoteEventsJSON = (midi: Midi) => {
     const finalNotes: NoteEvent[] = [];
 
-    // Process sustain pedal events
-    const processSustainPedal = (controlChange: ToneControlChange, timePassed: number) => {
-        if (controlChange.number === 64) { // Sustain pedal
-            const wasSustainOn = sustainOn;
-            sustainOn = controlChange.value > 63;
-            
-            if (wasSustainOn && !sustainOn) {
-                waitingQueue.forEach(note => {
-                    note.SoundDuration = Math.floor(timePassed - note.Delta);
-                    if (note.Velocity && note.Delta >= 0) {
-                        finalNotes.push(note);
-                    }
-                });
-                waitingQueue = [];
-            }
-        }
-    };
-
-    // Process note events
-    const processNote = (note: ToneNote, startTime: number, endTime: number) => {
+    // Note timings come from Tone.js, which has already applied the file's tempo map.
+    const processNote = (note: ToneNote) => {
         const keyIndex = note.midi - LOWEST_PIANO_NOTE;
         // Ignore notes outside the piano's range
         if (keyIndex < 0 || keyIndex >= PIANO_KEY_COUNT) {
             return;
         }
 
-        const noteEvent = getEmptyNoteEvent(note.midi);
-        noteEvent.Delta = Math.floor(startTime * 1000000); // Convert to microseconds
-        noteEvent.Duration = Math.floor((endTime - startTime) * 1000000); // Convert to microseconds
-        noteEvent.Velocity = Math.floor(note.velocity * 127); // Convert from 0-1 to 0-127
-
-        if (!sustainOn) {
-            noteEvent.SoundDuration = noteEvent.Duration;
-            if (noteEvent.Velocity && noteEvent.Delta >= 0) {
-                finalNotes.push({...noteEvent});
-            }
-        } else {
-            waitingQueue.push({...noteEvent});
-        }
-    };
-    
-    // Process all tracks in the MIDI file
-    midi.tracks.forEach((track: Track) => {
-        // Process notes in this track
-        track.notes.forEach((note: ToneNote) => {
-            processNote(note, note.time, note.time + note.duration);
+        // Key order matches the previously generated JSON so regenerating the
+        // catalog produces byte-identical files.
+        const duration = Math.floor(note.duration * MICROSECONDS_PER_SECOND);
+        finalNotes.push({
+            NoteNumber: note.midi,
+            Velocity: Math.floor(note.velocity * MAX_MIDI_VELOCITY),
+            Duration: duration,
+            SoundDuration: duration,
+            Delta: Math.floor(note.time * MICROSECONDS_PER_SECOND),
         });
+    };
 
-        // Process control changes (sustain pedal) in this track
-        if (track.controlChanges) {
-            // Sustain pedal is typically CC 64
-            if (track.controlChanges[64]) {
-                track.controlChanges[64].forEach((cc: ToneControlChange) => {
-                    processSustainPedal(cc, cc.time * 1000000);
-                });
-            }
-        }
-    });
-
+    for (const track of midi.tracks) {
+        track.notes.forEach(processNote);
+    }
 
     const sortedNotes = finalNotes.sort((a, b) => a.Delta - b.Delta);
     if (sortedNotes.length > 0) {
@@ -203,7 +162,7 @@ const convertToNoteEventsJSON = (midi: Midi, _microsecondsPerQuarter: number, _s
     }
 
     // Learning-mode normalization: prevent overlapping same-pitch notes from conflicting in the player.
-    return normalizeOverlappingNotes(sortedNotes as NoteEvent[]);
+    return normalizeOverlappingNotes(sortedNotes);
 };
 
 export default convertToNoteEventsJSON;
