@@ -1,3 +1,10 @@
+import type { Midi, Track } from '@tonejs/midi';
+
+// `Note` and `ControlChange` are not re-exported from the package root, so derive
+// them from `Track` rather than deep-importing into the package's dist/ folder.
+type ToneNote = Track['notes'][number];
+type ToneControlChange = Track['controlChanges'][number][number];
+
 export type NoteEvent = {
     NoteNumber: number;
     Delta: number; // microseconds from start
@@ -122,13 +129,13 @@ const normalizeOverlappingNotes = (
     return normalized;
 };
 
-const convertToNoteEventsJSON = (midi: any, _microsecondsPerQuarter: number, _staticMidiFileData: any) => {
+const convertToNoteEventsJSON = (midi: Midi, _microsecondsPerQuarter: number, _staticMidiFileData: unknown) => {
     let sustainOn = false;
-    let waitingQueue: any[] = [];
-    const finalNotes: any[] = [];
+    let waitingQueue: NoteEvent[] = [];
+    const finalNotes: NoteEvent[] = [];
 
     // Process sustain pedal events
-    const processSustainPedal = (controlChange: any, timePassed: number) => {
+    const processSustainPedal = (controlChange: ToneControlChange, timePassed: number) => {
         if (controlChange.number === 64) { // Sustain pedal
             const wasSustainOn = sustainOn;
             sustainOn = controlChange.value > 63;
@@ -146,7 +153,7 @@ const convertToNoteEventsJSON = (midi: any, _microsecondsPerQuarter: number, _st
     };
 
     // Process note events
-    const processNote = (note: any, startTime: number, endTime: number) => {
+    const processNote = (note: ToneNote, startTime: number, endTime: number) => {
         const keyIndex = note.midi - LOWEST_PIANO_NOTE;
         // Ignore notes outside the piano's range
         if (keyIndex < 0 || keyIndex >= PIANO_KEY_COUNT) {
@@ -169,9 +176,9 @@ const convertToNoteEventsJSON = (midi: any, _microsecondsPerQuarter: number, _st
     };
     
     // Process all tracks in the MIDI file
-    midi.tracks.forEach((track: any) => {
+    midi.tracks.forEach((track: Track) => {
         // Process notes in this track
-        track.notes.forEach((note: any) => {
+        track.notes.forEach((note: ToneNote) => {
             processNote(note, note.time, note.time + note.duration);
         });
 
@@ -179,7 +186,7 @@ const convertToNoteEventsJSON = (midi: any, _microsecondsPerQuarter: number, _st
         if (track.controlChanges) {
             // Sustain pedal is typically CC 64
             if (track.controlChanges[64]) {
-                track.controlChanges[64].forEach((cc: any) => {
+                track.controlChanges[64].forEach((cc: ToneControlChange) => {
                     processSustainPedal(cc, cc.time * 1000000);
                 });
             }
