@@ -98,6 +98,7 @@ export default function ShaderBlocks({
           scaleFactor={scaleFactor}
           onTimeUpdate={onTimeUpdate}
           visualizerRef={visualizerRef}
+          songToken={midiObject}
         />
       ) : null}
     </>

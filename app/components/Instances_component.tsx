@@ -36,6 +36,9 @@ export interface CustomGeometryParticlesProps {
   scaleFactor?: number
   onTimeUpdate?: (timeMs: number) => void
   visualizerRef?: Ref<VisualizerHandle>
+  // Identity changes when a different piece is loaded, which rewinds playback.
+  // Deliberately not derived from `blocks`, which is also rebuilt on resize.
+  songToken?: unknown
 }
 
 export type VisualizerHandle = {
@@ -94,6 +97,7 @@ const CustomGeometryParticles: React.FC<CustomGeometryParticlesProps> = ({
   scaleFactor = 1,
   onTimeUpdate,
   visualizerRef,
+  songToken,
 }) => {
   const playing = usePlayStore((state) => state.playing)
   const speed = usePlayStore((state) => state.speed)
@@ -119,7 +123,27 @@ const CustomGeometryParticles: React.FC<CustomGeometryParticlesProps> = ({
     instancedGeometry.setAttribute('isBlackKey', new THREE.InstancedBufferAttribute(new Float32Array(count), 1))
     instancedGeometry.instanceCount = count
     return instancedGeometry
-  }, [])
+    // Rebuild only when the note count changes; the effect below refills the
+    // existing buffers in place when block contents change.
+  }, [blocks.length])
+
+  // The geometry is handed to R3F via <primitive>, which means we own it: R3F
+  // only auto-disposes objects it created itself, so release the GPU buffers
+  // when this geometry is replaced or the component unmounts.
+  useEffect(() => {
+    if (!geometry) return
+    return () => geometry.dispose()
+  }, [geometry])
+
+  // Rewind when a different piece is loaded, so playback time, the next-note
+  // cursor and the shader's scroll offset all start from zero together.
+  useEffect(() => {
+    timeRef.current = 0
+    indexRef.current = 0
+    if (materialRef.current) materialRef.current.uniforms.uAccum.value = 0
+    onTimeUpdate?.(0)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [songToken])
 
   useEffect(() => {
     if (!geometry) return
