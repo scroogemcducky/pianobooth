@@ -22,6 +22,13 @@ const KEY_X_OFFSETS = [
   BASE_KEY_OFFSET + 6 * WHITE_KEY_WIDTH, // B
 ]
 
+// TODO: This range (24-107) is narrower than the parser's (21-108, see
+// getNoteEventsJSON), because the keyboard is built from whole 12-note octaves.
+// ~230 notes across 56 catalog files sit at MIDI 21-23 and get clamped to 24 by
+// clampNote below, so they render on the wrong key. Fix by supporting partial
+// octaves at both ends, then share one range constant between the two modules -
+// at which point clampNote in getNoteXPosition becomes unnecessary, since the
+// parser already drops anything off the keyboard.
 export const MIN_MIDI_NOTE = 24
 export const MAX_MIDI_NOTE = 107
 const MIN_OCTAVE_INDEX = Math.floor((MIN_MIDI_NOTE - BASE_NOTE_NUMBER) / 12)
