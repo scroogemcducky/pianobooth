@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { Ref } from 'react'
-import InstancedShaderRectangles, { VisualizerHandle } from './Instances_component'
+import InstancedShaderRectangles, { PLAYBACK_TAIL_MS, VisualizerHandle } from './Instances_component'
 import { black_width, white_width, white_color, black_color } from '../utils/constants'
 import usePlayStore from '../store/playStore'
 import { calculateHeight, isBlack, groupByDelta, scalingFactor } from '../utils/functions.js'
@@ -80,7 +80,7 @@ export default function ShaderBlocks({
     setNotes(preparedNotes)
 
     if (onPrepared && preparedNotes.length) {
-      const durationMs = preparedNotes[preparedNotes.length - 1] + 2000 // add small tail
+      const durationMs = preparedNotes[preparedNotes.length - 1] + PLAYBACK_TAIL_MS
       onPrepared({ durationMs, firstNoteMs: preparedNotes[0] })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

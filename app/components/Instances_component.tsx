@@ -46,6 +46,11 @@ export type VisualizerHandle = {
   getCurrentTimeMs: () => number
 }
 
+// Silence kept after the last note so it can finish falling and sounding before
+// playback stops. Also sets the timeline's maximum, so the scrubber reaching the
+// end and playback stopping happen together.
+export const PLAYBACK_TAIL_MS = 2000
+
 const fragmentShader = /* glsl */ `
   varying float vIsBlackKey;
   void main() {
@@ -135,13 +140,19 @@ const CustomGeometryParticles: React.FC<CustomGeometryParticlesProps> = ({
     return () => geometry.dispose()
   }, [geometry])
 
-  // Rewind when a different piece is loaded, so playback time, the next-note
-  // cursor and the shader's scroll offset all start from zero together.
-  useEffect(() => {
+  // Return playback time, the next-note cursor and the shader's scroll offset to
+  // the start together, so they can never drift apart.
+  const rewind = () => {
     timeRef.current = 0
     indexRef.current = 0
     if (materialRef.current) materialRef.current.uniforms.uAccum.value = 0
     onTimeUpdate?.(0)
+  }
+
+  // Rewind when a different piece is loaded. `rewind` is intentionally not a
+  // dependency: callers pass an inline onTimeUpdate, so it changes every render.
+  useEffect(() => {
+    rewind()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [songToken])
 
@@ -201,6 +212,10 @@ const CustomGeometryParticles: React.FC<CustomGeometryParticlesProps> = ({
   const speedAdjusted = useMemo(() => speed * distance / lookahead, [speed, distance, lookahead])
   const speed_ms = useMemo(() => speed * 1000, [speed])
   const block_duration_factor = useMemo(() => 1000 / speed, [speed])
+  const endMs = useMemo(
+    () => (notes.length ? notes[notes.length - 1] + PLAYBACK_TAIL_MS : 0),
+    [notes],
+  )
 
   useFrame((_, delta) => {
     if (!materialRef.current) return
@@ -216,6 +231,13 @@ const CustomGeometryParticles: React.FC<CustomGeometryParticlesProps> = ({
         })
         indexRef.current++
         nextNoteTime = notes[indexRef.current]
+      }
+
+      // The piece has finished: stop cleanly and return to the start so the
+      // play button reflects reality and pressing it plays again from the top.
+      if (endMs > 0 && timeRef.current >= endMs) {
+        usePlayStore.getState().setPlaying(false)
+        rewind()
       }
     }
     // Throttle progress updates to ~20fps
@@ -233,7 +255,7 @@ const CustomGeometryParticles: React.FC<CustomGeometryParticlesProps> = ({
   return (
     <mesh>
       <primitive object={geometry} attach="geometry" />
-      <customShaderMaterial ref={materialRef as any} key={blocks.length} />
+      <customShaderMaterial ref={materialRef as any} />
     </mesh>
   )
 }
