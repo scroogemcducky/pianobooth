@@ -90,6 +90,11 @@ type SettingsButtonProps = {
   onClick?: () => void
 }
 
+// Particle tuning and note lookahead are authoring tools, not player features.
+// `import.meta.env.DEV` is replaced at build time, so these drop out of the
+// production bundle entirely; playback speed is the only shipped control.
+const SHOW_DEV_SETTINGS = import.meta.env.DEV
+
 const SettingsButton = ({ onClick }: SettingsButtonProps) => {
   const isHydrated = useHydrated();
   const [isOpen, setIsOpen] = useState(false);
@@ -198,6 +203,7 @@ const SettingsButton = ({ onClick }: SettingsButtonProps) => {
       )}
       {isOpen && (
         <div className="settings-menu bg-black/80 text-white rounded-lg shadow-2xl p-4 w-80 max-h-[80vh] overflow-y-auto backdrop-blur-md border border-white/20">
+          {SHOW_DEV_SETTINGS && (
           <div className="mb-4">
             <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] mb-2">
               <span className="text-white/70">Presets</span>
@@ -228,6 +234,7 @@ const SettingsButton = ({ onClick }: SettingsButtonProps) => {
               ))}
             </div>
           </div>
+          )}
           <ul className="space-y-3">
             <li className="border-b border-white/20 pb-3">
               <div className="flex items-center justify-between text-xs uppercase tracking-wide mb-2">
@@ -245,6 +252,7 @@ const SettingsButton = ({ onClick }: SettingsButtonProps) => {
                 className="w-full accent-white"
               />
             </li>
+            {SHOW_DEV_SETTINGS && (
             <li className="border-b border-white/20 pb-3">
               <div className="flex items-center justify-between text-xs uppercase tracking-wide mb-2">
                 <span>Note Lookahead</span>
@@ -261,6 +269,8 @@ const SettingsButton = ({ onClick }: SettingsButtonProps) => {
                 className="w-full accent-white"
               />
             </li>
+            )}
+            {SHOW_DEV_SETTINGS && (
             <li className="border-b border-white/20 pb-3 flex items-center justify-between text-white text-xs uppercase tracking-wide gap-4">
               <span>Particles</span>
               <label className="flex items-center gap-2 text-white text-sm">
@@ -273,9 +283,10 @@ const SettingsButton = ({ onClick }: SettingsButtonProps) => {
                 <span>{particlesEnabled ? 'On' : 'Off'}</span>
               </label>
             </li>
+            )}
           </ul>
 
-          {particlesEnabled && (
+          {SHOW_DEV_SETTINGS && particlesEnabled && (
             <div className="mt-4 space-y-4">
               <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em]">
                 <span className="text-white/70">Particle Controls</span>
