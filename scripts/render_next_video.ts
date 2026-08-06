@@ -17,6 +17,7 @@ import type { Readable } from 'node:stream'
 import { parseMidiFilePath, type MidiNote } from './parse_midi_to_json'
 import { createNormalizedMidi } from './normalize_midi'
 import { captureThumbnail } from './generate_thumbnail'
+import { appendPianoboothEndCard } from './append_pianobooth_end_card'
 import { COLOR_PRESETS } from '../app/utils/colorPresets'
 import { BLOOM_DEFAULTS, BLOOM_STORAGE_KEY } from '../app/utils/bloomDefaults'
 
@@ -845,6 +846,16 @@ export async function processOneVideo(opts: Options, videoNumber?: number): Prom
     } else {
       console.log(`${prefix}Video already in correct location: ${targetPath}`)
     }
+
+    console.log(`${prefix}Adding Pianobooth end card...`)
+    await appendPianoboothEndCard({
+      inputPath: targetPath,
+      width: 1920,
+      height: 1080,
+      fps: 60,
+      fontSize: 150,
+    })
+    console.log(`${prefix}Pianobooth end card added.`)
 
   // Generate thumbnail for the video
   const artistSlug = slugify(artist)

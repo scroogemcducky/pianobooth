@@ -15,6 +15,9 @@ import { BLOOM_DEFAULTS, BLOOM_STORAGE_KEY } from '../app/utils/bloomDefaults'
 
 const TEASER_FADE_START_SECONDS = 40
 const TEASER_FADE_DURATION_SECONDS = 2
+const END_CARD_DURATION_SECONDS = 2.5
+const END_CARD_FADE_SECONDS = 0.45
+const END_CARD_FONT_PATH = path.join(process.cwd(), 'public/fonts/EBGaramond-VariableFont_wght.ttf')
 const MIDI_EXTENSIONS = ['.mid', '.midi', '.kar']
 
 type Options = {
@@ -358,21 +361,50 @@ async function createTeaserVideo(params: {
   maxDurationSeconds: number
 }): Promise<void> {
   const hasAudio = await probeHasAudio(params.inputPath)
+  await fs.access(END_CARD_FONT_PATH)
+
   await new Promise<void>((resolve, reject) => {
-    // Convert to limited range and tag bt709 for consistent playback after YouTube transcode.
-    const vf = `fade=t=out:st=${params.fadeStartSeconds}:d=${params.fadeDurationSeconds},scale=iw:ih:in_range=auto:out_range=tv`
+    const endCardFadeOutStart = END_CARD_DURATION_SECONDS - END_CARD_FADE_SECONDS
+    const videoFade = `fade=t=out:st=${params.fadeStartSeconds}:d=${params.fadeDurationSeconds}`
+    const endCard = [
+      `drawtext=fontfile='${END_CARD_FONT_PATH}':text='Pianobooth':fontcolor=0xfbfbf8:fontsize=132:x=(w-text_w)/2:y=(h-text_h)/2`,
+      `fade=t=in:st=0:d=${END_CARD_FADE_SECONDS}`,
+      `fade=t=out:st=${endCardFadeOutStart}:d=${END_CARD_FADE_SECONDS}`,
+      'format=yuv420p',
+      'setpts=PTS-STARTPTS',
+    ].join(',')
+    const filterParts = [
+      `[0:v]trim=duration=${params.maxDurationSeconds},${videoFade},scale=1080:1920:in_range=auto:out_range=tv,setsar=1,fps=60,setpts=PTS-STARTPTS[mainv]`,
+      `[1:v]${endCard}[cardv]`,
+    ]
+
+    if (hasAudio) {
+      filterParts.push(
+        `[0:a]atrim=duration=${params.maxDurationSeconds},afade=t=out:st=${params.fadeStartSeconds}:d=${params.fadeDurationSeconds},apad=whole_dur=${params.maxDurationSeconds},atrim=duration=${params.maxDurationSeconds},aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,asetpts=PTS-STARTPTS[maina]`,
+        `[2:a]atrim=duration=${END_CARD_DURATION_SECONDS},asetpts=PTS-STARTPTS[carda]`,
+        '[mainv][maina][cardv][carda]concat=n=2:v=1:a=1[outv][outa]',
+      )
+    } else {
+      filterParts.push('[mainv][cardv]concat=n=2:v=1:a=0[outv]')
+    }
+
     const args = [
       '-y',
       '-i', params.inputPath,
-      '-t', String(params.maxDurationSeconds),
-      '-vf', vf,
-      '-map', '0:v:0',
-      '-map', '0:a?',
+      '-f', 'lavfi',
+      '-i', `color=c=0x11110f:s=1080x1920:r=60:d=${END_CARD_DURATION_SECONDS}`,
     ]
     if (hasAudio) {
-      const af = `afade=t=out:st=${params.fadeStartSeconds}:d=${params.fadeDurationSeconds}`
-      args.push('-af', af)
+      args.push(
+        '-f', 'lavfi',
+        '-i', `anullsrc=r=48000:cl=stereo:d=${END_CARD_DURATION_SECONDS}`,
+      )
     }
+    args.push(
+      '-filter_complex', filterParts.join(';'),
+      '-map', '[outv]',
+    )
+    if (hasAudio) args.push('-map', '[outa]')
     args.push(
       '-c:v', 'libx264',
       '-pix_fmt', 'yuv420p',
@@ -382,11 +414,10 @@ async function createTeaserVideo(params: {
       '-color_trc', 'bt709',
       '-preset', 'fast',
       '-crf', '18',
-      '-c:a', 'aac',
-      '-b:a', '192k',
-      '-movflags', '+faststart',
-      params.outputPath,
     )
+    if (hasAudio) args.push('-c:a', 'aac', '-b:a', '192k')
+    args.push('-movflags', '+faststart', params.outputPath)
+
     const ffmpeg = spawn('ffmpeg', args, { cwd: process.cwd(), stdio: ['ignore', 'pipe', 'pipe'] })
     ffmpeg.stdout.on('data', (d) => process.stdout.write(d.toString()))
     ffmpeg.stderr.on('data', (d) => process.stdout.write(d.toString()))

@@ -136,19 +136,24 @@ export default function Video() {
 
   const midiFile = useMidiStore((state) => state.midiFile)
 
-  const updateMidiState = (data: MidiNote[]) => {
-    if (!data || !Array.isArray(data) || data.length === 0) return
-    setMidiObject(data)
-    const layout = computePianoLayout(data)
-    setPianoLayout(layout ?? DEFAULT_PIANO_LAYOUT)
-  }
-
   useEffect(() => {
+    // Each run of this effect closes over its own `disposed`. React runs the
+    // previous run's cleanup before starting the next one, so when a second file
+    // arrives mid-parse the first run's flag flips to true and its result is
+    // dropped instead of overwriting the newer file's.
+    let disposed = false
+
+    const updateMidiState = (data: MidiNote[]) => {
+      if (!data || !Array.isArray(data) || data.length === 0) return
+      setMidiObject(data)
+      const layout = computePianoLayout(data)
+      setPianoLayout(layout ?? DEFAULT_PIANO_LAYOUT)
+    }
+
     const getFileAndSetPlayer = async (file: File) => {
-      console.log('Processing file:', file)
       try {
         const result = await midiParser(file)
-        console.log('Parser result:', result)
+        if (disposed) return
         if (result) {
           updateMidiState(result)
           // Store processed MIDI data for persistence
@@ -157,6 +162,9 @@ export default function Video() {
           try {
             const buf = await file.arrayBuffer()
             const { Midi } = await import('@tonejs/midi')
+            // Second checkpoint: without it a stale run could pair its own
+            // title/artist with the newer file's notes in localStorage.
+            if (disposed) return
             const midi = new Midi(buf)
             const headerName = midi?.header?.name?.trim?.()
             const trackNames = midi.tracks.map((t) => (t.name || '').trim()).filter(Boolean)
@@ -208,9 +216,7 @@ export default function Video() {
       const storedData = localStorage.getItem('processedMidiData')
       if (storedData) {
         try {
-          const parsedData = JSON.parse(storedData)
-          console.log('Loaded from localStorage:', parsedData)
-          updateMidiState(parsedData)
+          updateMidiState(JSON.parse(storedData))
         } catch (error) {
           console.error('Error loading from localStorage:', error)
           localStorage.removeItem('processedMidiData')
@@ -219,12 +225,14 @@ export default function Video() {
     }
 
     if (midiFile) {
-      console.log('MIDI file received:', midiFile)
       getFileAndSetPlayer(midiFile)
-      return
     } else {
       // Try to load from localStorage if no file in store
       loadFromLocalStorage()
+    }
+
+    return () => {
+      disposed = true
     }
   }, [midiFile])
 
