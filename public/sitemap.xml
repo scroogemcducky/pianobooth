@@ -577,9 +577,6 @@
     <loc>https://pianobooth.com/schumann/abegg-variationen</loc>
   </url>
   <url>
-    <loc>https://pianobooth.com/abegg/abegg-variationen</loc>
-  </url>
-  <url>
     <loc>https://pianobooth.com/schumann/von-fremden-l-ndern-und-menschen</loc>
   </url>
   <url>
@@ -688,7 +685,7 @@
     <loc>https://pianobooth.com/bach/praludium-und-fuge-in-d-dur-bwv-850</loc>
   </url>
   <url>
-    <loc>https://pianobooth.com/balakirew/orientalische-fantasie</loc>
+    <loc>https://pianobooth.com/balakirev/orientalische-fantasie</loc>
   </url>
   <url>
     <loc>https://pianobooth.com/beethoven/fur-elise</loc>
@@ -943,8 +940,6 @@
     <loc>https://pianobooth.com/mendelssohn/morgenlied</loc>
   </url>
   <url>
-  </url>
-  <url>
     <loc>https://pianobooth.com/mussorgsky/promenade-gnomus-1</loc>
   </url>
   <url>
@@ -1015,8 +1010,6 @@
   </url>
   <url>
     <loc>https://pianobooth.com/schumann/knecht-ruprecht-aus-album-fur-die-jugend-opus-68</loc>
-  </url>
-  <url>
   </url>
   <url>
     <loc>https://pianobooth.com/tchaikovsky/april</loc>
@@ -1649,8 +1642,6 @@
     <loc>https://pianobooth.com/mendelssohn/venetianisches-gondellied-op-62-no-5-in-a-minor</loc>
   </url>
   <url>
-  </url>
-  <url>
     <loc>https://pianobooth.com/mozart/piano-sonata-no-9-in-d-major-k-311-i</loc>
   </url>
   <url>
@@ -1904,10 +1895,6 @@
   </url>
   <url>
     <loc>https://pianobooth.com/schumann/knecht-ruprecht-op-68-no-12</loc>
-  </url>
-  <url>
-  </url>
-  <url>
   </url>
   <url>
     <loc>https://pianobooth.com/tchaikovsky/april-snowdrop-op-37a</loc>
