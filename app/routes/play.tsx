@@ -307,14 +307,6 @@ export default function PlayView({ midiObject: midiObjectProp, license }: PlayVi
     }
   }, [])
 
-  // The slider's max is set imperatively so playback progress never re-renders.
-  useEffect(() => {
-    if (!sliderRef.current || timelineDurationMs <= 0) return
-    sliderRef.current.max = String(Math.max(1, Math.floor(timelineDurationMs)))
-    const current = parseFloat(sliderRef.current.value || '0')
-    if (Number.isNaN(current) || current > timelineDurationMs) sliderRef.current.value = '0'
-  }, [timelineDurationMs])
-
   const handleSeekStart = () => {
     setIsScrubbing(true)
     // Drop pending key-releases so scrubbing does not leave keys lit.
@@ -367,6 +359,11 @@ export default function PlayView({ midiObject: midiObjectProp, license }: PlayVi
           <input
             type="range"
             min={0}
+            // Declarative: the slider can mount after the duration is known (when
+            // Controls is toggled on mid-piece), and an imperative max would be
+            // missed. Only `value` is written via the ref, to avoid re-rendering
+            // on every frame of playback.
+            max={Math.max(1, Math.floor(timelineDurationMs))}
             step={10}
             defaultValue={0}
             ref={sliderRef}
