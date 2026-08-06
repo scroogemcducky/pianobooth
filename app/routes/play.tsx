@@ -137,11 +137,11 @@ export default function Video() {
   const midiFile = useMidiStore((state) => state.midiFile)
 
   useEffect(() => {
-    // Each run of this effect closes over its own `disposed`. React runs the
+    // Each run of this effect closes over its own `ignore`. React runs the
     // previous run's cleanup before starting the next one, so when a second file
     // arrives mid-parse the first run's flag flips to true and its result is
     // dropped instead of overwriting the newer file's.
-    let disposed = false
+    let ignore = false
 
     const updateMidiState = (data: MidiNote[]) => {
       if (!data || !Array.isArray(data) || data.length === 0) return
@@ -153,7 +153,7 @@ export default function Video() {
     const getFileAndSetPlayer = async (file: File) => {
       try {
         const result = await midiParser(file)
-        if (disposed) return
+        if (ignore) return
         if (result) {
           updateMidiState(result)
           // Store processed MIDI data for persistence
@@ -164,7 +164,7 @@ export default function Video() {
             const { Midi } = await import('@tonejs/midi')
             // Second checkpoint: without it a stale run could pair its own
             // title/artist with the newer file's notes in localStorage.
-            if (disposed) return
+            if (ignore) return
             const midi = new Midi(buf)
             const headerName = midi?.header?.name?.trim?.()
             const trackNames = midi.tracks.map((t) => (t.name || '').trim()).filter(Boolean)
@@ -232,7 +232,7 @@ export default function Video() {
     }
 
     return () => {
-      disposed = true
+      ignore = true
     }
   }, [midiFile])
 
