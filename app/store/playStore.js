@@ -9,6 +9,9 @@ const useStore = create(set => ({
   setParticlesEnabled: (value) => set({ particlesEnabled: value }),
   lookahead: 2,
   setLookahead: (lookahead) => set({ lookahead }),
+  // Opt-in timeline: off by default so the player stays visually clean.
+  timelineVisible: false,
+  setTimelineVisible: (value) => set({ timelineVisible: value }),
 
 }))
 

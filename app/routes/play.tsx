@@ -1,7 +1,7 @@
 // Shader implementation of PlayStandardSound
 // used to be /shader
 
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import type { MetaFunction } from 'react-router'
 
 import { Canvas } from '@react-three/fiber'
@@ -14,6 +14,8 @@ import SettingsButton from '../components/SettingsButton'
 import EmbeddedKeys from '../components/EmbeddedKeys'
 import KeyParticles, { type ActiveKeyParticle } from '../components/KeyParticles'
 import ShaderBlocks from '../components/ShaderBlocks'
+import type { VisualizerHandle } from '../components/Instances_component'
+import type { PieceLicense } from '../components/SettingsButton'
 import soundFont from 'soundfont-player'
 import * as THREE from 'three'
 import { computePianoLayout, DEFAULT_PIANO_LAYOUT, type PianoLayout } from '../utils/pianoLayout'
@@ -38,12 +40,29 @@ type MidiNote = {
   SoundDuration?: number
 }
 
-export default function Video() {
-  const [midiObject, setMidiObject] = useState<MidiNote[] | null>(null)
+type PlayViewProps = {
+  /**
+   * Pre-parsed notes, used by the song pages. When omitted the view falls back to
+   * the MIDI store (a file the user dropped) and then to localStorage.
+   */
+  midiObject?: MidiNote[]
+  /** Shown in the settings menu when the piece carries licence terms. */
+  license?: PieceLicense
+}
+
+export default function PlayView({ midiObject: midiObjectProp, license }: PlayViewProps = {}) {
+  const [midiObject, setMidiObject] = useState<MidiNote[] | null>(midiObjectProp ?? null)
   const [ac, setAc] = useState<AudioContext | null>(null)
   const [instrument, setInstrument] = useState<any>(null)
   const [pianoLayout, setPianoLayout] = useState<PianoLayout>(DEFAULT_PIANO_LAYOUT)
   const [activeParticleNotes, setActiveParticleNotes] = useState<Record<number, ActiveKeyParticle>>({})
+
+  // Timeline / seeking, shown only when the Controls toggle is on.
+  const [timelineDurationMs, setTimelineDurationMs] = useState(0)
+  const [isScrubbing, setIsScrubbing] = useState(false)
+  const visualizerRef = useRef<VisualizerHandle>(null)
+  const sliderRef = useRef<HTMLInputElement>(null)
+  const timelineVisible = usePlayStore((state) => state.timelineVisible)
   const particlesEnabled = usePlayStore((state) => state.particlesEnabled)
   const particlesEnabledRef = useRef(particlesEnabled)
 
@@ -224,7 +243,11 @@ export default function Video() {
       }
     }
 
-    if (midiFile) {
+    if (midiObjectProp?.length) {
+      // Song pages supply notes directly; deliberately not persisted to
+      // localStorage so visiting a piece cannot clobber a file the user dropped.
+      updateMidiState(midiObjectProp)
+    } else if (midiFile) {
       getFileAndSetPlayer(midiFile)
     } else {
       // Try to load from localStorage if no file in store
@@ -234,7 +257,7 @@ export default function Video() {
     return () => {
       ignore = true
     }
-  }, [midiFile])
+  }, [midiFile, midiObjectProp])
 
   // TODO pass note parameters to playNote
   const playNote = (noteName: number, duration = 4) => {
@@ -283,50 +306,80 @@ export default function Video() {
       clearAllKeys()
     }
   }, [])
+
+  // The slider's max is set imperatively so playback progress never re-renders.
+  useEffect(() => {
+    if (!sliderRef.current || timelineDurationMs <= 0) return
+    sliderRef.current.max = String(Math.max(1, Math.floor(timelineDurationMs)))
+    const current = parseFloat(sliderRef.current.value || '0')
+    if (Number.isNaN(current) || current > timelineDurationMs) sliderRef.current.value = '0'
+  }, [timelineDurationMs])
+
+  const handleSeekStart = () => {
+    setIsScrubbing(true)
+    // Drop pending key-releases so scrubbing does not leave keys lit.
+    activeTimeouts.current.forEach((timeoutId) => window.clearTimeout(timeoutId))
+    activeTimeouts.current.clear()
+    clearAllKeys()
+  }
+
+  const handleSeek = (value: number) => {
+    if (sliderRef.current) sliderRef.current.value = String(Math.floor(value))
+    visualizerRef.current?.seek(value)
+  }
   
-  return ( 
-    <React.StrictMode >
-    <div style={{height: "100%"}}>
-      <Canvas 
-          style={{ background: "black" }}  
-          orthographic 
-          camera={{ zoom: 9 }}
-          gl={{ 
-            toneMapping: THREE.NoToneMapping,
-            outputColorSpace: THREE.LinearSRGBColorSpace 
-          }}
-          >
-          {/* {lights ? <Lights /> :  */}
-          <>
-          <ambientLight intensity={7.5} /> 
-          {/* <hemisphereLight 
-            skyColor={0xffffbb} 
-            groundColor={0x080820} 
-            intensity={10} 
-          /> */}
-          <directionalLight 
-            position={[11, -4, 90]} 
-            intensity={0.15}
-            // castShadow
-          />
-          {/* <pointLight position={[10, 10, 10]} />  */}
-        </>
-        {/* } */}
-      
-          {/* <Camera />  */}
-          <EmbeddedKeys layout={pianoLayout} />  
-          <KeyParticles layout={pianoLayout} notes={particlesToRender} />
-          {midiObject && <ShaderBlocks
-            midiObject={midiObject} 
+  return (
+    <div className="relative h-full w-full">
+      <Canvas
+        style={{ background: 'black' }}
+        orthographic
+        camera={{ zoom: 9 }}
+        gl={{
+          toneMapping: THREE.NoToneMapping,
+          outputColorSpace: THREE.LinearSRGBColorSpace,
+        }}
+      >
+        <ambientLight intensity={7.5} />
+        <directionalLight position={[11, -4, 90]} intensity={0.15} />
+        <EmbeddedKeys layout={pianoLayout} />
+        <KeyParticles layout={pianoLayout} notes={particlesToRender} />
+        {midiObject && (
+          <ShaderBlocks
+            midiObject={midiObject}
             layout={pianoLayout}
-            triggerVisibleNote={triggerVisibleNote} />} 
+            triggerVisibleNote={triggerVisibleNote}
+            visualizerRef={visualizerRef}
+            onPrepared={({ durationMs }) => setTimelineDurationMs(durationMs)}
+            onTimeUpdate={(ms) => {
+              // Written straight to the input so playback progress never re-renders.
+              if (!isScrubbing && sliderRef.current) sliderRef.current.value = String(Math.floor(ms))
+            }}
+          />
+        )}
       </Canvas>
+
       <PlayPauseButton />
-      <SettingsButton 
-        // lights={false} 
-        // lightsClick={() => {setLights(prevLights => !prevLights)}}
-        />
+      <SettingsButton license={license} />
+
+      {/* Opt-in via the Controls toggle in settings. */}
+      {timelineVisible && midiObject && timelineDurationMs > 0 && (
+        <div className="absolute inset-x-0 bottom-0 z-[1001] px-6 pb-3">
+          <input
+            type="range"
+            min={0}
+            step={10}
+            defaultValue={0}
+            ref={sliderRef}
+            onMouseDown={handleSeekStart}
+            onTouchStart={handleSeekStart}
+            onChange={(e) => handleSeek(parseFloat(e.target.value))}
+            onMouseUp={() => setIsScrubbing(false)}
+            onTouchEnd={() => setIsScrubbing(false)}
+            className="timeline-slider w-full"
+            aria-label="Timeline"
+          />
+        </div>
+      )}
     </div>
-    </React.StrictMode>
   )
 }

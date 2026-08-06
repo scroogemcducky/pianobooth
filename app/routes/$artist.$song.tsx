@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { LoaderFunctionArgs, MetaFunction } from 'react-router'
 import { data as json , useLoaderData, Link } from 'react-router'
-import EmbeddedPlayView_component from '../components/EmbeddedPlayer'
+import PlayView from './play'
 import usePlayStore from '../store/playStore'
 
 type MidiNote = {
@@ -84,7 +84,6 @@ export default function PublicPieceByArtistSongRoute() {
   const playing = usePlayStore((s) => s.playing)
   const [overlayVisible, setOverlayVisible] = useState(true)
   const [overlayFading, setOverlayFading] = useState(false)
-  const [licenseOpen, setLicenseOpen] = useState(false)
 
   useEffect(() => {
     if (playing && overlayVisible && !overlayFading) {
@@ -107,7 +106,7 @@ export default function PublicPieceByArtistSongRoute() {
             <div className="text-xl font-semibold">{data.title}</div>
           </div>
           <div className="relative w-full max-w-6xl h-[420px] md:h-[500px] lg:h-[580px] mx-auto border border-gray-900 shadow-2xl rounded-lg overflow-hidden">
-            <EmbeddedPlayView_component className="w-full h-full" midiObject={data.midiObject} />
+            <PlayView midiObject={data.midiObject} license={data.license} />
             {(overlayVisible || overlayFading) && (
               <div
                 className={`pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center z-20 transition-opacity duration-500 ease-out ${overlayFading ? 'opacity-0' : 'opacity-100'} text-white`}
@@ -120,41 +119,6 @@ export default function PublicPieceByArtistSongRoute() {
         </div>
       </section>
 
-      {/* Below-the-fold details: artist, song, license */}
-      <section className="px-[5%] sm:px-[6%] md:px-[8%] lg:px-[10%] py-6 flex justify-center">
-        <div className="w-full max-w-6xl">
-          {data.license && (
-            <div className="mt-6 border border-gray-200 rounded-lg bg-white/70 text-gray-900">
-              <button
-                type="button"
-                className="w-full flex items-center px-4 py-3 text-left text-sm uppercase tracking-wide text-gray-600 gap-2"
-                onClick={() => setLicenseOpen((open) => !open)}
-              >
-                <span>License</span>
-                <span className="text-base font-semibold">{licenseOpen ? '-' : '+'}</span>
-              </button>
-              {licenseOpen && (
-                <div className="px-4 pb-4">
-                  {data.license.name && (
-                    <div className="font-medium">{data.license.name}</div>
-                  )}
-                  {data.license.attribution && (
-                    <div className="mt-1 text-sm">{data.license.attribution}</div>
-                  )}
-                  {data.license.url && (
-                    <div className="mt-1 text-sm">
-                      <a className="text-blue-700 underline" href={data.license.url} target="_blank" rel="noreferrer">{data.license.url}</a>
-                    </div>
-                  )}
-                  {data.license.text && (
-                    <pre className="mt-3 whitespace-pre-wrap break-words text-sm leading-snug max-h-80 overflow-auto">{data.license.text}</pre>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </section>
     </div>
   )
 }

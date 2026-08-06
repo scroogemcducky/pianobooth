@@ -12,6 +12,7 @@ const DEV_ONLY_ROUTES = [
   "**/recordConstants.tsx",
   "**/thumbnail.$artist.$song.tsx",
   "**/og-image.$artist.$song.tsx",
+  "**/particleExplorer.tsx",
 ];
 
 const isProduction = process.env.NODE_ENV === "production";
