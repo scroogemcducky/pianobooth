@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo } from 'react'
 import type { Ref } from 'react'
 import InstancedShaderRectangles, { PLAYBACK_TAIL_MS, VisualizerHandle } from './Instances_component'
 import { black_width, white_width, white_color, black_color } from '../utils/constants'
@@ -20,6 +20,21 @@ type MidiNote = {
   SoundDuration?: number
 }
 
+// One falling block, in world units, ready for the instanced renderer.
+type BlockData = {
+  id: string
+  noteNumber: number
+  soundDuration?: number
+  delta: number
+  duration: number
+  height: number
+  width: number
+  color: string
+  position: [number, number, number]
+  isBlack: boolean
+  scaleFactor: number
+}
+
 export default function ShaderBlocks({
   midiObject,
   layout,
@@ -37,60 +52,73 @@ export default function ShaderBlocks({
 }) {
   const { viewport } = useThree()
   const lookahead = usePlayStore(state => state.lookahead)
-  const [blocks, setBlocks] = useState<any[]>([])
-  const [groupedBlocks, setGroupedBlocks] = useState<any[]>([])
-  const [notes, setNotes] = useState<number[]>([])
 
+  // `viewport` is already measured by the time scene children render: <Canvas>
+  // gates rendering on a non-zero container size, so these are real values on the
+  // very first pass and need no mount-then-measure round trip.
   const activeLayout = layout ?? DEFAULT_PIANO_LAYOUT
   const totalKeyboardWidth = getKeyboardWidth(activeLayout)
   const scaleFactor = scalingFactor(viewport.width, totalKeyboardWidth)
   const { distance } = getKeyboardMetrics(viewport.height, scaleFactor)
   const half_screen = viewport.height / 2
-  const firstNoteDelta = midiObject[0] ? parseInt(midiObject[0].Delta / 1000) + lookahead * 1000 : 0
+  const firstNoteDelta = midiObject[0] ? Math.floor(midiObject[0].Delta / 1000) + lookahead * 1000 : 0
 
-  useEffect(() => {
-    if (!midiObject) return
-    const newBlocks = midiObject.map((note, index) => {
+  // Pure derivation of the props above, so it belongs in render rather than in an
+  // effect: computing it here means the first render already has the right blocks
+  // instead of rendering empty, committing, then re-rendering.
+  //
+  // NOTE: `activeLayout` is compared by identity. Parents pass it from state, so
+  // it is stable between pieces; creating it inline in a parent would make this
+  // memo recompute every render and thrash the GPU buffers downstream.
+  const { blocks, groupedBlocks, notes } = useMemo(() => {
+    if (!midiObject?.length) {
+      return { blocks: [] as BlockData[], groupedBlocks: [] as any[], notes: [] as number[] }
+    }
+
+    const newBlocks: BlockData[] = midiObject.map((note, index) => {
       const height = calculateHeight(note.Duration, distance) / lookahead
-      const deltaMs = parseInt(note.Delta / 1000)
+      const deltaMs = Math.floor(note.Delta / 1000)
       const xPosition = getNoteXPosition(note.NoteNumber, activeLayout)
       const yPosition = height / 2 + half_screen + (distance * deltaMs) / (1000 * lookahead)
       const isBlackKey = isBlack(note.NoteNumber)
       const zPosition = isBlackKey ? -0.05 : -0.07
-      const position = [xPosition, yPosition, zPosition]
       const blockWidth = isBlackKey ? black_width : white_width - 0.1
       return {
         id: `${index}`,
         noteNumber: note.NoteNumber,
         soundDuration: note.SoundDuration,
-        delta: parseInt(note.Delta / 1000) + firstNoteDelta,
+        delta: deltaMs + firstNoteDelta,
         duration: note.Duration / 1000000,
         height,
         width: blockWidth,
-        color: isBlack(note.NoteNumber) ? black_color : white_color,
-        position,
-        isBlack: isBlack(note.NoteNumber),
+        color: isBlackKey ? black_color : white_color,
+        position: [xPosition, yPosition, zPosition],
+        isBlack: isBlackKey,
         scaleFactor,
       }
     })
+
     const grouped = groupByDelta(newBlocks)
-    const preparedNotes = grouped.map((obj: any) => parseInt(Object.keys(obj)[0]))
-    setBlocks(newBlocks)
-    setGroupedBlocks(grouped)
-    setNotes(preparedNotes)
+    const preparedNotes: number[] = grouped.map((obj: any) => Number(Object.keys(obj)[0]))
+    return { blocks: newBlocks, groupedBlocks: grouped, notes: preparedNotes }
+  }, [midiObject, activeLayout, distance, half_screen, firstNoteDelta, lookahead, scaleFactor])
 
-    if (onPrepared && preparedNotes.length) {
-      const durationMs = preparedNotes[preparedNotes.length - 1] + PLAYBACK_TAIL_MS
-      onPrepared({ durationMs, firstNoteMs: preparedNotes[0] })
-    }
+  // Telling the parent the timeline length is a side effect, so it stays an
+  // effect. `onPrepared` is omitted from the deps because callers pass an inline
+  // arrow, which would make this fire on every render.
+  useEffect(() => {
+    if (!onPrepared || !notes.length) return
+    onPrepared({ durationMs: notes[notes.length - 1] + PLAYBACK_TAIL_MS, firstNoteMs: notes[0] })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeLayout, distance, firstNoteDelta, half_screen, lookahead, midiObject, viewport.height, viewport.width])
-
+  }, [notes])
   return (
     <>
       {blocks.length ? (
         <InstancedShaderRectangles
-          blocks={blocks as any}
+          blocks={blocks}
+          // groupByDelta returns an array of { [delta]: notes[] }, which the
+          // GroupedBlocks type in Instances_component does not describe. Cast
+          // retained until that type is corrected.
           groupedBlocks={groupedBlocks as any}
           triggerVisibleNote={triggerVisibleNote}
           notes={notes}
