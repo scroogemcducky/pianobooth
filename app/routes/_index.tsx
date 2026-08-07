@@ -31,7 +31,7 @@ export const meta: MetaFunction = () => {
 export default function Home() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [overlayReady, setOverlayReady] = useState(false)
-  const [hasAcceptedMidi, setHasAcceptedMidi] = useState(false)
+  const [midiLoaded, setMidiLoaded] = useState(false)
   const setMidiStore = useMidiStore((state) => state.setMidiFile)
 
   useEffect(() => {
@@ -68,7 +68,7 @@ export default function Home() {
       }
 
       setMidiStore(file)
-      setHasAcceptedMidi(true)
+      setMidiLoaded(true)
     },
     [setMidiStore],
   )
@@ -92,10 +92,10 @@ export default function Home() {
       onDragOver={handleDragOver}
     >
       <div className="absolute inset-0">
-        <PlayView />
+        <PlayView onPieceLoaded={() => setMidiLoaded(true)} />
       </div>
 
-      {!hasAcceptedMidi && (
+      {!midiLoaded && (
         <section className="pointer-events-none absolute inset-0 z-[1100] flex items-center justify-center px-6">
           <div
             className="pointer-events-auto isolate flex max-w-xl flex-col items-center gap-4 text-center text-white"

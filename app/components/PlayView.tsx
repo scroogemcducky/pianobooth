@@ -39,9 +39,14 @@ type PlayViewProps = {
   midiObject?: MidiNote[]
   /** Shown in the settings menu when the piece carries licence terms. */
   license?: PieceLicense
+  /**
+   * Called once a piece is loaded and playable, whatever the source - a dropped
+   * file, a prop, or the last piece restored from localStorage.
+   */
+  onPieceLoaded?: () => void
 }
 
-export default function PlayView({ midiObject: midiObjectProp, license }: PlayViewProps) {
+export default function PlayView({ midiObject: midiObjectProp, license, onPieceLoaded }: PlayViewProps) {
   const [midiObject, setMidiObject] = useState<MidiNote[] | null>(midiObjectProp ?? null)
   const [ac, setAc] = useState<AudioContext | null>(null)
   const [instrument, setInstrument] = useState<any>(null)
@@ -146,6 +151,13 @@ export default function PlayView({ midiObject: midiObjectProp, license }: PlayVi
 
   const midiFile = useMidiStore((state) => state.midiFile)
 
+  // Kept in a ref so callers can pass an inline arrow without re-running the
+  // load effect below on every render.
+  const onPieceLoadedRef = useRef(onPieceLoaded)
+  useEffect(() => {
+    onPieceLoadedRef.current = onPieceLoaded
+  })
+
   useEffect(() => {
     // Each run of this effect closes over its own `ignore`. React runs the
     // previous run's cleanup before starting the next one, so when a second file
@@ -158,6 +170,7 @@ export default function PlayView({ midiObject: midiObjectProp, license }: PlayVi
       setMidiObject(data)
       const layout = computePianoLayout(data)
       setPianoLayout(layout ?? DEFAULT_PIANO_LAYOUT)
+      onPieceLoadedRef.current?.()
     }
 
     const getFileAndSetPlayer = async (file: File) => {
