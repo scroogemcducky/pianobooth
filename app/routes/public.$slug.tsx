@@ -72,28 +72,21 @@ export default function PublicPieceRoute() {
     }
   }, [playing, overlayVisible, overlayFading])
   return (
-    <div className="font-eb text-black">
-      {/* Top section: artist + song above a slightly smaller player */}
-      <section className="px-[5%] sm:px-[6%] md:px-[8%] lg:px-[10%] py-6 flex justify-center">
-        <div className="relative w-full max-w-6xl mx-auto">
-          <div className="mb-3">
-            <div className="text-lg">{data.artist}</div>
-            <div className="text-xl font-semibold">{data.title}</div>
-          </div>
-          <div className="relative w-full max-w-6xl h-[420px] md:h-[500px] lg:h-[580px] mx-auto border border-gray-900 shadow-2xl rounded-lg overflow-hidden">
-            <PlayView midiObject={data.midiObject} license={data.license} />
-            {(overlayVisible || overlayFading) && (
-              <div
-                className={`pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center z-20 transition-opacity duration-500 ease-out ${overlayFading ? 'opacity-0' : 'opacity-100'} text-white`}
-              >
-                <h1 className="m-0 text-2xl md:text-3xl font-semibold">{data.title || 'Loading…'}</h1>
-                <p className="mt-1 text-base md:text-lg opacity-90">{data.artist || ''}</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
+    <main className="relative h-screen min-h-screen overflow-hidden bg-black text-white">
+      <div className="absolute inset-0">
+        <PlayView midiObject={data.midiObject} license={data.license} />
+      </div>
 
-    </div>
+      {/* Title card over the canvas, fading out once playback starts. */}
+      {(overlayVisible || overlayFading) && (
+        <div
+          className={`pointer-events-none absolute inset-0 z-[1100] flex flex-col items-center justify-center px-6 text-center transition-opacity duration-500 ease-out ${overlayFading ? 'opacity-0' : 'opacity-100'}`}
+          style={{ textShadow: '0 2px 10px rgba(0,0,0,0.9)' }}
+        >
+          <h1 className="font-garamond m-0 text-3xl md:text-4xl">{data.title || 'Loading…'}</h1>
+          <p className="font-garamond mt-2 text-xl italic text-white/80 md:text-2xl">{data.artist || ''}</p>
+        </div>
+      )}
+    </main>
   )
 }
