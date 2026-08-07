@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { LoaderFunctionArgs, MetaFunction } from 'react-router'
 import { data as json , useLoaderData } from 'react-router'
-import PlayView from './play'
+import PlayView from '../components/PlayView'
 import usePlayStore from '../store/playStore'
 
 type MidiNote = {

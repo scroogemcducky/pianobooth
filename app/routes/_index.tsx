@@ -3,7 +3,7 @@ import type { DragEvent } from 'react'
 import { Link } from 'react-router'
 import type { MetaFunction } from 'react-router'
 import useMidiStore from '../store/midiStore'
-import PlayRoute from './play'
+import PlayView from '../components/PlayView'
 import { validateMidiFile } from '~/utils/validateMidiFile'
 
 export const meta: MetaFunction = () => {
@@ -92,7 +92,7 @@ export default function Home() {
       onDragOver={handleDragOver}
     >
       <div className="absolute inset-0">
-        <PlayRoute />
+        <PlayView />
       </div>
 
       {!hasAcceptedMidi && (

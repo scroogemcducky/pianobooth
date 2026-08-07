@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { LoaderFunctionArgs, MetaFunction } from 'react-router'
 import { data as json , useLoaderData, Link } from 'react-router'
-import PlayView from './play'
+import PlayView from '../components/PlayView'
 import usePlayStore from '../store/playStore'
 
 type MidiNote = {
@@ -95,7 +95,6 @@ export default function PublicPieceByArtistSongRoute() {
       return () => window.clearTimeout(tid)
     }
   }, [playing, overlayVisible, overlayFading])
-
   return (
     <div className="font-eb text-black">
       {/* Top section: artist + song above a slightly smaller player */}
