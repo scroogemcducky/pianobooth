@@ -8,6 +8,10 @@
     "**/.client/**/*.tsx",
     ".react-router/types/**/*"
   ],
+  // Setting "exclude" replaces TypeScript's default, so node_modules has to be
+  // listed explicitly. `agent` is vendored local tooling (gitignored) and should
+  // not gate this project's typecheck; build output is generated.
+  "exclude": ["node_modules", "agent", "build", "dist", ".wrangler"],
   "compilerOptions": {
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
     "types": [
