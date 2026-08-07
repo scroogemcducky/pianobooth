@@ -177,6 +177,21 @@ const CustomGeometryParticles: React.FC<CustomGeometryParticlesProps> = ({
     geometry.attributes.isBlackKey.needsUpdate = true
   }, [blocks, geometry, scaleFactor])
 
+  // How far the block field has scrolled, in world units. This is the single
+  // definition: the frame loop below advances it incrementally as an optimisation,
+  // which stays correct only while `distance` and `lookahead` hold still.
+  const scrollOffsetAt = (timeMs: number) => (distance / lookahead) * (timeMs / 1000)
+
+  // Resizing the viewport changes `distance`, so block positions are recomputed
+  // against the new value while the accumulated offset still reflects the old one
+  // - the blocks drift away from the keys and audio, which stay time-driven.
+  // Recompute from the clock to put them back in step.
+  useEffect(() => {
+    if (!materialRef.current) return
+    materialRef.current.uniforms.uAccum.value = scrollOffsetAt(timeRef.current)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [distance, lookahead])
+
   // Expose imperative seek + current time getters via a prop ref
   useEffect(() => {
     if (!visualizerRef) return undefined
@@ -184,7 +199,7 @@ const CustomGeometryParticles: React.FC<CustomGeometryParticlesProps> = ({
       seek: (ms: number) => {
         timeRef.current = ms
         if (materialRef.current) {
-          materialRef.current.uniforms.uAccum.value = (distance / lookahead) * (ms / 1000)
+          materialRef.current.uniforms.uAccum.value = scrollOffsetAt(ms)
         }
         // Binary search to find first note strictly after ms
         let lo = 0
