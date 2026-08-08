@@ -499,8 +499,6 @@ async function processOneMobileVideo(opts: Options, videoNumber?: number): Promi
   await context.addInitScript((payload) => {
     try { window.localStorage.setItem('processedMidiData', payload.data as string) } catch {}
     try { window.localStorage.setItem('midiMeta', payload.meta as string) } catch {}
-    try { window.localStorage.setItem('fallDuration', payload.fallDuration as string) } catch {}
-    try { window.localStorage.setItem('fallDurationMobile', payload.fallDuration as string) } catch {}
     try { window.localStorage.setItem(payload.bloomKey as string, JSON.stringify(payload.bloom)) } catch {}
     try {
       window.localStorage.setItem('preGeneratedAudioPath', payload.audioPath as string)
@@ -509,7 +507,6 @@ async function processOneMobileVideo(opts: Options, videoNumber?: number): Promi
   }, {
     data: JSON.stringify(midiObject),
     meta: JSON.stringify({ title: metaTitle, artist: meta.artist }),
-    fallDuration: String(opts.fallDuration),
     bloomKey: BLOOM_STORAGE_KEY,
     bloom: { ...BLOOM_DEFAULTS, enabled: opts.bloom },
     audioPath: audioGenerated ? audioPath : '',
@@ -518,7 +515,7 @@ async function processOneMobileVideo(opts: Options, videoNumber?: number): Promi
 
   const page = await context.newPage()
   const since = Date.now()
-  const recordUrl = `${opts.baseUrl}/record_mobile?preset=${presetIndex}`
+  const recordUrl = `${opts.baseUrl}/record_mobile?preset=${presetIndex}&fallDuration=${opts.fallDuration}`
   console.log(`${prefix}Opening ${recordUrl} ...`)
 
   try {

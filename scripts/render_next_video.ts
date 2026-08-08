@@ -725,16 +725,9 @@ export async function processOneVideo(opts: Options, videoNumber?: number): Prom
   try {
     context = await browser.newContext({ viewport: { width: 1920, height: 1080 } })
     // Preload localStorage with processed MIDI
-    console.log(`${prefix}Setting fallDuration in localStorage: ${opts.fallDuration}`)
     await context.addInitScript((payload) => {
       try { window.localStorage.setItem('processedMidiData', payload.data as string) } catch {}
       try { window.localStorage.setItem('midiMeta', payload.meta as string) } catch {}
-      try {
-        window.localStorage.setItem('fallDuration', payload.fallDuration as string)
-        console.log('✅ localStorage.fallDuration set to:', payload.fallDuration)
-      } catch (e) {
-        console.error('❌ Failed to set fallDuration:', e)
-      }
       try { window.localStorage.setItem(payload.bloomKey as string, JSON.stringify(payload.bloom)) } catch {}
       // Tell browser to skip audio generation - we have pre-generated audio
       try {
@@ -747,7 +740,6 @@ export async function processOneVideo(opts: Options, videoNumber?: number): Prom
     }, {
       data: JSON.stringify(midiObject),
       meta: JSON.stringify({ title: metaTitle, artist }),
-      fallDuration: String(opts.fallDuration),
       bloomKey: BLOOM_STORAGE_KEY,
       bloom: { ...BLOOM_DEFAULTS, enabled: opts.bloom },
       audioPath: audioGenerated ? audioPath : '',
@@ -777,7 +769,7 @@ export async function processOneVideo(opts: Options, videoNumber?: number): Prom
   // const beforeFiles = await listMp4(opts.publicDir)
   const since = Date.now()
 
-  const recordUrl = `${opts.baseUrl}/record?preset=${presetIndex}`
+  const recordUrl = `${opts.baseUrl}/record?preset=${presetIndex}&fallDuration=${opts.fallDuration}`
   console.log(`${prefix}Opening ${recordUrl} ...`)
 
   try {

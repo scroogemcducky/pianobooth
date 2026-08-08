@@ -13,17 +13,12 @@ export type RecordingPreset = {
     fillRatio: number
     max: number
   }
-  fallDuration: {
-    /** Used when the render script has not injected a value. */
-    default: number
-    /**
-     * The render scripts hand their --fall-duration flag to the page through
-     * localStorage before load; these are the keys they write.
-     */
-    storageKey: string
-    /** Read if `storageKey` is absent, so mobile can fall back to the shared key. */
-    fallbackStorageKey?: string
-  }
+  /**
+   * Seconds a note takes to fall to the keys. The render scripts pass their
+   * --fall-duration flag as a ?fallDuration= query param; this applies when the
+   * page is opened by hand.
+   */
+  defaultFallDuration: number
   /** Desktop overlays a title card; mobile does not. */
   showTitle: boolean
   /** Passed to computePianoLayout; mobile drops the padding octave. */
@@ -36,18 +31,14 @@ export type RecordingPreset = {
 
 export const DESKTOP_RECORDING_PRESET: RecordingPreset = {
   keyboardScale: { multiplier: 1.2, fillRatio: 0.95, max: 1.5 },
-  fallDuration: { default: FALL_DURATION_SECONDS, storageKey: 'fallDuration' },
+  defaultFallDuration: FALL_DURATION_SECONDS,
   showTitle: true,
   particles: { zoomAdaptive: false },
 }
 
 export const MOBILE_RECORDING_PRESET: RecordingPreset = {
   keyboardScale: { multiplier: 1.0, fillRatio: 0.95, max: 2.5 },
-  fallDuration: {
-    default: 2,
-    storageKey: 'fallDurationMobile',
-    fallbackStorageKey: 'fallDuration',
-  },
+  defaultFallDuration: 2,
   showTitle: false,
   layoutOptions: { paddingNotes: 0 },
   particles: { zoomAdaptive: true, motionScaleMultiplier: 2 },

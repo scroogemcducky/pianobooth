@@ -351,16 +351,13 @@ export default function RecorderView({ recordingPreset = DESKTOP_RECORDING_PRESE
   // the preset default only applies when the page is opened by hand.
   const [initialFallDuration] = useState(() => {
     if (typeof window !== 'undefined') {
-      const keys = [recordingPreset.fallDuration.storageKey, recordingPreset.fallDuration.fallbackStorageKey].filter(Boolean) as string[]
-      for (const key of keys) {
-        const stored = localStorage.getItem(key)
-        if (stored) {
-          const duration = parseFloat(stored)
-          if (!isNaN(duration) && duration > 0) return duration
-        }
+      const fromUrl = new URLSearchParams(window.location.search).get('fallDuration')
+      if (fromUrl) {
+        const duration = parseFloat(fromUrl)
+        if (!isNaN(duration) && duration > 0) return duration
       }
     }
-    return recordingPreset.fallDuration.default
+    return recordingPreset.defaultFallDuration
   })
   
   // Local state for fall duration (lookahead time)
