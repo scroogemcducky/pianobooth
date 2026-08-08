@@ -11,8 +11,6 @@ import FrameBasedParticles, { type FrameBasedParticlesHandle } from '../componen
 import RecordKeys from '../components/recording/FrameBasedKeys'
 import SelectiveBloom from '../components/recording/SelectiveBloom'
 import * as THREE from 'three'
-import { type ActionFunctionArgs, data as json } from 'react-router'
-import { useFetcher } from 'react-router'
 import soundFont, { Player } from 'soundfont-player'
 import { computePianoLayout, DEFAULT_PIANO_LAYOUT, type PianoLayout } from '../utils/pianoLayout'
 import { setFallDuration } from '../utils/recordingConstants'
@@ -100,12 +98,6 @@ interface MidiNote {
   SoundDuration: number;
 }
 
-interface FetcherData {
-  success?: boolean;
-  videoUrl?: string;
-  message?: string;
-  error?: string;
-}
 
 // Frame recording configuration
 const FPS = 60
@@ -341,215 +333,6 @@ function DeterministicRecorder({
 }
 
 // Server action to process frames and generate video with optional audio
-export async function action({ request }: ActionFunctionArgs) {
-  
-  let formData;
-  try {
-    formData = await request.formData()
-  } catch (error) {
-    console.error('❌ Failed to parse form data:', error)
-    return json({ error: 'Failed to parse form data - possibly too large' }, { status: 413 })
-  }
-  
-  const framesData = formData.get('frames') as string
-  const fps = parseInt(formData.get('fps') as string) || 60
-  const audioBase64 = formData.get('audio_base64') as string | null;
-  
-  console.log('📋 Form entries:', Array.from(formData.keys()))
-  
-  if (!framesData) {
-    return json({ error: 'No frames data provided' }, { status: 400 })
-  }
-
-  try {
-    const frames = JSON.parse(framesData) as string[]
-    
-    const { spawn } = await import('child_process')
-    const fs = await import('fs')
-    const path = await import('path')
-    const { promisify } = await import('util')
-    const writeFile = promisify(fs.writeFile)
-    const mkdir = promisify(fs.mkdir)
-    
-    // Create temporary directory
-    const tempDir = path.join(process.cwd(), 'temp_frames', `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`)
-    await mkdir(tempDir, { recursive: true })
-    
-    console.log(`Processing ${frames.length} frames...`)
-    
-    // Save all frames to temporary directory
-    const framePromises = frames.map(async (dataURL, index) => {
-      if (dataURL) {
-        const base64Data = dataURL.replace(/^data:image\/png;base64,/, '')
-        const buffer = Buffer.from(base64Data, 'base64')
-        const filename = `frame_${String(index).padStart(6, '0')}.png`
-        const filepath = path.join(tempDir, filename)
-        await writeFile(filepath, buffer)
-      }
-    })
-    
-    await Promise.all(framePromises)
-    console.log('All frames saved to disk')
-    
-    // Handle audio file if provided
-    let audioPath: string | null = null;
-    if (audioBase64) {
-      const audioBuffer = Buffer.from(audioBase64, 'base64');
-      audioPath = path.join(tempDir, 'audio.wav');
-      await writeFile(audioPath, audioBuffer);
-    } else {
-      console.log('❌ No audio data provided to server.');
-    }
-    
-    // Generate video with ffmpeg (with or without audio)
-    const outputPath = path.join(process.cwd(), 'videos', `piano_video_${Date.now()}.mp4`)
-    
-      return new Promise((resolve) => {
-        const ffmpegArgs = [
-          '-hide_banner',
-          '-framerate', fps.toString(),
-          '-i', path.join(tempDir, 'frame_%06d.png')
-        ]
-      
-      // Add audio input if provided
-      if (audioPath) {
-        console.log(`🎵 Adding audio input: ${audioPath}`)
-        ffmpegArgs.push('-i', audioPath)
-        ffmpegArgs.push('-c:a', 'aac')
-        ffmpegArgs.push('-b:a', '192k') // High quality audio
-      } else {
-        console.log('🔇 No audio - creating video without sound')
-      }
-      
-        // Video encoding settings
-        ffmpegArgs.push(
-          '-c:v', 'libx264',
-          '-pix_fmt', 'yuv420p',
-          '-preset', 'fast',
-          '-crf', '18' // High quality
-        )
-
-        // Emit machine-readable progress to stderr (so we can render a single-line progress bar).
-        ffmpegArgs.push('-progress', 'pipe:2', '-nostats')
-      
-      // If audio is provided, ensure video and audio are same length
-      if (audioPath) {
-        ffmpegArgs.push('-shortest')
-      }
-      
-        ffmpegArgs.push(outputPath)
-        
-        const ffmpeg = spawn('ffmpeg', ffmpegArgs)
-        const totalFrameCount = Math.max(1, frames.length)
-        const isTTY = !!process.stdout.isTTY
-        let buffered = ''
-        let currentFrame = 0
-        let currentSpeed = ''
-        let currentOutTimeMs: number | null = null
-        let lastRenderedAt = 0
-        let lastLineLength = 0
-
-        const renderProgress = () => {
-          const now = Date.now()
-          if (now - lastRenderedAt < 200) return
-          lastRenderedAt = now
-
-          const ratio = Math.min(1, Math.max(0, currentFrame / totalFrameCount))
-          const pct = Math.floor(ratio * 100)
-          const width = 30
-          const filled = Math.round(ratio * width)
-          const bar = `${'='.repeat(filled)}${' '.repeat(Math.max(0, width - filled))}`
-
-          const timeSeconds = typeof currentOutTimeMs === 'number' ? currentOutTimeMs / 1_000_000 : null
-          const timeLabel = timeSeconds === null ? '' : ` t=${timeSeconds.toFixed(1)}s`
-          const speedLabel = currentSpeed ? ` ${currentSpeed}` : ''
-          const line = `[${bar}] ${pct}% (${currentFrame}/${totalFrameCount})${timeLabel}${speedLabel}`
-
-          if (isTTY) {
-            const padding = lastLineLength > line.length ? ' '.repeat(lastLineLength - line.length) : ''
-            process.stdout.write(`\r${line}${padding}`)
-            lastLineLength = line.length
-          } else {
-            // Non-TTY: avoid spamming logs; print every ~10%.
-            if (pct % 10 === 0) console.log(`ffmpeg: ${line}`)
-          }
-        }
-
-        ffmpeg.stderr.on('data', (data) => {
-          buffered += data.toString()
-          let idx: number
-          while ((idx = buffered.indexOf('\n')) !== -1) {
-            const raw = buffered.slice(0, idx).trim()
-            buffered = buffered.slice(idx + 1)
-            if (!raw) continue
-
-            // ffmpeg -progress emits key=value lines.
-            const eq = raw.indexOf('=')
-            if (eq > 0) {
-              const key = raw.slice(0, eq).trim()
-              const value = raw.slice(eq + 1).trim()
-              if (key === 'frame') {
-                const n = Number(value)
-                if (Number.isFinite(n)) currentFrame = n
-                renderProgress()
-                continue
-              }
-              if (key === 'speed') {
-                currentSpeed = value
-                renderProgress()
-                continue
-              }
-              if (key === 'out_time_ms') {
-                const n = Number(value)
-                if (Number.isFinite(n)) currentOutTimeMs = n
-                renderProgress()
-                continue
-              }
-              if (key === 'progress') {
-                if (value === 'end') {
-                  currentFrame = totalFrameCount
-                  renderProgress()
-                  if (isTTY) process.stdout.write('\n')
-                }
-                continue
-              }
-              continue
-            }
-
-            // Anything else: surface it (likely an error).
-            console.log(`ffmpeg: ${raw}`)
-          }
-        })
-      
-      ffmpeg.on('close', async (code) => {
-        // Clean up temporary files
-        try {
-          const files = await fs.promises.readdir(tempDir)
-          await Promise.all(files.map(file => fs.promises.unlink(path.join(tempDir, file))))
-          await fs.promises.rmdir(tempDir)
-        } catch (error) {
-          console.error('Cleanup error:', error)
-        }
-        
-        if (code === 0) {
-          const videoFileName = path.basename(outputPath)
-          const audioType = audioPath ? ' with audio' : ''
-          resolve(json({
-            success: true,
-            videoUrl: `/videos/${videoFileName}`,
-            message: `Video generated${audioType}: ${videoFileName}`
-          }))
-        } else {
-          resolve(json({ error: 'ffmpeg failed' }, { status: 500 }))
-        }
-      })
-    })
-    
-  } catch (error) {
-    console.error('Server action error:', error)
-    return json({ error: 'Failed to process frames' }, { status: 500 })
-  }
-}
 
 export default function Record() {
   // Read fall duration from localStorage or use default
@@ -666,7 +449,6 @@ export default function Record() {
   const blackKeyColor = colorPreset.blackKeyColor.map(c => c * (1 + colorPreset.intensity))
   const whiteKeyColor = colorPreset.whiteKeyColor.map(c => c * (1 + colorPreset.intensity))
 
-  const fetcher = useFetcher<FetcherData>()
   const wsRef = useRef<WebSocket | null>(null)
   const connectWebSocketRef = useRef<() => void>(() => {})
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -1260,25 +1042,6 @@ export default function Record() {
     }
   }
 
-  // Handle server response (DEPRECATED - using WebSocket streaming now)
-  useEffect(() => {
-    if (fetcher.data) {
-      setIsProcessingVideo(false)
-      if (fetcher.data.success && fetcher.data.videoUrl) {
-        console.log(`Video created successfully! Download: ${fetcher.data.videoUrl}`)
-        // Auto-download the video
-        const link = document.createElement('a')
-        link.href = fetcher.data.videoUrl
-        const videoName = fetcher.data.videoUrl.split('/').pop()
-        if (videoName) {
-          link.download = videoName
-        }
-        link.click()
-      } else if (fetcher.data.error) {
-        console.error(`Error: ${fetcher.data.error}`)
-      }
-    }
-  }, [fetcher.data])
 
   // Start recording
   const startRecording = () => {

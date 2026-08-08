@@ -12,8 +12,6 @@ import FrameBasedParticles, { type FrameBasedParticlesHandle } from '../componen
 import RecordKeys from '../components/recording/FrameBasedKeys'
 import SelectiveBloom from '../components/recording/SelectiveBloom'
 import * as THREE from 'three'
-import { type ActionFunctionArgs, data as json } from 'react-router'
-import { useFetcher } from 'react-router'
 import soundFont, { Player } from 'soundfont-player'
 import { computePianoLayout, DEFAULT_PIANO_LAYOUT, type PianoLayout } from '../utils/pianoLayout'
 import { FALL_DURATION_SECONDS, setFallDuration } from '../utils/recordingConstants'
@@ -101,12 +99,6 @@ interface MidiNote {
   SoundDuration: number;
 }
 
-interface FetcherData {
-  success?: boolean;
-  videoUrl?: string;
-  message?: string;
-  error?: string;
-}
 
 // Frame recording configuration
 const FPS = 60
@@ -350,140 +342,6 @@ function DeterministicRecorder({
 }
 
 // Server action to process frames and generate video with optional audio
-export async function action({ request }: ActionFunctionArgs) {
-  
-  let formData;
-  try {
-    formData = await request.formData()
-  } catch (error) {
-    console.error('❌ Failed to parse form data:', error)
-    return json({ error: 'Failed to parse form data - possibly too large' }, { status: 413 })
-  }
-  
-  const framesData = formData.get('frames') as string
-  const fps = parseInt(formData.get('fps') as string) || 60
-  const audioBase64 = formData.get('audio_base64') as string | null;
-  
-  console.log('📋 Form entries:', Array.from(formData.keys()))
-  
-  if (!framesData) {
-    return json({ error: 'No frames data provided' }, { status: 400 })
-  }
-
-  try {
-    const frames = JSON.parse(framesData) as string[]
-    
-    const { spawn } = await import('child_process')
-    const fs = await import('fs')
-    const path = await import('path')
-    const { promisify } = await import('util')
-    const writeFile = promisify(fs.writeFile)
-    const mkdir = promisify(fs.mkdir)
-    
-    // Create temporary directory
-    const tempDir = path.join(process.cwd(), 'temp_frames', `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`)
-    await mkdir(tempDir, { recursive: true })
-    
-    console.log(`Processing ${frames.length} frames...`)
-    
-    // Save all frames to temporary directory
-    const framePromises = frames.map(async (dataURL, index) => {
-      if (dataURL) {
-        const base64Data = dataURL.replace(/^data:image\/png;base64,/, '')
-        const buffer = Buffer.from(base64Data, 'base64')
-        const filename = `frame_${String(index).padStart(6, '0')}.png`
-        const filepath = path.join(tempDir, filename)
-        await writeFile(filepath, buffer)
-      }
-    })
-    
-    await Promise.all(framePromises)
-    console.log('All frames saved to disk')
-    
-    // Handle audio file if provided
-    let audioPath: string | null = null;
-    if (audioBase64) {
-      const audioBuffer = Buffer.from(audioBase64, 'base64');
-      audioPath = path.join(tempDir, 'audio.wav');
-      await writeFile(audioPath, audioBuffer);
-    } else {
-      console.log('❌ No audio data provided to server.');
-    }
-    
-    // Generate video with ffmpeg (with or without audio)
-    const outputPath = path.join(process.cwd(), 'videos', `piano_video_${Date.now()}.mp4`)
-    
-      return new Promise((resolve) => {
-        const ffmpegLogLevel = (process.env.PIANO_FFMPEG_LOGLEVEL || 'error').trim() || 'error'
-        const ffmpegArgs = [
-          '-hide_banner',
-          '-loglevel', ffmpegLogLevel,
-          '-nostats',
-          '-framerate', fps.toString(),
-          '-i', path.join(tempDir, 'frame_%06d.png')
-        ]
-      
-      // Add audio input if provided
-      if (audioPath) {
-        console.log(`🎵 Adding audio input: ${audioPath}`)
-        ffmpegArgs.push('-i', audioPath)
-        ffmpegArgs.push('-c:a', 'aac')
-        ffmpegArgs.push('-b:a', '192k') // High quality audio
-      } else {
-        console.log('🔇 No audio - creating video without sound')
-      }
-      
-      // Video encoding settings
-      ffmpegArgs.push(
-        '-c:v', 'libx264',
-        '-pix_fmt', 'yuv420p',
-        '-preset', 'fast',
-        '-crf', '18' // High quality
-      )
-      
-      // If audio is provided, ensure video and audio are same length
-      if (audioPath) {
-        ffmpegArgs.push('-shortest')
-      }
-      
-      ffmpegArgs.push(outputPath)
-      
-        const ffmpeg = spawn('ffmpeg', ffmpegArgs)
-        
-        ffmpeg.stderr.on('data', (data) => {
-          const line = data.toString().trim()
-          if (line) console.log(`ffmpeg: ${line}`)
-        })
-      
-      ffmpeg.on('close', async (code) => {
-        // Clean up temporary files
-        try {
-          const files = await fs.promises.readdir(tempDir)
-          await Promise.all(files.map(file => fs.promises.unlink(path.join(tempDir, file))))
-          await fs.promises.rmdir(tempDir)
-        } catch (error) {
-          console.error('Cleanup error:', error)
-        }
-        
-        if (code === 0) {
-          const videoFileName = path.basename(outputPath)
-          const audioType = audioPath ? ' with audio' : ''
-          resolve(json({
-            success: true,
-            videoUrl: `/videos/${videoFileName}`,
-            message: `Video generated${audioType}: ${videoFileName}`
-          }))
-        } else {
-          resolve(json({ error: 'ffmpeg failed' }, { status: 500 }))
-        }
-      })
-    })
-    
-  } catch (error) {
-    console.error('Server action error:', error)
-    return json({ error: 'Failed to process frames' }, { status: 500 })
-  }
-}
 
 export default function Record() {
   // Read fall duration from localStorage or use default
@@ -598,7 +456,6 @@ export default function Record() {
   const blackKeyColor = colorPreset.blackKeyColor.map(c => c * (1 + colorPreset.intensity))
   const whiteKeyColor = colorPreset.whiteKeyColor.map(c => c * (1 + colorPreset.intensity))
 
-  const fetcher = useFetcher<FetcherData>()
   const wsRef = useRef<WebSocket | null>(null)
   const connectWebSocketRef = useRef<() => void>(() => {})
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -1191,25 +1048,6 @@ export default function Record() {
       ;(window as any).__FINALIZATION_COMPLETE__ = true
     }
   }
-  // Handle server response (DEPRECATED - using WebSocket streaming now)
-  useEffect(() => {
-    if (fetcher.data) {
-      setIsProcessingVideo(false)
-      if (fetcher.data.success && fetcher.data.videoUrl) {
-        console.log(`Video created successfully! Download: ${fetcher.data.videoUrl}`)
-        // Auto-download the video
-        const link = document.createElement('a')
-        link.href = fetcher.data.videoUrl
-        const videoName = fetcher.data.videoUrl.split('/').pop()
-        if (videoName) {
-          link.download = videoName
-        }
-        link.click()
-      } else if (fetcher.data.error) {
-        console.error(`Error: ${fetcher.data.error}`)
-      }
-    }
-  }, [fetcher.data])
 
   // Start recording
   const startRecording = () => {
