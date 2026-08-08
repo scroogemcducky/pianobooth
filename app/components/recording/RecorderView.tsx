@@ -647,7 +647,7 @@ export default function RecorderView({ recordingPreset = DESKTOP_RECORDING_PRESE
   const updateMidiState = (data: MidiNote[], meta?: Partial<MidiMeta>) => {
     if (!data || !Array.isArray(data) || data.length === 0) return
     setMidiObject(data)
-    const layout = computePianoLayout(data)
+    const layout = computePianoLayout(data, recordingPreset.layoutOptions)
     setPianoLayout(layout ?? DEFAULT_PIANO_LAYOUT)
     if (meta?.title || meta?.artist) {
       setTitle(meta.title ?? 'Untitled')

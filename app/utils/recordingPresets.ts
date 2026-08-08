@@ -26,6 +26,8 @@ export type RecordingPreset = {
   }
   /** Desktop overlays a title card; mobile does not. */
   showTitle: boolean
+  /** Passed to computePianoLayout; mobile drops the padding octave. */
+  layoutOptions?: { paddingNotes?: number; minOctaves?: number }
   particles: {
     zoomAdaptive: boolean
     motionScaleMultiplier?: number
@@ -47,5 +49,6 @@ export const MOBILE_RECORDING_PRESET: RecordingPreset = {
     fallbackStorageKey: 'fallDuration',
   },
   showTitle: false,
+  layoutOptions: { paddingNotes: 0 },
   particles: { zoomAdaptive: true, motionScaleMultiplier: 2 },
 }
