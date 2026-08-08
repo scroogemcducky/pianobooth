@@ -14,7 +14,8 @@ import SelectiveBloom from '../components/recording/SelectiveBloom'
 import * as THREE from 'three'
 import soundFont, { Player } from 'soundfont-player'
 import { computePianoLayout, DEFAULT_PIANO_LAYOUT, type PianoLayout } from '../utils/pianoLayout'
-import { FALL_DURATION_SECONDS, setFallDuration } from '../utils/recordingConstants'
+import { setFallDuration } from '../utils/recordingConstants'
+import { DESKTOP_RECORDING_PRESET, type RecordingPreset } from '../utils/recordingPresets'
 import { COLOR_PRESETS, parseColorPresetIndex } from '../utils/colorPresets'
 import useParticleSettingsStore from '../store/particleSettingsStore'
 import { BLOOM_DEFAULTS, BLOOM_STORAGE_KEY } from '../utils/bloomDefaults'
@@ -341,26 +342,22 @@ function DeterministicRecorder({
   return null
 }
 
-// Server action to process frames and generate video with optional audio
-
-export default function Record() {
-  // Read fall duration from localStorage or use default
-  const initialFallDuration = (() => {
+export default function Record({ recordingPreset = DESKTOP_RECORDING_PRESET }: { recordingPreset?: RecordingPreset } = {}) {
+  // The render scripts inject the fall duration through localStorage before load;
+  // the preset default only applies when the page is opened by hand.
+  const [initialFallDuration] = useState(() => {
     if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('fallDuration')
-      console.log('🔍 localStorage.fallDuration:', stored)
-      if (stored) {
-        const duration = parseFloat(stored)
-        console.log('🔍 Parsed fall duration:', duration)
-        if (!isNaN(duration) && duration > 0) {
-          console.log(`✅ Using fall duration from localStorage: ${duration} seconds`)
-          return duration
+      const keys = [recordingPreset.fallDuration.storageKey, recordingPreset.fallDuration.fallbackStorageKey].filter(Boolean) as string[]
+      for (const key of keys) {
+        const stored = localStorage.getItem(key)
+        if (stored) {
+          const duration = parseFloat(stored)
+          if (!isNaN(duration) && duration > 0) return duration
         }
       }
     }
-    console.log(`⚠️ Using default fall duration: ${FALL_DURATION_SECONDS} seconds`)
-    return FALL_DURATION_SECONDS
-  })()
+    return recordingPreset.fallDuration.default
+  })
   
   // Local state for fall duration (lookahead time)
   const [fallDuration] = useState(initialFallDuration)
@@ -728,11 +725,7 @@ export default function Record() {
 
   const midiFrameCount = midiObject ? calculateTotalFrames(midiObject, fallDuration) : 0
   const totalFrames = midiFrameCount + NOTE_START_DELAY_FRAMES
-  const keyboardScaleOptions = {
-    multiplier: 1.2,
-    fillRatio: 0.95,
-    max: 1.5,
-  }
+  const keyboardScaleOptions = recordingPreset.keyboardScale
 
   // Generate audio from MIDI using soundfont
   const generateAudioFromMIDI = async (): Promise<Blob | null> => {
@@ -1240,12 +1233,14 @@ export default function Record() {
           position={[directionalX, directionalY, directionalZ]} 
           intensity={directionalIntensity}
         />
-        <FrameBasedTitle
-          ref={titleRef}
-          title={title}
-          artist={artist}
-          fps={FPS}
-        />
+        {recordingPreset.showTitle && (
+          <FrameBasedTitle
+            ref={titleRef}
+            title={title}
+            artist={artist}
+            fps={FPS}
+          />
+        )}
 
         <RecordKeys
           layout={pianoLayout}
@@ -1274,6 +1269,8 @@ export default function Record() {
             blackKeyColor={blackKeyColor}
             whiteKeyColor={whiteKeyColor}
             settings={particleSettings}
+            zoomAdaptive={recordingPreset.particles.zoomAdaptive}
+            motionScaleMultiplier={recordingPreset.particles.motionScaleMultiplier}
           />
         )}
 
